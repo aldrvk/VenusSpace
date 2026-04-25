@@ -6,10 +6,10 @@ import type React from "react";
 createInertiaApp({
     resolve: (name: string) => {
         const pages = import.meta.glob<{ default: React.ComponentType }>(
-            "./pages/**/*.tsx",
+            "./Pages/**/*.tsx",
             { eager: true },
         );
-        return pages[`./pages/${name}.tsx`]!;
+        return pages[`./Pages/${name}.tsx`]!;
     },
     setup({ el, App, props }) {
         createRoot(el).render(<App {...props} />);

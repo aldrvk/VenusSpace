@@ -1,11 +1,141 @@
-@import 'tailwindcss';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
-@source '../**/*.blade.php';
-@source '../**/*.js';
+@layer base {
+  :root {
+    /* --- LIGHT MODE (Venus Hub Digital Palette) --- */
+    /* Page Background: #F7FAFB */
+    --background: 195 33% 98%;    
+    /* Dark / Primary Text: #2D3132 */
+    --foreground: 192 5% 19%;     
+    
+    /* Card Background: #F1F4F5 */
+    --card: 195 14% 95%;          
+    --card-foreground: 192 5% 19%;
+    
+    /* Surface / Border: #E4E9EB */
+    --surface: 197 15% 91%;       
+    
+    /* Primary (Brand): #3ADCCC */
+    --primary: 174 70% 55%;       
+    --primary-foreground: 195 10% 10%; /* Super Black */
+    
+    /* Secondary (Action): #00696B */
+    --secondary: 181 100% 21%;    
+    --secondary-foreground: 0 0% 100%;
+    
+    /* Tertiary (Accent): #56F5F8 */
+    --tertiary: 181 91% 65%;      
+    --tertiary-foreground: 181 100% 21%;
 
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    /* Super Black (Deep Contrast): #1A1D1E */
+    --super-black: 195 10% 11%;   
+    
+    --border: 197 15% 91%;        
+    --radius: 16px;               
+  }
+
+  .dark {
+    /* --- DARK MODE (Inversi Strategis) --- */
+    --background: 195 10% 10%;    
+    --foreground: 195 14% 95%;    
+    
+    --card: 192 5% 19%;           
+    --card-foreground: 195 33% 98%;
+    
+    --surface: 192 5% 25%;
+    
+    --primary: 174 70% 55%;       
+    --primary-foreground: 195 10% 10%;
+    
+    /* Di Dark Mode, Secondary beralih ke warna yang lebih cerah agar tetap kontras */
+    --secondary: 181 91% 65%;     
+    --secondary-foreground: 181 100% 21%;
+    
+    --border: 192 5% 25%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+}
+
+@layer components {
+  /* --- MASTER HEADINGS --- */
+  .text-h1 { 
+    @apply font-heading text-super-black; 
+    font-size: theme('fontSize.h1[0]');
+    line-height: theme('fontSize.h1[1].lineHeight');
+    letter-spacing: theme('fontSize.h1[1].letterSpacing');
+    font-weight: theme('fontSize.h1[1].fontWeight');
+  }
+  
+  .text-h2 { 
+    @apply font-heading text-super-black; 
+    font-size: theme('fontSize.h2[0]');
+    line-height: theme('fontSize.h2[1].lineHeight');
+    letter-spacing: theme('fontSize.h2[1].letterSpacing');
+    font-weight: theme('fontSize.h2[1].fontWeight');
+  }
+  
+  .text-h3 { 
+    @apply font-heading text-foreground; 
+    font-size: theme('fontSize.h3[0]');
+    line-height: theme('fontSize.h3[1].lineHeight');
+    letter-spacing: theme('fontSize.h3[1].letterSpacing');
+    font-weight: theme('fontSize.h3[1].fontWeight');
+  }
+  
+  .text-h4 { 
+    @apply font-heading text-foreground; 
+    font-size: theme('fontSize.h4[0]');
+    line-height: theme('fontSize.h4[1].lineHeight');
+    letter-spacing: theme('fontSize.h4[1].letterSpacing');
+    font-weight: theme('fontSize.h4[1].fontWeight');
+  }
+
+  /* --- CARD TITLE --- */
+  .text-card-title {
+    @apply font-heading text-super-black;
+    font-size: theme('fontSize.cardTitle[0]');
+    line-height: theme('fontSize.cardTitle[1].lineHeight');
+    font-weight: theme('fontSize.cardTitle[1].fontWeight');
+  }
+
+  /* --- BODY TEXT --- */
+  .text-body-l {
+    @apply font-sans text-foreground;
+    font-size: theme('fontSize.bodyL[0]');
+    line-height: theme('fontSize.bodyL[1].lineHeight');
+    font-weight: theme('fontSize.bodyL[1].fontWeight');
+  }
+
+  .text-body-m {
+    @apply font-sans text-foreground/90;
+    font-size: theme('fontSize.bodyM[0]');
+    line-height: theme('fontSize.bodyM[1].lineHeight');
+    font-weight: theme('fontSize.bodyM[1].fontWeight');
+  }
+
+  .text-body-reg {
+    @apply font-sans text-foreground/80;
+    font-size: theme('fontSize.body[0]'); 
+    line-height: theme('fontSize.body[1].lineHeight');
+    font-weight: theme('fontSize.body[1].fontWeight');
+  }
+
+  /* --- LABELS --- */
+  .text-label-sm {
+    @apply font-sans text-foreground/60 uppercase;
+    font-size: theme('fontSize.labelSm[0]');
+    line-height: theme('fontSize.labelSm[1].lineHeight');
+    letter-spacing: theme('fontSize.labelSm[1].letterSpacing');
+    font-weight: theme('fontSize.labelSm[1].fontWeight');
+  }
 }
