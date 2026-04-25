@@ -28,7 +28,7 @@ export default function ButtonInitiate({
                 px-8 py-3 rounded-full /* Pill-shaped tetap dipertahankan untuk tombol aksi */
                 
                 /* Menggunakan Typography Label dari Design System */
-                text-btn tracking-wide
+                text-body-m
                 
                 /* Efek Interaksi */
                 transition-all duration-300 
