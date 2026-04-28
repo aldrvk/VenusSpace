@@ -1,12 +1,21 @@
+import { useState } from 'react';
 import Navbar from '../Components/Navbar';
 import { Head } from '@inertiajs/react';
 
+import Login from './auth/Login';
+import Register from './auth/Register';
+import ForgotPassword from './auth/ForgotPassword';
+
+type AuthModalType = 'login' | 'register' | 'forgot-password' | null;
+
 export default function LandingPage() {
+    const [authModal, setAuthModal] = useState<AuthModalType>(null);
+
     return (
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-background relative">
             <Head title="Venus Hub - Smart Management System" />
             
-            <Navbar />
+            <Navbar onOpenAuthModal={(type) => setAuthModal(type)} />
 
             {/* HERO SECTION */}
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
@@ -30,6 +39,23 @@ export default function LandingPage() {
                     </div>
                 </div>
             </main>
+
+            {/* Auth Modals */}
+            <Login 
+                isOpen={authModal === 'login'} 
+                onClose={() => setAuthModal(null)} 
+                onSwitch={(type) => setAuthModal(type)} 
+            />
+            <Register 
+                isOpen={authModal === 'register'} 
+                onClose={() => setAuthModal(null)} 
+                onSwitch={(type) => setAuthModal(type)} 
+            />
+            <ForgotPassword 
+                isOpen={authModal === 'forgot-password'} 
+                onClose={() => setAuthModal(null)} 
+                onSwitch={(type) => setAuthModal(type)} 
+            />
         </div>
     );
 }
