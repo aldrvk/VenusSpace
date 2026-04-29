@@ -1,6 +1,6 @@
 import { Link, usePage } from "@inertiajs/react";
 import ButtonInitiate from "./Buttons/ButtonInitiate";
-// import ButtonLogout from "./Buttons/ButtonLogout"; // File tidak terdeteksi di folder Buttons
+import ButtonLogout from "./Buttons/ButtonLogout";
 
 interface NavbarProps {
     onOpenAuthModal?: (type: "login" | "register") => void;
@@ -40,7 +40,7 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps = {}) {
                             <Link
                                 key={item.name}
                                 href={item.href}
-                                className={`text-body-m transition-colors relative pb-1 ${
+                                className={`text-body-m transition-colors relative ${
                                     item.active ? 'text-primary font-semibold' : 'text-foreground hover:text-primary'
                                 }`}
                             >
@@ -60,7 +60,7 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps = {}) {
                                     href="/dashboard"
                                     className="text-body-m font-semibold mr-4 hover:text-primary transition-colors hidden sm:block"
                                 >
-                                    Dashboard ({auth.user.name})
+                                    {auth.user.name}
                                 </Link>
                                 
                                 {/* Fallback Logout menggunakan Link bawaan Inertia */}

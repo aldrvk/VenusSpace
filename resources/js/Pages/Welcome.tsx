@@ -9,9 +9,9 @@ import Navbar from '../Components/Navbar';
 
 // TODO: File auth milik Leondo tidak terdeteksi di folder Pages. 
 // Import dinonaktifkan sementara agar tidak crash.
-// import Login from './auth/Login';
-// import Register from './auth/Register';
-// import ForgotPassword from './auth/ForgotPassword';
+import Login from './auth/Login';
+import Register from './auth/Register';
+import ForgotPassword from './auth/ForgotPassword';
 
 type AuthModalType = 'login' | 'register' | 'forgot-password' | null;
 
@@ -36,8 +36,8 @@ export default function LandingPage() {
             {/* FOOTER */}
             <Footer />
 
-            {/* TODO: Render modal dinonaktifkan sementara sampai file auth tersedia */}
-            {/* <Login 
+            {/* TODO: Render modal dinonaktifkan sementara sampai file auth tersedia */} */
+            <Login 
                 isOpen={authModal === 'login'} 
                 onClose={() => setAuthModal(null)} 
                 onSwitch={(type) => setAuthModal(type)} 
@@ -52,7 +52,7 @@ export default function LandingPage() {
                 onClose={() => setAuthModal(null)} 
                 onSwitch={(type) => setAuthModal(type)} 
             /> 
-            */}
+           
         </div>
     );
 }
