@@ -1,6 +1,6 @@
 import { Link, usePage } from "@inertiajs/react";
 import ButtonInitiate from "./Buttons/ButtonInitiate";
-import ButtonLogout from "./Buttons/ButtonLogout";
+// import ButtonLogout from "./Buttons/ButtonLogout"; // File tidak terdeteksi di folder Buttons
 
 interface NavbarProps {
     onOpenAuthModal?: (type: "login" | "register") => void;
@@ -9,16 +9,24 @@ interface NavbarProps {
 export default function Navbar({ onOpenAuthModal }: NavbarProps = {}) {
     const { auth } = usePage<any>().props;
 
+    const navItems = [
+        { name: 'Home', href: '/', active: true },
+        { name: 'Doorsmeer', href: '#', active: false },
+        { name: 'Coffee Shop', href: '#', active: false },
+        { name: 'Vape Store', href: '#', active: false },
+        { name: 'Bengkel', href: '#', active: false },
+        { name: 'Rental PS', href: '#', active: false },
+        { name: 'Contact', href: '#', active: false },
+    ];
+
     return (
         <nav className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-20">
-                    {/* LOGO: Menggunakan Hierarki H3 atau Card Title */}
+                    
+                    {/* LOGO */}
                     <div className="flex-shrink-0 flex items-center">
-                        <Link
-                            href="/"
-                            className="text-card-title text-primary tracking-tighter"
-                        >
+                        <Link href="/" className="text-card-title text-primary tracking-tighter">
                             VENUS
                             <span className="text-super-black dark:text-foreground">
                                 HUB
@@ -26,48 +34,44 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps = {}) {
                         </Link>
                     </div>
 
-                    {/* NAV LINKS: Menggunakan Body Medium agar bersih */}
-                    <div className="hidden md:flex space-x-10">
-                        <Link
-                            href="#"
-                            className="text-body-m hover:text-primary transition-colors"
-                        >
-                            Beranda
-                        </Link>
-                        <Link
-                            href="#"
-                            className="text-body-m hover:text-primary transition-colors"
-                        >
-                            Layanan
-                        </Link>
-                        <Link
-                            href="#"
-                            className="text-body-m hover:text-primary transition-colors"
-                        >
-                            Tentang Kami
-                        </Link>
-                        <Link
-                            href="#"
-                            className="text-body-m hover:text-primary transition-colors"
-                        >
-                            Kontak
-                        </Link>
+                    {/* NAV LINKS */}
+                    <div className="hidden md:flex space-x-6 lg:space-x-8">
+                        {navItems.map((item) => (
+                            <Link
+                                key={item.name}
+                                href={item.href}
+                                className={`text-body-m transition-colors relative pb-1 ${
+                                    item.active ? 'text-primary font-semibold' : 'text-foreground hover:text-primary'
+                                }`}
+                            >
+                                {item.name}
+                                {item.active && (
+                                    <span className="absolute bottom-0 left-0 w-full h-[2px] bg-primary rounded-full" />
+                                )}
+                            </Link>
+                        ))}
                     </div>
 
-                    {/* CTA: Hubungkan ke halaman Login dan Register */}
+                    {/* CTA & AUTH LOGIC */}
                     <div className="flex items-center space-x-4">
                         {auth?.user ? (
                             <>
                                 <Link
                                     href="/dashboard"
-                                    className="text-body-m font-semibold mr-4 hover:text-primary transition-colors"
+                                    className="text-body-m font-semibold mr-4 hover:text-primary transition-colors hidden sm:block"
                                 >
-                                    Beranda Dashboard ({auth.user.name})
+                                    Dashboard ({auth.user.name})
                                 </Link>
-                                <ButtonLogout
-                                    variant="danger"
-                                    className="scale-90"
-                                />
+                                
+                                {/* Fallback Logout menggunakan Link bawaan Inertia */}
+                                <Link 
+                                    href="/logout" 
+                                    method="post" 
+                                    as="button"
+                                    className="text-red-500 hover:text-red-700 text-body-m font-semibold"
+                                >
+                                    Logout
+                                </Link>
                             </>
                         ) : onOpenAuthModal ? (
                             <>
@@ -107,6 +111,7 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps = {}) {
                             </>
                         )}
                     </div>
+                    
                 </div>
             </div>
         </nav>
