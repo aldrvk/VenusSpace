@@ -8,12 +8,14 @@ interface NavbarProps {
 
 export default function Navbar({ onOpenAuthModal }: NavbarProps = {}) {
     const { auth } = usePage<any>().props;
+    const { url } = usePage();
+    const isVapeStore = url.startsWith('/vape-store');
 
     const navItems = [
-        { name: 'Home', href: '/', active: true },
+        { name: 'Home', href: '/', active: url === '/' },
         { name: 'Doorsmeer', href: '#', active: false },
         { name: 'Coffee Shop', href: '#', active: false },
-        { name: 'Vape Store', href: '#', active: false },
+        { name: 'Vape Store', href: '/vape-store', active: isVapeStore },
         { name: 'Bengkel', href: '#', active: false },
         { name: 'Rental PS', href: '#', active: false },
         { name: 'Contact', href: '#', active: false },
@@ -54,6 +56,24 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps = {}) {
 
                     {/* CTA & AUTH LOGIC */}
                     <div className="flex items-center space-x-4">
+                        {isVapeStore && (
+                            <div className="flex items-center gap-6 mr-2 md:mr-6 text-foreground">
+                                <button aria-label="Search" className="hover:text-primary transition-colors">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <circle cx="11" cy="11" r="8"></circle>
+                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                    </svg>
+                                </button>
+                                <button aria-label="Cart" className="relative hover:text-primary transition-colors">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <circle cx="9" cy="21" r="1"></circle>
+                                        <circle cx="20" cy="21" r="1"></circle>
+                                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                                    </svg>
+                                    <span className="absolute -top-1 -right-2 w-3 h-3 bg-primary rounded-full"></span>
+                                </button>
+                            </div>
+                        )}
                         {auth?.user ? (
                             <>
                                 <Link

@@ -11,6 +11,22 @@ Route::get('/', function () {
     return Inertia::render('Welcome');
 });
 
+Route::get('/vape-store', function () {
+    return Inertia::render('VapeStore/all_items');
+})->name('vape.all');
+
+Route::get('/vape-store/devices', function () {
+    return Inertia::render('VapeStore/devices');
+})->name('vape.devices');
+
+Route::get('/vape-store/liquids', function () {
+    return Inertia::render('VapeStore/liquids');
+})->name('vape.liquids');
+
+Route::get('/vape-store/accessories', function () {
+    return Inertia::render('VapeStore/accessories');
+})->name('vape.accessories');
+
 // ── Auth: Guest only (belum login) ────────────────────────────────────────────
 Route::middleware('guest')->group(function () {
 
