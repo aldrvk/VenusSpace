@@ -1,10 +1,13 @@
 import React from 'react';
 import { Head, Link } from '@inertiajs/react';
 import Navbar from '../../Components/Navbar';
+import Footer from '../../Components/Footer';
+import CategoryTabs from '../../Components/CategoryTabs';
+import SearchBar from '../../Components/SearchBar';
 
 // Importing images
 import xmaxImg from '../../../images/Vape Store/xmax v3 pro.jpg';
-import arcticImg from '../../../images/Vape Store/arctic menthol.png';
+import arcticImg from '../../../images/Vape Store/arctic menthol.jpg';
 import blueberryImg from '../../../images/Vape Store/blueberry ice.jpg';
 import nitecoreImg from '../../../images/Vape Store/nitecore battery.png';
 import apexImg from '../../../images/Vape Store/apex titanium.jpg';
@@ -27,12 +30,6 @@ const ShieldIcon = () => (
 );
 
 export default function AllItems() {
-    const categories = [
-        { name: 'All Items', href: '/vape-store', active: true },
-        { name: 'Devices', href: '/vape-store/devices', active: false },
-        { name: 'Liquids', href: '/vape-store/liquids', active: false },
-        { name: 'Accessories', href: '/vape-store/accessories', active: false }
-    ];
 
     const products = [
         {
@@ -109,61 +106,35 @@ export default function AllItems() {
                                 Discover a handpicked selection of premium devices and artisanal e-liquids designed for the discerning enthusiast.
                             </p>
                         </div>
-                        
-                        <div className="w-full md:w-80 relative">
-                            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-foreground opacity-50" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <circle cx="11" cy="11" r="8"></circle>
-                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                </svg>
-                            </div>
-                            <input 
-                                type="text" 
-                                placeholder="Search product" 
-                                className="w-full bg-surface border border-border rounded-venus py-3 pl-12 pr-4 text-body-reg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                            />
-                        </div>
+
+                        <SearchBar />
                     </div>
                 </div>
 
                 {/* Categories */}
-                <div className="flex flex-wrap items-center gap-3 mb-10">
-                    {categories.map((category) => (
-                        <Link 
-                            key={category.name}
-                            href={category.href}
-                            className={`px-6 py-2 rounded-full text-btn transition-colors border border-border ${
-                                category.active 
-                                ? 'bg-primary text-primary-foreground border-primary' 
-                                : 'bg-surface text-foreground hover:bg-card'
-                            }`}
-                        >
-                            {category.name}
-                        </Link>
-                    ))}
-                </div>
+                <CategoryTabs activeCategory="all" />
 
                 {/* Product Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-24">
                     {products.map((product) => (
                         <div key={product.id} className="bg-card rounded-venus p-6 flex flex-col hover:shadow-lg transition-shadow border border-border">
                             <div className="bg-surface rounded-venus aspect-square mb-6 flex items-center justify-center overflow-hidden">
-                                <img 
-                                    src={product.image} 
-                                    alt={product.name} 
+                                <img
+                                    src={product.image}
+                                    alt={product.name}
                                     className="w-full h-full object-contain mix-blend-multiply"
                                 />
                             </div>
-                            
+
                             <div className="flex items-start justify-between mb-2">
                                 <h3 className="text-card-title text-super-black">{product.name}</h3>
                                 <span className="text-body-m text-primary">{product.price}</span>
                             </div>
-                            
+
                             <p className="text-body-reg text-foreground mb-6 flex-grow">
                                 {product.description}
                             </p>
-                            
+
                             <div className="flex items-center gap-2 text-primary mt-auto">
                                 {product.tagIcon}
                                 <span className="text-label-sm uppercase">{product.tag}</span>
@@ -172,52 +143,8 @@ export default function AllItems() {
                     ))}
                 </div>
 
-                {/* Footer Section Placeholder */}
-                <footer className="border-t border-border pt-16 pb-8">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
-                        <div className="col-span-1">
-                            <h3 className="text-h4 text-super-black mb-4">Venus</h3>
-                            <p className="text-body-reg text-foreground mb-4">
-                                The ultimate curation of lifestyle services for the modern professional.
-                            </p>
-                            <p className="text-label-sm text-foreground opacity-50 uppercase">© 2024 Venus Curator. All rights reserved.</p>
-                        </div>
-                        
-                        <div>
-                            <h4 className="text-label-sm text-primary mb-6 uppercase">Quick Links</h4>
-                            <ul className="space-y-3">
-                                <li><Link href="#" className="text-body-reg text-foreground hover:text-primary">Privacy Policy</Link></li>
-                                <li><Link href="#" className="text-body-reg text-foreground hover:text-primary">Terms of Service</Link></li>
-                            </ul>
-                        </div>
-                        
-                        <div>
-                            <h4 className="text-label-sm text-primary mb-6 uppercase">Support</h4>
-                            <ul className="space-y-3">
-                                <li><Link href="#" className="text-body-reg text-foreground hover:text-primary">Contact Us</Link></li>
-                                <li><Link href="#" className="text-body-reg text-foreground hover:text-primary">Location</Link></li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h4 className="text-label-sm text-primary mb-6 uppercase">Join the Newsletter</h4>
-                            <div className="flex items-center gap-2">
-                                <input 
-                                    type="email" 
-                                    placeholder="Email" 
-                                    className="bg-surface border border-border rounded-venus py-3 px-4 text-body-reg text-foreground flex-grow focus:outline-none focus:ring-2 focus:ring-primary"
-                                />
-                                <button className="bg-primary text-primary-foreground p-3 rounded-venus flex-shrink-0 hover:opacity-90 transition-opacity">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <line x1="22" y1="2" x2="11" y2="13"></line>
-                                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </footer>
             </main>
+            <Footer />
         </div>
     );
 }

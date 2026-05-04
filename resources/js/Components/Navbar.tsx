@@ -1,6 +1,6 @@
 import { Link, usePage } from "@inertiajs/react";
 import ButtonInitiate from "./Buttons/ButtonInitiate";
-import ButtonLogout from "./Buttons/ButtonLogout";
+import UserProfileDropdown from "./UserProfileDropdown";
 
 interface NavbarProps {
     onOpenAuthModal?: (type: "login" | "register") => void;
@@ -55,49 +55,27 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps = {}) {
                     </div>
 
                     {/* CTA & AUTH LOGIC */}
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-4 md:space-x-6">
+                        
+                        {/* Cart Icon - removed search icon, now directly next to the profile/auth section */}
                         {isVapeStore && (
-                            <div className="flex items-center gap-6 mr-2 md:mr-6 text-foreground">
-                                <button aria-label="Search" className="hover:text-primary transition-colors">
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <circle cx="11" cy="11" r="8"></circle>
-                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                    </svg>
-                                </button>
-                                <button aria-label="Cart" className="relative hover:text-primary transition-colors">
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <circle cx="9" cy="21" r="1"></circle>
-                                        <circle cx="20" cy="21" r="1"></circle>
-                                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-                                    </svg>
-                                    <span className="absolute -top-1 -right-2 w-3 h-3 bg-primary rounded-full"></span>
-                                </button>
-                            </div>
+                            <button aria-label="Cart" className="relative text-foreground hover:text-primary transition-colors flex items-center">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <circle cx="9" cy="21" r="1"></circle>
+                                    <circle cx="20" cy="21" r="1"></circle>
+                                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                                </svg>
+                                <span className="absolute -top-1 -right-2 w-3 h-3 bg-primary rounded-full border-2 border-background"></span>
+                            </button>
                         )}
+                        
                         {auth?.user ? (
-                            <>
-                                <Link
-                                    href="/dashboard"
-                                    className="text-body-m font-semibold mr-4 hover:text-primary transition-colors hidden sm:block"
-                                >
-                                    {auth.user.name}
-                                </Link>
-                                
-                                {/* Fallback Logout menggunakan Link bawaan Inertia */}
-                                <Link 
-                                    href="/logout" 
-                                    method="post" 
-                                    as="button"
-                                    className="text-red-500 hover:text-red-700 text-body-m font-semibold"
-                                >
-                                    Logout
-                                </Link>
-                            </>
+                            <UserProfileDropdown user={auth.user} />
                         ) : onOpenAuthModal ? (
                             <>
                                 <button
                                     onClick={() => onOpenAuthModal("login")}
-                                    className="text-body-m font-semibold mr-4 hover:text-primary transition-colors"
+                                    className="text-body-m font-semibold hover:text-primary transition-colors"
                                 >
                                     Masuk
                                 </button>
@@ -116,7 +94,7 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps = {}) {
                             <>
                                 <Link
                                     href="/login"
-                                    className="text-body-m font-semibold mr-4 hover:text-primary transition-colors"
+                                    className="text-body-m font-semibold hover:text-primary transition-colors"
                                 >
                                     Masuk
                                 </Link>

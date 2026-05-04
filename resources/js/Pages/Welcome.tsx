@@ -36,7 +36,7 @@ export default function LandingPage() {
             {/* FOOTER */}
             <Footer />
 
-            {/* TODO: Render modal dinonaktifkan sementara sampai file auth tersedia */} */
+            {/* TODO: Render modal dinonaktifkan sementara sampai file auth tersedia */} 
             <Login 
                 isOpen={authModal === 'login'} 
                 onClose={() => setAuthModal(null)} 
