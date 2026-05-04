@@ -36,7 +36,7 @@ export default function Devices() {
             id: 1,
             name: 'Apex Titanium',
             price: 'Rp400.000',
-            description: 'Aerospace-grade titanium chassis with the revolutionary Omni-Chip 4.0 for unmatched precision.',
+            description: 'Sasis titanium kelas kedirgantaraan dengan Omni-Chip 4.0 revolusioner untuk presisi yang tak tertandingi.',
             image: apexImg,
             tag: 'PREMIUM BUILD',
             tagIcon: <ShieldIcon />
@@ -45,7 +45,7 @@ export default function Devices() {
             id: 2,
             name: 'Nano Pod S II',
             price: 'Rp350.000',
-            description: 'The pinnacle of compact vaporization technology, offering a 12-hour battery life in a pocket-sized form factor with a leak-proof top-fill system.',
+            description: 'Puncak dari teknologi penguapan kompak, menawarkan daya tahan baterai 12 jam dalam bentuk yang seukuran saku dengan sistem pengisian atas yang anti bocor.',
             image: nanoImg,
             tag: 'PORTABLE POWER',
             tagIcon: <BatteryIcon />
@@ -54,7 +54,7 @@ export default function Devices() {
             id: 3,
             name: 'Drag Q Pod Kit',
             price: 'Rp350.000',
-            description: 'A versatile starter kit that balances aesthetic design with professional performance. Includes an adjustable airflow ring and a tactile leather grip.',
+            description: 'Kit pemula serbaguna yang menyeimbangkan desain estetika dengan performa profesional. Termasuk cincin pengatur aliran udara dan pegangan kulit yang nyaman.',
             image: dragImg,
             tag: 'TECH SPECS',
             tagIcon: <ChipIcon />
@@ -63,7 +63,7 @@ export default function Devices() {
             id: 4,
             name: 'VOOPOO Argus',
             price: 'Rp400.000',
-            description: 'Equipped with innovative honeycomb mesh coils that ensure a wider heating surface for rich and dense vapor production.',
+            description: 'Dilengkapi dengan kumparan jala sarang lebah inovatif yang memastikan permukaan pemanas lebih luas untuk produksi uap yang kaya dan padat.',
             image: argusImg,
             tag: 'PREMIUM GRADE',
             tagIcon: <ShieldIcon />
@@ -72,7 +72,7 @@ export default function Devices() {
             id: 5,
             name: 'Thelema Aura S',
             price: 'Rp200.000',
-            description: 'This high-performance pod system features an advanced chipset that ensures rapid firing and a consistent, rich flavor profile in every single puff.',
+            description: 'Sistem pod berperforma tinggi ini dilengkapi dengan chipset canggih yang memastikan pengaktifan cepat dan profil rasa yang konsisten dan kaya di setiap hisapan.',
             image: thelemaImg,
             tag: 'HIGH QUALITY',
             tagIcon: <StarIcon />
@@ -81,7 +81,7 @@ export default function Devices() {
             id: 6,
             name: 'Oxva Xlim Go 2',
             price: 'Rp180.000',
-            description: 'This versatile device supports a wide range of resistance levels, making it the perfect choice for both flavor seekers and cloud enthusiast.',
+            description: 'Perangkat serbaguna ini mendukung berbagai tingkat resistansi, menjadikannya pilihan sempurna bagi pencari rasa maupun penggemar uap tebal.',
             image: oxvaImg,
             tag: 'ADVANCED CHIP',
             tagIcon: <ChipIcon />
@@ -128,17 +128,19 @@ export default function Devices() {
 
                             <div className="flex items-start justify-between mb-2">
                                 <h3 className="text-card-title text-super-black">{product.name}</h3>
-                                <span className="text-body-m text-primary">{product.price}</span>
+                                <span className="text-body-m font-bold text-secondary">{product.price}</span>
                             </div>
 
                             <p className="text-body-reg text-foreground mb-6 flex-grow">
                                 {product.description}
                             </p>
 
-                            <div className="flex items-center gap-2 text-primary mt-auto">
-                                {product.tagIcon}
-                                <span className="text-label-sm uppercase">{product.tag}</span>
-                            </div>
+                            <Link href={`/vape-store/product/${product.id}`} className="mt-auto inline-flex items-center gap-1 text-secondary text-body-m font-bold self-start hover:text-secondary/80 hover:underline transition-all">
+                                Detail
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                            </Link>
                         </div>
                     ))}
                 </div>

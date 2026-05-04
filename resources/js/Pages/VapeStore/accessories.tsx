@@ -40,7 +40,7 @@ export default function Accessories() {
             id: 1,
             name: 'Nitecore Battery',
             price: 'Rp136.000',
-            description: 'A reliable high-performance battery designed to deliver stable power and long-lasting usage. Built with safety and efficiency in mind.',
+            description: 'Baterai andal berperforma tinggi yang dirancang untuk memberikan daya stabil dan penggunaan tahan lama. Dibuat dengan mengutamakan keamanan dan efisiensi.',
             image: nitecoreImg,
             tag: 'HIGH CAPACITY',
             tagIcon: <BatteryIcon />
@@ -49,7 +49,7 @@ export default function Accessories() {
             id: 2,
             name: 'Casan Type C',
             price: 'Rp40.000',
-            description: 'A versatile dual-slot charger equipped with Type-C input for faster and more convenient charging. Features smart power management.',
+            description: 'Pengisi daya dua slot serbaguna yang dilengkapi dengan input Type-C untuk pengisian daya yang lebih cepat dan nyaman. Dilengkapi dengan manajemen daya cerdas.',
             image: casanImg,
             tag: 'FAST CHARGING',
             tagIcon: <ZapIcon />
@@ -58,7 +58,7 @@ export default function Accessories() {
             id: 3,
             name: 'Cartridge',
             price: 'Rp40.000',
-            description: 'A compact and easy-to-use pod designed for smooth and consistent vapor production. Ideal for delivering clean flavor and user-friendly design.',
+            description: 'Pod yang ringkas dan mudah digunakan, dirancang untuk menghasilkan uap yang halus dan konsisten. Ideal untuk memberikan rasa yang bersih dan desain yang ramah pengguna.',
             image: cartridgeImg,
             tag: 'LEAK PROOF',
             tagIcon: <ShieldIcon />
@@ -67,7 +67,7 @@ export default function Accessories() {
             id: 4,
             name: 'Cotton Bacon',
             price: 'Rp50.000',
-            description: 'Premium quality cotton specially made for vaping, offering excellent absorption and clean flavor delivery.',
+            description: 'Kapas berkualitas premium yang dibuat khusus untuk vaping, menawarkan daya serap yang sangat baik dan penyampaian rasa yang bersih.',
             image: cottonImg,
             tag: 'PURE TASTE',
             tagIcon: <StarIcon />
@@ -76,7 +76,7 @@ export default function Accessories() {
             id: 5,
             name: 'Coil',
             price: 'Rp25.000',
-            description: 'Engineered for optimal heating and flavor production, this coil provides a balanced vaping experience.',
+            description: 'Dirancang untuk pemanasan dan produksi rasa yang optimal, koil ini memberikan pengalaman vaping yang seimbang.',
             image: coilImg,
             tag: 'OPTIMAL HEATING',
             tagIcon: <FlameIcon />
@@ -85,7 +85,7 @@ export default function Accessories() {
             id: 6,
             name: 'Vapeband',
             price: 'Rp2.500',
-            description: 'A practical accessory that protects your tank from minor impact and adds a touch of personal style.',
+            description: 'Aksesori praktis yang melindungi tangki Anda dari benturan ringan dan menambahkan sentuhan gaya pribadi.',
             image: vapebandImg,
             tag: 'PROTECTIVE GEAR',
             tagIcon: <ShieldIcon />
@@ -94,7 +94,7 @@ export default function Accessories() {
 
     return (
         <div className="min-h-screen bg-background">
-            <Head title="Vape Store - Accessories" />
+            <Head title="Vape Store - Perlengkapan" />
             <Navbar />
 
             <main className="max-w-7xl mx-auto px-6 py-12">
@@ -132,17 +132,19 @@ export default function Accessories() {
 
                             <div className="flex items-start justify-between mb-2">
                                 <h3 className="text-card-title text-super-black">{product.name}</h3>
-                                <span className="text-body-m text-primary">{product.price}</span>
+                                <span className="text-body-m font-bold text-secondary">{product.price}</span>
                             </div>
 
                             <p className="text-body-reg text-foreground mb-6 flex-grow">
                                 {product.description}
                             </p>
 
-                            <div className="flex items-center gap-2 text-primary mt-auto">
-                                {product.tagIcon}
-                                <span className="text-label-sm uppercase">{product.tag}</span>
-                            </div>
+                            <Link href={`/vape-store/product/${product.id}`} className="mt-auto inline-flex items-center gap-1 text-secondary text-body-m font-bold self-start hover:text-secondary/80 hover:underline transition-all">
+                                Detail
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                            </Link>
                         </div>
                     ))}
                 </div>

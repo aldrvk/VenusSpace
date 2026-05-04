@@ -42,8 +42,8 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps = {}) {
                             <Link
                                 key={item.name}
                                 href={item.href}
-                                className={`text-body-m transition-colors relative ${
-                                    item.active ? 'text-primary font-semibold' : 'text-foreground hover:text-primary'
+                                className={`text-bodyM transition-colors relative ${
+                                    item.active ? 'text-primary font-bold' : 'text-foreground hover:text-primary'
                                 }`}
                             >
                                 {item.name}
@@ -75,7 +75,7 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps = {}) {
                             <>
                                 <button
                                     onClick={() => onOpenAuthModal("login")}
-                                    className="text-body-m font-semibold hover:text-primary transition-colors"
+                                    className="text-bodyM font-bold hover:text-primary transition-colors"
                                 >
                                     Masuk
                                 </button>
@@ -94,7 +94,7 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps = {}) {
                             <>
                                 <Link
                                     href="/login"
-                                    className="text-body-m font-semibold hover:text-primary transition-colors"
+                                    className="text-bodyM font-bold hover:text-primary transition-colors"
                                 >
                                     Masuk
                                 </Link>

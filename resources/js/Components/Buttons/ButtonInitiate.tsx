@@ -15,9 +15,9 @@ export default function ButtonInitiate({
     
     const variants = {
         primary: 'bg-primary text-primary-foreground hover:opacity-90',
-        secondary: 'bg-secondary text-white hover:opacity-90', // White tetap putih untuk kontras tinggi
+        secondary: 'bg-secondary text-secondary-foreground hover:opacity-90',
         tertiary: 'bg-tertiary text-tertiary-foreground hover:opacity-90',
-        danger: 'bg-red-600 text-white hover:bg-red-700',
+        danger: 'bg-surface text-foreground border border-border hover:bg-error hover:text-error-foreground hover:border-error',
     };
 
     return (
@@ -28,7 +28,7 @@ export default function ButtonInitiate({
                 px-8 py-3 rounded-full /* Pill-shaped tetap dipertahankan untuk tombol aksi */
                 
                 /* Menggunakan Typography Label dari Design System */
-                text-body-m
+                text-bodyM font-bold
                 
                 /* Efek Interaksi */
                 transition-all duration-300 

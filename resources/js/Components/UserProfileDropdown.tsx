@@ -46,7 +46,7 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
                 aria-expanded={isOpen}
             >
                 {/* User Profile Avatar only (no username text) */}
-                <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm shadow-sm">
+                <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-labelSm font-bold shadow-sm">
                     {initials}
                 </div>
             </button>
@@ -56,15 +56,15 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
                 <div className="absolute right-0 mt-3 w-56 bg-surface border border-border rounded-venus shadow-lg py-2 z-50 transform origin-top-right transition-all">
                     {/* Header: User Full Name */}
                     <div className="px-4 py-3 border-b border-border mb-2">
-                        <p className="text-body-m font-bold text-super-black truncate">{user?.name}</p>
+                        <p className="text-bodyM font-bold text-super-black truncate">{user?.name}</p>
                         {user?.email && (
-                            <p className="text-label-sm text-foreground opacity-70 truncate mt-1">{user.email}</p>
+                            <p className="text-labelSm text-foreground opacity-70 truncate mt-1">{user.email}</p>
                         )}
                     </div>
                     
                     <Link 
                         href="/profile" 
-                        className="block px-4 py-2 text-body-reg text-foreground hover:bg-background hover:text-primary transition-colors"
+                        className="block px-4 py-2 text-body text-foreground hover:bg-background hover:text-primary transition-colors"
                         onClick={() => setIsOpen(false)}
                     >
                         Edit Profile
@@ -74,11 +74,11 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
                         href="/logout" 
                         method="post" 
                         as="button"
-                        className="w-full text-left flex items-center px-4 py-2 text-body-reg text-red-500 hover:bg-background hover:text-red-700 transition-colors mt-1"
+                        className="w-full text-left flex items-center px-4 py-2 text-body text-foreground hover:bg-background hover:text-error transition-colors mt-1"
                         onClick={() => setIsOpen(false)}
                     >
                         <ExitIcon />
-                        Exit
+                        Logout
                     </Link>
                 </div>
             )}

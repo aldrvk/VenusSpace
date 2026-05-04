@@ -36,7 +36,7 @@ export default function AllItems() {
             id: 1,
             name: 'XMax V3 Pro',
             price: 'Rp260.000',
-            description: 'This convection vaporizer features a rapid-heat up time and a clear OLED display that shows temperature and battery monitoring.',
+            description: 'Vaporizer konveksi ini memiliki waktu pemanasan yang cepat dan layar OLED yang jernih yang menampilkan suhu dan pemantauan baterai.',
             image: xmaxImg,
             tag: 'HIGH QUALITY',
             tagIcon: <StarIcon />
@@ -45,7 +45,7 @@ export default function AllItems() {
             id: 2,
             name: 'Arctic Menthol',
             price: 'Rp100.000',
-            description: 'A refreshing e-liquid crafted for smooth and consistent vapor production, delivering a crisp menthol sensation with balanced flavor intensity.',
+            description: 'Cairan vape yang menyegarkan, dirancang untuk menghasilkan uap yang halus dan konsisten, menghadirkan sensasi menthol yang segar dengan intensitas rasa yang seimbang.',
             image: arcticImg,
             tag: 'REFRESHING TASTE',
             tagIcon: <DropIcon />
@@ -54,7 +54,7 @@ export default function AllItems() {
             id: 3,
             name: 'Blueberry Ice',
             price: 'Rp100.000',
-            description: 'A flavorful blend combining sweet blueberry notes with a cooling finish, designed to provide a smooth throat hit with satisfying vapor output.',
+            description: 'Perpaduan rasa yang lezat, menggabungkan aroma blueberry manis dengan sensasi dingin di akhir, dirancang untuk memberikan sensasi lembut di tenggorokan dengan uap yang memuaskan.',
             image: blueberryImg,
             tag: 'SWEET FLAVOR',
             tagIcon: <StarIcon />
@@ -63,7 +63,7 @@ export default function AllItems() {
             id: 4,
             name: 'Nitecore Battery',
             price: 'Rp136.000',
-            description: 'A reliable high-performance battery designed to deliver stable power and long-lasting usage. Built with safety and efficiency in mind.',
+            description: 'Baterai andal berperforma tinggi yang dirancang untuk memberikan daya stabil dan penggunaan tahan lama. Dibuat dengan mengutamakan keamanan dan efisiensi.',
             image: nitecoreImg,
             tag: 'HIGH CAPACITY',
             tagIcon: <BatteryIcon />
@@ -72,7 +72,7 @@ export default function AllItems() {
             id: 5,
             name: 'Apex Titanium',
             price: 'Rp400.000',
-            description: 'Aerospace-grade titanium chassis with the revolutionary Omni-Chip 4.0 for unmatched precision.',
+            description: 'Sasis titanium kelas kedirgantaraan dengan Omni-Chip 4.0 revolusioner untuk presisi yang tak tertandingi.',
             image: apexImg,
             tag: 'PREMIUM BUILD',
             tagIcon: <ShieldIcon />
@@ -81,7 +81,7 @@ export default function AllItems() {
             id: 6,
             name: 'Nano Pod S II',
             price: 'Rp350.000',
-            description: 'The pinnacle of compact vaporization technology, offering a 12-hour battery life in a pocket-sized form factor with a leak-proof top-fill system.',
+            description: 'Puncak dari teknologi penguapan kompak, menawarkan daya tahan baterai 12 jam dalam bentuk yang seukuran saku dengan sistem pengisian atas yang anti bocor.',
             image: nanoImg,
             tag: 'PORTABLE POWER',
             tagIcon: <BatteryIcon />
@@ -90,7 +90,7 @@ export default function AllItems() {
 
     return (
         <div className="min-h-screen bg-background">
-            <Head title="Vape Store - All Items" />
+            <Head title="Vape Store - Terlaris" />
             <Navbar />
 
             <main className="max-w-7xl mx-auto px-6 py-12">
@@ -103,7 +103,7 @@ export default function AllItems() {
                                 Redefining the Art of <span className="text-primary">Vapor</span>
                             </h1>
                             <p className="text-body-l text-foreground">
-                                Discover a handpicked selection of premium devices and artisanal e-liquids designed for the discerning enthusiast.
+                                Temukan pilihan perangkat premium dan e-liquid buatan tangan yang dirancang khusus untuk para penggemar yang cerdas.
                             </p>
                         </div>
 
@@ -128,17 +128,19 @@ export default function AllItems() {
 
                             <div className="flex items-start justify-between mb-2">
                                 <h3 className="text-card-title text-super-black">{product.name}</h3>
-                                <span className="text-body-m text-primary">{product.price}</span>
+                                <span className="text-body-m font-bold text-secondary">{product.price}</span>
                             </div>
 
                             <p className="text-body-reg text-foreground mb-6 flex-grow">
                                 {product.description}
                             </p>
 
-                            <div className="flex items-center gap-2 text-primary mt-auto">
-                                {product.tagIcon}
-                                <span className="text-label-sm uppercase">{product.tag}</span>
-                            </div>
+                            <Link href={`/vape-store/product/${product.id}`} className="mt-auto inline-flex items-center gap-1 text-secondary text-body-m font-bold self-start hover:text-secondary/80 hover:underline transition-all">
+                                Detail
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                            </Link>
                         </div>
                     ))}
                 </div>

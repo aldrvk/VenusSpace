@@ -27,6 +27,10 @@ export default {
           DEFAULT: "hsl(var(--tertiary))",
           foreground: "hsl(var(--tertiary-foreground))",
         },
+        error: {
+          DEFAULT: "hsl(var(--error))",
+          foreground: "hsl(var(--error-foreground))",
+        },
         "super-black": "hsl(var(--super-black))",
         border: "hsl(var(--border))",
       },

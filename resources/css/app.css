@@ -29,6 +29,10 @@
     --tertiary: 181 91% 65%;      
     --tertiary-foreground: 181 100% 21%;
 
+    /* ERROR (Red): #93000A */
+    --error: 356 100% 29%;
+    --error-foreground: 0 0% 100%;
+
     /* Super Black (Deep Contrast): #1A1D1E */
     --super-black: 195 10% 11%;   
     

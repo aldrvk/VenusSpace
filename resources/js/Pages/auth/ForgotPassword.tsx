@@ -36,24 +36,24 @@ function checkStrength(pwd: string): StrengthResult {
 }
 
 const strengthConfig = {
-    empty: { label: "", bars: 0, color: "bg-gray-200", text: "" },
+    empty: { label: "", bars: 0, color: "bg-surface", text: "text-foreground" },
     weak: {
         label: "Lemah",
         bars: 1,
-        color: "bg-red-500",
-        text: "text-red-500",
+        color: "bg-error",
+        text: "text-error",
     },
     strong: {
         label: "Kuat",
         bars: 2,
-        color: "bg-yellow-400",
-        text: "text-yellow-500",
+        color: "bg-secondary",
+        text: "text-secondary",
     },
     "very-strong": {
         label: "Sangat Kuat",
         bars: 3,
-        color: "bg-[#3cdbc0]",
-        text: "text-[#2ba898]",
+        color: "bg-primary",
+        text: "text-primary",
     },
 };
 
@@ -89,11 +89,11 @@ const FloatingInput = ({
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}
             maxLength={maxLength}
-            className="block px-5 pb-3 pt-6 w-full text-bodyM font-sans text-gray-900 bg-white/50 rounded-xl border border-white/60 appearance-none focus:outline-none focus:ring-2 focus:ring-[#3cdbc0] focus:bg-white peer transition-all duration-300 shadow-sm"
+            className="block px-5 pb-3 pt-6 w-full text-body text-foreground bg-surface rounded-venus border border-border appearance-none focus:outline-none focus:ring-2 focus:ring-primary peer transition-all duration-300 shadow-sm"
         />
         <label
             htmlFor={id}
-            className="absolute text-labelSm font-sans text-[#065F51] duration-300 transform -translate-y-3 scale-85 top-4 z-10 origin-[0] left-5 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-85 peer-focus:-translate-y-3 peer-focus:text-[#3cdbc0]"
+            className="absolute text-labelSm text-primary duration-300 transform -translate-y-3 scale-85 top-4 z-10 origin-[0] left-5 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-85 peer-focus:-translate-y-3 peer-focus:text-primary"
         >
             {label}
         </label>
@@ -101,7 +101,7 @@ const FloatingInput = ({
             <button
                 type="button"
                 onClick={onToggleEye}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#3cdbc0] focus:outline-none transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-foreground hover:text-primary focus:outline-none transition-colors"
             >
                 {type === "text" ? (
                     <svg
@@ -260,59 +260,55 @@ export default function ForgotPassword({
             <Toaster 
                 position="top-center" 
                 toastOptions={{
-                    style: { borderRadius: '10px', background: '#333', color: '#fff' },
-                    success: { iconTheme: { primary: '#3cdbc0', secondary: '#fff' } }
+                    style: { borderRadius: '16px', background: 'hsl(var(--surface))', color: 'hsl(var(--foreground))' },
+                    success: { iconTheme: { primary: 'hsl(var(--primary))', secondary: 'hsl(var(--primary-foreground))' } },
+                    error: { iconTheme: { primary: 'hsl(var(--error))', secondary: 'hsl(var(--error-foreground))' } }
                 }} 
             />
 
             {/* Modal Overlay */}
             <div
-                className={`fixed inset-0 z-[100] flex items-center justify-center overflow-hidden bg-black/20 backdrop-blur-3xl font-sans p-3 sm:p-6 lg:p-8 transition-opacity duration-500 ${isLoaded ? "opacity-100" : "opacity-0"}`}
+                className={`fixed inset-0 z-[100] flex items-center justify-center overflow-hidden bg-super-black/20 backdrop-blur-3xl p-3 sm:p-6 lg:p-8 transition-opacity duration-500 ${isLoaded ? "opacity-100" : "opacity-0"}`}
                 onClick={onClose}
             >
                 {/* Dekorasi blob latar belakang */}
                 <div
-                    className={`absolute top-0 right-0 w-[300px] sm:w-[500px] h-[300px] sm:h-[500px] bg-[#40dfc0] rounded-full mix-blend-multiply filter blur-[80px] sm:blur-[100px] opacity-40 transition-transform duration-[2000ms] ${isLoaded ? "translate-x-0 translate-y-0" : "translate-x-20 -translate-y-20"}`}
+                    className={`absolute top-0 right-0 w-[300px] sm:w-[500px] h-[300px] sm:h-[500px] bg-primary rounded-full mix-blend-multiply filter blur-[80px] sm:blur-[100px] opacity-40 transition-transform duration-[2000ms] ${isLoaded ? "translate-x-0 translate-y-0" : "translate-x-20 -translate-y-20"}`}
                 />
                 <div
-                    className={`absolute bottom-0 left-0 w-[350px] sm:w-[600px] h-[350px] sm:h-[600px] bg-[#0b5c5a] rounded-full mix-blend-multiply filter blur-[90px] sm:blur-[120px] opacity-30 transition-transform duration-[2000ms] ${isLoaded ? "translate-x-0 translate-y-0" : "-translate-x-20 translate-y-20"}`}
+                    className={`absolute bottom-0 left-0 w-[350px] sm:w-[600px] h-[350px] sm:h-[600px] bg-secondary rounded-full mix-blend-multiply filter blur-[90px] sm:blur-[120px] opacity-30 transition-transform duration-[2000ms] ${isLoaded ? "translate-x-0 translate-y-0" : "-translate-x-20 translate-y-20"}`}
                 />
 
                 {/* Card Modal */}
                 <div
                     onClick={(e) => e.stopPropagation()}
-                    className={`relative flex flex-col w-full max-w-[480px] h-auto rounded-2xl sm:rounded-[2.5rem] overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.1)] lg:shadow-[0_30px_60px_rgba(0,0,0,0.12)] border border-white/60 backdrop-blur-3xl transition-all duration-1000 ease-out transform ${isLoaded ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-16 scale-95"}`}
-                    style={{
-                        background:
-                            "linear-gradient(135deg,rgba(255,255,255,.85) 0%,rgba(255,255,255,.4) 100%)",
-                    }}
+                    className={`relative flex flex-col w-full max-w-[480px] h-auto rounded-venus overflow-hidden shadow-2xl border border-border bg-background transition-all duration-1000 ease-out transform ${isLoaded ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-16 scale-95"}`}
                 >
                     {/* ── Banner Atas ── */}
-                    <div className="relative overflow-hidden rounded-t-2xl sm:rounded-t-[2.5rem]">
-                        <div className="absolute inset-0 bg-gradient-to-br from-[#40dfc0] to-[#0b5c5a]" />
-                        <div className="relative z-10 px-6 py-8 sm:px-10 sm:py-10 text-white">
-                            <p className="text-labelSm text-white/80 uppercase font-heading mb-1">Venus</p>
-                            <h1 className="text-h3 text-white font-heading">
+                    <div className="relative overflow-hidden rounded-t-venus bg-card border-b border-border">
+                        <div className="relative z-10 px-6 py-8 sm:px-10 sm:py-10">
+                            <p className="text-labelSm text-primary mb-1">Venus</p>
+                            <h1 className="text-h3 text-super-black">
                                 Ayo pergi ke Venus!
                             </h1>
-                            <p className="text-white/80 text-body font-sans mt-2">
+                            <p className="text-body text-foreground mt-2">
                                 Kami memiliki lima unit bisnis yang menarik.
                             </p>
                         </div>
                     </div>
 
                     {/* ── Form Bawah ── */}
-                    <div className="w-full flex flex-col bg-white/40 overflow-y-auto">
+                    <div className="w-full flex flex-col bg-background overflow-y-auto">
                         <div className="flex-1 flex items-start justify-center p-6 sm:p-10">
                             <div className="w-full py-2">
                                 <div className="mb-8">
                                     <h2
-                                        className={`text-[#065F51] text-h3 font-heading mb-2 transition-all duration-700 delay-300 ${isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+                                        className={`text-h3 text-super-black mb-2 transition-all duration-700 delay-300 ${isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
                                     >
                                         Lupa Kata Sandi?
                                     </h2>
                                     <p
-                                        className={`text-gray-600 text-body font-sans transition-all duration-700 delay-400 ${isLoaded ? "opacity-100" : "opacity-0"}`}
+                                        className={`text-body text-foreground opacity-70 transition-all duration-700 delay-400 ${isLoaded ? "opacity-100" : "opacity-0"}`}
                                     >
                                         {step === 1
                                             ? "Masukkan email yang terdaftar pada akun Anda untuk menerima kode reset (OTP)."
@@ -339,7 +335,7 @@ export default function ForgotPassword({
                                                 }
                                             />
                                             {errors.identifier && (
-                                                <p className="text-red-500 text-body font-sans mt-1 ml-1">
+                                                <p className="text-error text-bodyM mt-1 ml-1">
                                                     {errors.identifier}
                                                 </p>
                                             )}
@@ -348,7 +344,7 @@ export default function ForgotPassword({
                                         <button
                                             type="submit"
                                             disabled={processing}
-                                            className={`w-full bg-gradient-to-r from-[#3cdbc0] to-[#2ba898] hover:to-[#218c7e] text-white text-labelSm font-sans uppercase py-4 rounded-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-[0_10px_20px_-5px_rgba(60,219,192,0.5)] shadow-[0_4px_10px_-2px_rgba(60,219,192,0.3)] disabled:opacity-60 disabled:cursor-not-allowed delay-[600ms] ${isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+                                            className={`w-full bg-primary text-primary-foreground text-labelSm uppercase font-bold py-4 rounded-venus transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed delay-[600ms] ${isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
                                         >
                                             {processing
                                                 ? "Memproses..."
@@ -381,7 +377,7 @@ export default function ForgotPassword({
                                                 maxLength={6}
                                             />
                                             {errors.otp && (
-                                                <p className="text-red-500 text-body font-sans mt-1 ml-1">
+                                                <p className="text-error text-bodyM mt-1 ml-1">
                                                     {errors.otp}
                                                 </p>
                                             )}
@@ -408,7 +404,7 @@ export default function ForgotPassword({
                                                 }
                                             />
                                             {errors.password && (
-                                                <p className="text-red-500 text-body font-sans mt-1 ml-1">
+                                                <p className="text-error text-bodyM mt-1 ml-1">
                                                     {errors.password}
                                                 </p>
                                             )}
@@ -420,13 +416,13 @@ export default function ForgotPassword({
                                                             (bar) => (
                                                                 <div
                                                                     key={bar}
-                                                                    className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${cfg.bars >= bar ? cfg.color : "bg-gray-200"}`}
+                                                                    className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${cfg.bars >= bar ? cfg.color : "bg-surface"}`}
                                                                 />
                                                             ),
                                                         )}
                                                     </div>
                                                     <p
-                                                        className={`text-labelSm font-sans ${cfg.text}`}
+                                                        className={`text-labelSm ${cfg.text}`}
                                                     >
                                                         {cfg.label}
                                                     </p>
@@ -464,7 +460,7 @@ export default function ForgotPassword({
                                                                         key={
                                                                             key
                                                                         }
-                                                                        className={`flex items-center gap-1.5 text-body font-sans transition-colors ${ok ? "text-[#2ba898]" : "text-gray-400"}`}
+                                                                        className={`flex items-center gap-1.5 text-body transition-colors ${ok ? "text-primary" : "text-foreground opacity-50"}`}
                                                                     >
                                                                         <svg
                                                                             className="w-3.5 h-3.5 flex-shrink-0"
@@ -526,7 +522,7 @@ export default function ForgotPassword({
                                             {data.password_confirmation.length >
                                                 0 && (
                                                 <p
-                                                    className={`text-labelSm font-sans mt-1 ml-1 transition-colors ${data.password === data.password_confirmation ? "text-[#2ba898]" : "text-red-500"}`}
+                                                    className={`text-labelSm mt-1 ml-1 transition-colors ${data.password === data.password_confirmation ? "text-primary" : "text-foreground"}`}
                                                 >
                                                     {data.password ===
                                                     data.password_confirmation
@@ -542,7 +538,7 @@ export default function ForgotPassword({
                                             <button
                                                 type="submit"
                                                 disabled={processing}
-                                                className={`w-full bg-gradient-to-r from-[#3cdbc0] to-[#2ba898] hover:to-[#218c7e] text-white text-labelSm font-sans uppercase py-4 rounded-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-[0_10px_20px_-5px_rgba(60,219,192,0.5)] shadow-[0_4px_10px_-2px_rgba(60,219,192,0.3)] disabled:opacity-60 disabled:cursor-not-allowed`}
+                                                className={`w-full bg-primary text-primary-foreground text-labelSm uppercase font-bold py-4 rounded-venus transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed`}
                                             >
                                                 {processing
                                                     ? "Memproses..."
@@ -553,20 +549,20 @@ export default function ForgotPassword({
                                 )}
 
                                 <div
-                                    className={`mt-8 text-center text-body font-sans text-[#4b5563] transition-all duration-700 delay-[900ms] ${isLoaded ? "opacity-100" : "opacity-0"}`}
+                                    className={`mt-8 text-center text-body text-foreground transition-all duration-700 delay-[900ms] ${isLoaded ? "opacity-100" : "opacity-0"}`}
                                 >
                                     {onSwitch ? (
                                         <button
                                             type="button"
                                             onClick={() => onSwitch("login")}
-                                            className="text-[#2ba898] font-bold hover:text-[#1c786c] transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-[#2ba898] after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-left"
+                                            className="text-primary hover:opacity-80 transition-opacity font-bold"
                                         >
                                             Kembali ke halaman Masuk
                                         </button>
                                     ) : (
                                         <Link
                                             href="/login"
-                                            className="text-[#2ba898] font-bold hover:text-[#1c786c] transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-[#2ba898] after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-left"
+                                            className="text-primary hover:opacity-80 transition-opacity font-bold"
                                         >
                                             Kembali ke halaman Masuk
                                         </Link>

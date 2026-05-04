@@ -7,10 +7,10 @@ interface CategoryTabsProps {
 
 export default function CategoryTabs({ activeCategory }: CategoryTabsProps) {
     const categories = [
-        { id: 'all', name: 'All Items', href: '/vape-store' },
+        { id: 'all', name: 'Terlaris', href: '/vape-store' },
         { id: 'devices', name: 'Devices', href: '/vape-store/devices' },
         { id: 'liquids', name: 'Liquids', href: '/vape-store/liquids' },
-        { id: 'accessories', name: 'Accessories', href: '/vape-store/accessories' }
+        { id: 'accessories', name: 'Perlengkapan', href: '/vape-store/accessories' }
     ];
 
     return (

@@ -128,17 +128,19 @@ export default function Liquids() {
 
                             <div className="flex items-start justify-between mb-2">
                                 <h3 className="text-card-title text-super-black">{product.name}</h3>
-                                <span className="text-body-m text-primary">{product.price}</span>
+                                <span className="text-body-m font-bold text-secondary">{product.price}</span>
                             </div>
 
                             <p className="text-body-reg text-foreground mb-6 flex-grow">
                                 {product.description}
                             </p>
 
-                            <div className="flex items-center gap-2 text-primary mt-auto">
-                                {product.tagIcon}
-                                <span className="text-label-sm uppercase">{product.tag}</span>
-                            </div>
+                            <Link href={`/vape-store/product/${product.id}`} className="mt-auto inline-flex items-center gap-1 text-secondary text-body-m font-bold self-start hover:text-secondary/80 hover:underline transition-all">
+                                Detail
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                            </Link>
                         </div>
                     ))}
                 </div>
