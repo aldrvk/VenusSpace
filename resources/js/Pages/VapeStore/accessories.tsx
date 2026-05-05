@@ -37,7 +37,7 @@ export default function Accessories() {
 
     const products = [
         {
-            id: 1,
+            id: 201,
             name: 'Nitecore Battery',
             price: 'Rp136.000',
             description: 'Baterai andal berperforma tinggi yang dirancang untuk memberikan daya stabil dan penggunaan tahan lama. Dibuat dengan mengutamakan keamanan dan efisiensi.',
@@ -46,7 +46,7 @@ export default function Accessories() {
             tagIcon: <BatteryIcon />
         },
         {
-            id: 2,
+            id: 202,
             name: 'Casan Type C',
             price: 'Rp40.000',
             description: 'Pengisi daya dua slot serbaguna yang dilengkapi dengan input Type-C untuk pengisian daya yang lebih cepat dan nyaman. Dilengkapi dengan manajemen daya cerdas.',
@@ -55,7 +55,7 @@ export default function Accessories() {
             tagIcon: <ZapIcon />
         },
         {
-            id: 3,
+            id: 203,
             name: 'Cartridge',
             price: 'Rp40.000',
             description: 'Pod yang ringkas dan mudah digunakan, dirancang untuk menghasilkan uap yang halus dan konsisten. Ideal untuk memberikan rasa yang bersih dan desain yang ramah pengguna.',
@@ -64,7 +64,7 @@ export default function Accessories() {
             tagIcon: <ShieldIcon />
         },
         {
-            id: 4,
+            id: 204,
             name: 'Cotton Bacon',
             price: 'Rp50.000',
             description: 'Kapas berkualitas premium yang dibuat khusus untuk vaping, menawarkan daya serap yang sangat baik dan penyampaian rasa yang bersih.',
@@ -73,7 +73,7 @@ export default function Accessories() {
             tagIcon: <StarIcon />
         },
         {
-            id: 5,
+            id: 205,
             name: 'Coil',
             price: 'Rp25.000',
             description: 'Dirancang untuk pemanasan dan produksi rasa yang optimal, koil ini memberikan pengalaman vaping yang seimbang.',
@@ -82,7 +82,7 @@ export default function Accessories() {
             tagIcon: <FlameIcon />
         },
         {
-            id: 6,
+            id: 206,
             name: 'Vapeband',
             price: 'Rp2.500',
             description: 'Aksesori praktis yang melindungi tangki Anda dari benturan ringan dan menambahkan sentuhan gaya pribadi.',

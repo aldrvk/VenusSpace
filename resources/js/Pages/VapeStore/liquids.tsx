@@ -33,7 +33,7 @@ export default function Liquids() {
 
     const products = [
         {
-            id: 1,
+            id: 101,
             name: 'Blackcurrant Tea',
             price: 'Rp110.000',
             description: 'A smooth fusion of rich blackcurrant and subtle tea notes, delivering a refreshing yet slightly tangy inhale.',
@@ -42,7 +42,7 @@ export default function Liquids() {
             tagIcon: <DropIcon />
         },
         {
-            id: 2,
+            id: 102,
             name: 'Bule Bolu',
             price: 'Rp120.000',
             description: 'A delightful dessert-inspired flavor that captures the soft sweetness of classic sponge cake. Light, creamy, and satisfying.',
@@ -51,7 +51,7 @@ export default function Liquids() {
             tagIcon: <CloudIcon />
         },
         {
-            id: 3,
+            id: 103,
             name: 'King\'s Reserve',
             price: 'Rp145.000',
             description: 'Crafted for a premium experience, this blend offers a bold yet refined flavor profile with deep, layered notes.',
@@ -60,7 +60,7 @@ export default function Liquids() {
             tagIcon: <ShieldIcon />
         },
         {
-            id: 4,
+            id: 104,
             name: 'Banana Licious',
             price: 'Rp162.000',
             description: 'A creamy banana blend with a naturally sweet aroma and smooth texture on every puff. Delivers a mellow and flavorful experience.',
@@ -69,7 +69,7 @@ export default function Liquids() {
             tagIcon: <StarIcon />
         },
         {
-            id: 5,
+            id: 105,
             name: 'Good Sundae',
             price: 'Rp145.000',
             description: 'This flavor combines every sweetness with a hint of fruity topping. A fun and indulgent vape that brings dessert vibes in every inhale.',
@@ -78,7 +78,7 @@ export default function Liquids() {
             tagIcon: <StarIcon />
         },
         {
-            id: 6,
+            id: 106,
             name: 'English Breakfast',
             price: 'Rp165.000',
             description: 'A unique take on traditional tea flavor, offering a warm, slightly bold taste with a smooth finish. Great for those who prefer more refined vaping.',

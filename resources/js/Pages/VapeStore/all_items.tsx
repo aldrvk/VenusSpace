@@ -33,7 +33,7 @@ export default function AllItems() {
 
     const products = [
         {
-            id: 1,
+            id: 7,
             name: 'XMax V3 Pro',
             price: 'Rp260.000',
             description: 'Vaporizer konveksi ini memiliki waktu pemanasan yang cepat dan layar OLED yang jernih yang menampilkan suhu dan pemantauan baterai.',
@@ -42,7 +42,7 @@ export default function AllItems() {
             tagIcon: <StarIcon />
         },
         {
-            id: 2,
+            id: 107,
             name: 'Arctic Menthol',
             price: 'Rp100.000',
             description: 'Cairan vape yang menyegarkan, dirancang untuk menghasilkan uap yang halus dan konsisten, menghadirkan sensasi menthol yang segar dengan intensitas rasa yang seimbang.',
@@ -51,7 +51,7 @@ export default function AllItems() {
             tagIcon: <DropIcon />
         },
         {
-            id: 3,
+            id: 108,
             name: 'Blueberry Ice',
             price: 'Rp100.000',
             description: 'Perpaduan rasa yang lezat, menggabungkan aroma blueberry manis dengan sensasi dingin di akhir, dirancang untuk memberikan sensasi lembut di tenggorokan dengan uap yang memuaskan.',
@@ -60,7 +60,7 @@ export default function AllItems() {
             tagIcon: <StarIcon />
         },
         {
-            id: 4,
+            id: 201,
             name: 'Nitecore Battery',
             price: 'Rp136.000',
             description: 'Baterai andal berperforma tinggi yang dirancang untuk memberikan daya stabil dan penggunaan tahan lama. Dibuat dengan mengutamakan keamanan dan efisiensi.',
@@ -69,7 +69,7 @@ export default function AllItems() {
             tagIcon: <BatteryIcon />
         },
         {
-            id: 5,
+            id: 1,
             name: 'Apex Titanium',
             price: 'Rp400.000',
             description: 'Sasis titanium kelas kedirgantaraan dengan Omni-Chip 4.0 revolusioner untuk presisi yang tak tertandingi.',
@@ -78,7 +78,7 @@ export default function AllItems() {
             tagIcon: <ShieldIcon />
         },
         {
-            id: 6,
+            id: 2,
             name: 'Nano Pod S II',
             price: 'Rp350.000',
             description: 'Puncak dari teknologi penguapan kompak, menawarkan daya tahan baterai 12 jam dalam bentuk yang seukuran saku dengan sistem pengisian atas yang anti bocor.',

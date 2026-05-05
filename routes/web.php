@@ -27,6 +27,14 @@ Route::get('/vape-store/accessories', function () {
     return Inertia::render('VapeStore/accessories');
 })->name('vape.accessories');
 
+Route::get('/vape-store/product/{id}', function ($id) {
+    return Inertia::render('VapeStore/product_detail', ['id' => $id]);
+})->name('vape.product');
+
+Route::get('/vape-store/cart', function () {
+    return Inertia::render('VapeStore/cart');
+})->name('vape.cart');
+
 // ── Auth: Guest only (belum login) ────────────────────────────────────────────
 Route::middleware('guest')->group(function () {
 

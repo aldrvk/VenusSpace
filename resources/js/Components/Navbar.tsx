@@ -1,4 +1,5 @@
 import { Link, usePage } from "@inertiajs/react";
+import { useState, useEffect } from "react";
 import ButtonInitiate from "./Buttons/ButtonInitiate";
 import UserProfileDropdown from "./UserProfileDropdown";
 
@@ -10,6 +11,21 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps = {}) {
     const { auth } = usePage<any>().props;
     const { url } = usePage();
     const isVapeStore = url.startsWith('/vape-store');
+    
+    const [cartCount, setCartCount] = useState(0);
+
+    useEffect(() => {
+        if (!isVapeStore) return;
+        
+        const updateCartCount = () => {
+            const cart = JSON.parse(localStorage.getItem('venus_cart') || '[]');
+            setCartCount(cart.length);
+        };
+        
+        updateCartCount();
+        window.addEventListener('cart_updated', updateCartCount);
+        return () => window.removeEventListener('cart_updated', updateCartCount);
+    }, [isVapeStore]);
 
     const navItems = [
         { name: 'Home', href: '/', active: url === '/' },
@@ -57,16 +73,18 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps = {}) {
                     {/* CTA & AUTH LOGIC */}
                     <div className="flex items-center space-x-4 md:space-x-6">
                         
-                        {/* Cart Icon - removed search icon, now directly next to the profile/auth section */}
+                        {/* Cart Icon */}
                         {isVapeStore && (
-                            <button aria-label="Cart" className="relative text-foreground hover:text-primary transition-colors flex items-center">
+                            <Link href="/vape-store/cart" aria-label="Cart" className="relative text-foreground hover:text-primary transition-colors flex items-center">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <circle cx="9" cy="21" r="1"></circle>
                                     <circle cx="20" cy="21" r="1"></circle>
                                     <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
                                 </svg>
-                                <span className="absolute -top-1 -right-2 w-3 h-3 bg-primary rounded-full border-2 border-background"></span>
-                            </button>
+                                {cartCount > 0 && (
+                                    <span className="absolute -top-1 -right-2 w-3 h-3 bg-primary rounded-full border-2 border-background"></span>
+                                )}
+                            </Link>
                         )}
                         
                         {auth?.user ? (
