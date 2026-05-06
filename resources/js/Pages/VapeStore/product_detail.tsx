@@ -507,7 +507,7 @@ export default function ProductDetail({ id }: { id?: string | number }) {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {recommendations.map((rec) => (
-                            <div key={rec.id} className="bg-card rounded-venus p-6 flex flex-col hover:shadow-xl transition-shadow border border-border group">
+                            <Link href={`/vape-store/product/${rec.id}`} key={rec.id} className="bg-card rounded-venus p-6 flex flex-col hover:shadow-xl transition-shadow border border-border group cursor-pointer">
                                 <div className="bg-surface rounded-venus aspect-[4/3] mb-6 flex items-center justify-center overflow-hidden border border-border relative">
                                     <div className="absolute inset-0 bg-gradient-to-t from-surface/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10"></div>
                                     <img
@@ -524,7 +524,7 @@ export default function ProductDetail({ id }: { id?: string | number }) {
                                     {rec.description}
                                 </p>
                                 <ProductDetailButton href={`/vape-store/product/${rec.id}`} />
-                            </div>
+                            </Link>
                         ))}
                     </div>
                 </div>
