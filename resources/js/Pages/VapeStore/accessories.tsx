@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
@@ -35,6 +35,7 @@ const FlameIcon = () => (
 );
 
 export default function Accessories() {
+    const [searchTerm, setSearchTerm] = useState('');
 
     const products = [
         {
@@ -93,6 +94,10 @@ export default function Accessories() {
         }
     ];
 
+    const filteredProducts = products.filter(product =>
+        product.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     return (
         <div className="min-h-screen bg-background">
             <Head title="Vape Store - Perlengkapan" />
@@ -112,7 +117,10 @@ export default function Accessories() {
                             </p>
                         </div>
 
-                        <SearchBar />
+                        <SearchBar 
+                            value={searchTerm} 
+                            onChange={(e) => setSearchTerm(e.target.value)} 
+                        />
                     </div>
                 </div>
 
@@ -121,7 +129,7 @@ export default function Accessories() {
 
                 {/* Product Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-24">
-                    {products.map((product) => (
+                    {filteredProducts.map((product) => (
                         <Link href={`/vape-store/product/${product.id}`} key={product.id} className="bg-card rounded-venus p-6 flex flex-col hover:shadow-lg transition-shadow border border-border cursor-pointer">
                             <div className="bg-surface rounded-venus aspect-square mb-6 flex items-center justify-center overflow-hidden">
                                 <img
