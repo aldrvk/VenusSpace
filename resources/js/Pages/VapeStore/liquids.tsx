@@ -4,6 +4,7 @@ import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
 import CategoryTabs from '../../Components/CategoryTabs';
 import SearchBar from '../../Components/SearchBar';
+import ProductDetailButton from '../../Components/ProductDetailButton';
 
 // Importing images
 import blackcurrantImg from '../../../images/Vape Store/blackcurrant tea.jpg';
@@ -135,12 +136,7 @@ export default function Liquids() {
                                 {product.description}
                             </p>
 
-                            <Link href={`/vape-store/product/${product.id}`} className="mt-auto inline-flex items-center gap-1 text-secondary text-body-m font-bold self-start hover:text-secondary/80 hover:underline transition-all">
-                                Detail
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                </svg>
-                            </Link>
+                            <ProductDetailButton href={`/vape-store/product/${product.id}`} />
                         </div>
                     ))}
                 </div>

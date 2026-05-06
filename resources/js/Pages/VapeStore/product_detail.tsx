@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
+import ProductDetailButton from '../../Components/ProductDetailButton';
 
 // Images - Devices
 import nanoImg from '../../../images/Vape Store/nano pod s ii.jpg';
@@ -496,11 +497,11 @@ export default function ProductDetail({ id }: { id?: string | number }) {
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
                         <div>
-                            <p className="text-label-sm text-secondary mb-3">ELEVATE THE EXPERIENCE</p>
-                            <h2 className="text-h2 text-super-black tracking-tight">Recommended for You</h2>
+                            {/* <p className="text-label-sm text-secondary mb-3">ELEVATE THE EXPERIENCE</p> */}
+                            <h2 className="text-h2 text-super-black tracking-tight">Produk Lainnya</h2>
                         </div>
                         <Link href="/vape-store" className="text-label-sm text-super-black hover:text-primary border-b-2 border-super-black pb-1 uppercase tracking-widest transition-colors">
-                            VIEW ALL PAIRINGS
+                            LIHAT SEMUA PRODUK
                         </Link>
                     </div>
 
@@ -522,9 +523,7 @@ export default function ProductDetail({ id }: { id?: string | number }) {
                                 <p className="text-body-reg text-foreground/80 line-clamp-3 mb-6">
                                     {rec.description}
                                 </p>
-                                <Link href={`/vape-store/product/${rec.id}`} className="mt-auto block w-full py-3 text-center border border-border rounded-venus text-label-sm text-super-black hover:bg-surface hover:text-primary transition-colors">
-                                    VIEW DETAILS
-                                </Link>
+                                <ProductDetailButton href={`/vape-store/product/${rec.id}`} />
                             </div>
                         ))}
                     </div>
