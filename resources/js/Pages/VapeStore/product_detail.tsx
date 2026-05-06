@@ -3,6 +3,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
 import ProductDetailButton from '../../Components/ProductDetailButton';
+import Card from '../../Components/Card/Card';
 
 // Images - Devices
 import nanoImg from '../../../images/Vape Store/nano pod s ii.jpg';
@@ -507,24 +508,14 @@ export default function ProductDetail({ id }: { id?: string | number }) {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {recommendations.map((rec) => (
-                            <Link href={`/vape-store/product/${rec.id}`} key={rec.id} className="bg-card rounded-venus p-6 flex flex-col hover:shadow-xl transition-shadow border border-border group cursor-pointer">
-                                <div className="bg-surface rounded-venus aspect-[4/3] mb-6 flex items-center justify-center overflow-hidden border border-border relative">
-                                    <div className="absolute inset-0 bg-gradient-to-t from-surface/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10"></div>
-                                    <img
-                                        src={rec.images[0]}
-                                        alt={rec.name}
-                                        className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-500"
-                                    />
-                                </div>
-                                <div className="flex items-start justify-between mb-3">
-                                    <h3 className="text-card-title text-super-black">{rec.name}</h3>
-                                    <span className="text-body-m font-bold text-secondary whitespace-nowrap ml-4">{formatPrice(rec.price)}</span>
-                                </div>
-                                <p className="text-body-reg text-foreground/80 line-clamp-3 mb-6">
-                                    {rec.description}
-                                </p>
-                                <ProductDetailButton href={`/vape-store/product/${rec.id}`} />
-                            </Link>
+                            <Card 
+                                key={rec.id}
+                                id={rec.id}
+                                name={rec.name}
+                                price={rec.price}
+                                description={rec.description}
+                                image={rec.images[0]}
+                            />
                         ))}
                     </div>
                 </div>

@@ -6,6 +6,7 @@ import CategoryTabs from '../../Components/CategoryTabs';
 import SearchBar from '../../Components/SearchBar';
 import ProductDetailButton from '../../Components/ProductDetailButton';
 import ProductNotFound from '../../Components/ProductNotFound';
+import Card from '../../Components/Card/Card';
 
 // Importing images
 import blackcurrantImg from '../../../images/Vape Store/blackcurrant tea.jpg';
@@ -128,26 +129,14 @@ export default function Liquids() {
                 {filteredProducts.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-24">
                         {filteredProducts.map((product) => (
-                            <Link href={`/vape-store/product/${product.id}`} key={product.id} className="bg-card rounded-venus p-6 flex flex-col hover:shadow-lg transition-shadow border border-border cursor-pointer">
-                                <div className="bg-surface rounded-venus aspect-square mb-6 flex items-center justify-center overflow-hidden">
-                                    <img
-                                        src={product.image}
-                                        alt={product.name}
-                                        className="w-full h-full object-contain mix-blend-multiply"
-                                    />
-                                </div>
-
-                                <div className="flex items-start justify-between mb-2">
-                                    <h3 className="text-card-title text-super-black">{product.name}</h3>
-                                    <span className="text-body-m font-bold text-secondary">{product.price}</span>
-                                </div>
-
-                                <p className="text-body-reg text-foreground mb-6 flex-grow">
-                                    {product.description}
-                                </p>
-
-                                <ProductDetailButton href={`/vape-store/product/${product.id}`} />
-                            </Link>
+                            <Card 
+                                key={product.id}
+                                id={product.id}
+                                name={product.name}
+                                price={product.price}
+                                description={product.description}
+                                image={product.image}
+                            />
                         ))}
                     </div>
                 ) : (
