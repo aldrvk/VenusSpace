@@ -1,6 +1,11 @@
 import React from 'react';
 
-export default function SearchBar() {
+interface SearchBarProps {
+    value: string;
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}
+
+export default function SearchBar({ value, onChange }: SearchBarProps) {
     return (
         <div className="w-full md:w-80 relative">
             <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
@@ -11,7 +16,9 @@ export default function SearchBar() {
             </div>
             <input 
                 type="text" 
-                placeholder="Search product" 
+                value={value}
+                onChange={onChange}
+                placeholder="Cari Produk" 
                 className="w-full bg-surface border border-border rounded-venus py-3 pl-12 pr-4 text-body-reg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             />
         </div>
