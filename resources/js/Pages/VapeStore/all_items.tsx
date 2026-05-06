@@ -118,7 +118,7 @@ export default function AllItems() {
                 {/* Product Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-24">
                     {products.map((product) => (
-                        <div key={product.id} className="bg-card rounded-venus p-6 flex flex-col hover:shadow-lg transition-shadow border border-border">
+                        <Link href={`/vape-store/product/${product.id}`} key={product.id} className="bg-card rounded-venus p-6 flex flex-col hover:shadow-lg transition-shadow border border-border cursor-pointer">
                             <div className="bg-surface rounded-venus aspect-square mb-6 flex items-center justify-center overflow-hidden">
                                 <img
                                     src={product.image}
@@ -137,7 +137,7 @@ export default function AllItems() {
                             </p>
 
                             <ProductDetailButton href={`/vape-store/product/${product.id}`} />
-                        </div>
+                        </Link>
                     ))}
                 </div>
 
