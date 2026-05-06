@@ -35,6 +35,31 @@ Route::get('/vape-store/cart', function () {
     return Inertia::render('VapeStore/cart');
 })->name('vape.cart');
 
+// ── Coffee Shop ────────────────────────────────────────────────────────────────
+Route::get('/coffee-shop', function () {
+    return Inertia::render('CoffeeShop/all_items');
+})->name('coffee.all');
+
+Route::get('/coffee-shop/coffee', function () {
+    return Inertia::render('CoffeeShop/coffee');
+})->name('coffee.coffee');
+
+Route::get('/coffee-shop/non-coffee', function () {
+    return Inertia::render('CoffeeShop/non_coffee');
+})->name('coffee.non-coffee');
+
+Route::get('/coffee-shop/snacks', function () {
+    return Inertia::render('CoffeeShop/snacks');
+})->name('coffee.snacks');
+
+Route::get('/coffee-shop/product/{id}', function ($id) {
+    return Inertia::render('CoffeeShop/product_detail', ['id' => $id]);
+})->name('coffee.product');
+
+Route::get('/coffee-shop/cart', function () {
+    return Inertia::render('CoffeeShop/cart');
+})->name('coffee.cart');
+
 // ── Auth: Guest only (belum login) ────────────────────────────────────────────
 Route::middleware('guest')->group(function () {
 

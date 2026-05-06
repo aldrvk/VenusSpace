@@ -11,11 +11,13 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps = {}) {
     const { auth } = usePage<any>().props;
     const { url } = usePage();
     const isVapeStore = url.startsWith('/vape-store');
+    const isCoffeeShop = url.startsWith('/coffee-shop');
+    const isStorePage = isVapeStore || isCoffeeShop;
     
     const [cartCount, setCartCount] = useState(0);
 
     useEffect(() => {
-        if (!isVapeStore) return;
+        if (!isStorePage) return;
         
         const updateCartCount = () => {
             const cart = JSON.parse(localStorage.getItem('venus_cart') || '[]');
@@ -25,12 +27,12 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps = {}) {
         updateCartCount();
         window.addEventListener('cart_updated', updateCartCount);
         return () => window.removeEventListener('cart_updated', updateCartCount);
-    }, [isVapeStore]);
+    }, [isStorePage]);
 
     const navItems = [
         { name: 'Home', href: '/', active: url === '/' },
         { name: 'Doorsmeer', href: '#', active: false },
-        { name: 'Coffee Shop', href: '#', active: false },
+        { name: 'Coffee Shop', href: '/coffee-shop', active: isCoffeeShop },
         { name: 'Vape Store', href: '/vape-store', active: isVapeStore },
         { name: 'Bengkel', href: '#', active: false },
         { name: 'Rental PS', href: '#', active: false },
@@ -74,8 +76,8 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps = {}) {
                     <div className="flex items-center space-x-4 md:space-x-6">
                         
                         {/* Cart Icon */}
-                        {isVapeStore && (
-                            <Link href="/vape-store/cart" aria-label="Cart" className="relative text-foreground hover:text-primary transition-colors flex items-center">
+                        {isStorePage && (
+                            <Link href={isCoffeeShop ? '/coffee-shop/cart' : '/vape-store/cart'} aria-label="Cart" className="relative text-foreground hover:text-primary transition-colors flex items-center">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <circle cx="9" cy="21" r="1"></circle>
                                     <circle cx="20" cy="21" r="1"></circle>
