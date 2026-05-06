@@ -18,14 +18,13 @@ export default function CategoryTabs({ activeCategory }: CategoryTabsProps) {
             {categories.map((category) => {
                 const isActive = activeCategory === category.id;
                 return (
-                    <Link 
+                    <Link
                         key={category.id}
                         href={category.href}
-                        className={`px-6 py-2 rounded-full text-btn transition-all duration-300 ${
-                            isActive 
-                            ? 'bg-[linear-gradient(180deg,#006A62_0%,#3ADCCC_100%)] text-white border-none shadow-md' 
-                            : 'bg-surface text-foreground border border-border hover:bg-card'
-                        }`}
+                        className={`px-6 py-2 rounded-full text-btn transition-all duration-300 ${isActive
+                            ? 'bg-primary text-primary-foreground border-primary'
+                            : 'bg-surface text-foreground hover:bg-card'
+                            }`}
                     >
                         {category.name}
                     </Link>
