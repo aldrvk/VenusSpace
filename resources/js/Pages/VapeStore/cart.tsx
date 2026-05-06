@@ -89,8 +89,8 @@ export default function Cart() {
                                     <div key={item.cartItemId} className="bg-card rounded-venus p-4 md:p-6 flex flex-col md:flex-row items-center gap-6 border border-border shadow-sm">
                                         {/* Product Info */}
                                         <div className="flex-[2] flex items-center gap-6 w-full">
-                                            <div className="w-24 h-24 md:w-32 md:h-32 bg-super-black rounded-venus flex-shrink-0 flex items-center justify-center p-2 shadow-inner border border-border overflow-hidden">
-                                                <img src={item.image} alt={item.name} className="w-full h-full object-contain" />
+                                            <div className="w-24 h-24 md:w-32 md:h-32 bg-white rounded-venus flex-shrink-0 overflow-hidden border border-border">
+                                                <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                                             </div>
                                             <div className="flex flex-col gap-2">
                                                 <h3 className="text-card-title text-super-black">{item.name}</h3>
