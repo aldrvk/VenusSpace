@@ -219,7 +219,7 @@ export default function BookingDetail() {
                                 </div>
                                 <div className="space-y-3">
                                     <div>
-                                        <p className="text-label-sm text-foreground/50 uppercase">Nomor Polisi</p>
+                                        <p className="text-label-sm text-foreground/50 uppercase">Nomor Plat</p>
                                         <p className="text-h3 text-super-black mt-0.5">{booking.licensePlate}</p>
                                     </div>
                                     <div>
@@ -264,10 +264,10 @@ export default function BookingDetail() {
                     </div>
 
                     {/* ── RIGHT SIDEBAR ──────────────────────────────────── */}
-                    <div className="space-y-5">
+                    <div className="lg:sticky lg:top-24 self-start space-y-5">
 
                         {/* Order Summary */}
-                        <div className="bg-card border border-border rounded-venus p-5 sticky top-24">
+                        <div className="bg-card border border-border rounded-venus p-5">
                             <h3 className="text-card-title text-super-black mb-5">Ringkasan Pesanan</h3>
 
                             <div className="space-y-3 mb-4">
