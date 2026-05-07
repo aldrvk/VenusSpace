@@ -39,7 +39,7 @@ export default function Footer() {
           <div className="md:col-span-2 flex flex-col gap-6">
             <h3 className="text-label-sm text-foreground">NAVIGATION</h3>
             <ul className="flex flex-col gap-4">
-              <li><Link href="#" className="text-body-reg hover:text-foreground transition-colors">Doorsmeer</Link></li>
+              <li><Link href="/doorsmeer" className="text-body-reg hover:text-foreground transition-colors">Doorsmeer</Link></li>
               <li><Link href="#" className="text-body-reg hover:text-foreground transition-colors">Coffee Shop</Link></li>
               <li><Link href="#" className="text-body-reg hover:text-foreground transition-colors">Vape Store</Link></li>
               <li><Link href="#" className="text-body-reg hover:text-foreground transition-colors">Bengkel</Link></li>
