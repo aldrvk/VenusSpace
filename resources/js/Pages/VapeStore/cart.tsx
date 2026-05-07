@@ -95,12 +95,6 @@ export default function Cart() {
                                             <div className="flex flex-col gap-2">
                                                 <h3 className="text-card-title text-super-black">{item.name}</h3>
                                                 <p className="text-label-sm text-secondary uppercase tracking-widest">{item.optionsStr}</p>
-                                                <button 
-                                                    onClick={() => removeItem(item.cartItemId)}
-                                                    className="text-label-sm text-error flex items-center gap-1 hover:underline w-fit mt-1 uppercase tracking-widest"
-                                                >
-                                                    <span className="text-lg leading-none">&times;</span> Remove
-                                                </button>
                                             </div>
                                         </div>
 
@@ -125,10 +119,24 @@ export default function Cart() {
                                             </div>
                                         </div>
 
-                                        {/* Subtotal */}
-                                        <div className="flex-1 text-right w-full md:w-auto flex justify-between md:block mt-2 md:mt-0">
+                                        {/* Subtotal + Delete */}
+                                        <div className="flex-1 w-full md:w-auto flex items-center justify-between md:justify-end gap-4 mt-2 md:mt-0">
                                             <span className="md:hidden text-label-sm text-foreground/60">Subtotal:</span>
-                                            <span className="text-h3 text-secondary">{formatPrice(item.price * item.quantity)}</span>
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-h3 text-secondary">{formatPrice(item.price * item.quantity)}</span>
+                                                <button 
+                                                    onClick={() => removeItem(item.cartItemId)}
+                                                    className="w-10 h-10 flex items-center justify-center rounded-full bg-red-100 text-red-800 hover:bg-red-200 transition-all"
+                                                    title="Remove item"
+                                                >
+                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <polyline points="3 6 5 6 21 6"></polyline>
+                                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                                        <line x1="10" y1="11" x2="10" y2="17"></line>
+                                                        <line x1="14" y1="11" x2="14" y2="17"></line>
+                                                    </svg>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
@@ -157,10 +165,10 @@ export default function Cart() {
                                     PROCEED TO CHECKOUT
                                 </button>
                                 
-                                <div className="flex items-center justify-center gap-2 mt-6 text-label-sm text-foreground/50">
+                                {/* <div className="flex items-center justify-center gap-2 mt-6 text-label-sm text-foreground/50">
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
                                     SECURE SSL ENCRYPTED PAYMENT
-                                </div>
+                                </div> */}
                             </div>
                         </div>
                     </div>
