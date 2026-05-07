@@ -11,6 +11,7 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps = {}) {
     const { auth } = usePage<any>().props;
     const { url } = usePage();
     const isVapeStore = url.startsWith('/vape-store');
+    const isDoorsmeer = url.startsWith('/doorsmeer');
     
     const [cartCount, setCartCount] = useState(0);
 
@@ -29,7 +30,7 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps = {}) {
 
     const navItems = [
         { name: 'Home', href: '/', active: url === '/' },
-        { name: 'Doorsmeer', href: '#', active: false },
+        { name: 'Doorsmeer', href: '/doorsmeer', active: isDoorsmeer },
         { name: 'Coffee Shop', href: '#', active: false },
         { name: 'Vape Store', href: '/vape-store', active: isVapeStore },
         { name: 'Bengkel', href: '#', active: false },

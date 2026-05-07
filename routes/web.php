@@ -11,6 +11,19 @@ Route::get('/', function () {
     return Inertia::render('Welcome');
 });
 
+// ── Doorsmeer ─────────────────────────────────────────────────────────────────
+Route::get('/doorsmeer', function () {
+    return Inertia::render('Doorsmeer/index');
+})->name('doorsmeer.index');
+
+Route::get('/doorsmeer/booking-detail', function () {
+    return Inertia::render('Doorsmeer/booking_detail');
+})->name('doorsmeer.booking_detail');
+
+Route::get('/doorsmeer/booking-receipt', function () {
+    return Inertia::render('Doorsmeer/booking_receipt');
+})->name('doorsmeer.booking_receipt');
+
 Route::get('/vape-store', function () {
     return Inertia::render('VapeStore/all_items');
 })->name('vape.all');
