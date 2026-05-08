@@ -42,9 +42,9 @@ const vehicleClasses = [
 ];
 
 const bayStatus = [
-    { name: 'Bay 1 (Standard)', status: 'in-use', detail: 'In Use – Finishes in 12m' },
-    { name: 'Bay 2 (Available)', status: 'available', detail: 'Ready for immediate entry' },
-    { name: 'Detailing Zone', status: 'maintenance', detail: 'Maintenance in progress' },
+    { name: 'Bay 1 (Standard)', status: 'in-use', detail: 'Selesai dalam 12 menit' },
+    { name: 'Bay 2 (Available)', status: 'available', detail: 'Siap digunakan' },
+    { name: 'Detailing Zone', status: 'maintenance', detail: 'Dalam Perbaikan' },
 ];
 
 const CheckIcon = () => (
@@ -94,7 +94,7 @@ export default function DoorsmeerIndex() {
 
     const handleConfirm = () => {
         if (!licensePlate.trim()) {
-            setPlateError('Nomor polisi wajib diisi.');
+            setPlateError('Nomor plat wajib diisi.');
             return;
         }
 
@@ -164,7 +164,7 @@ export default function DoorsmeerIndex() {
                                     <button
                                         key={svc.id}
                                         onClick={() => setSelectedService(svc.id)}
-                                        className={`relative text-left p-5 rounded-venus border-2 transition-all duration-200 flex flex-col gap-3 ${
+                                        className={`relative text-left p-5 rounded-venus border-2 transition-all duration-200 flex flex-col gap-3 h-full ${
                                             isSelected
                                                 ? 'border-primary bg-card shadow-lg shadow-primary/10'
                                                 : 'border-border bg-card hover:border-primary/40 hover:shadow-md'
@@ -194,13 +194,13 @@ export default function DoorsmeerIndex() {
 
                                         <button
                                             onClick={(e) => { e.stopPropagation(); setSelectedService(svc.id); }}
-                                            className={`w-full mt-2 py-2.5 rounded-full text-label-sm font-semibold transition-all ${
+                                            className={`w-full mt-auto py-2.5 rounded-full text-label-sm font-semibold transition-all ${
                                                 isSelected
                                                     ? 'bg-secondary text-secondary-foreground shadow-md'
                                                     : 'bg-surface text-foreground border border-border hover:bg-border'
                                             }`}
                                         >
-                                            {isSelected ? 'Selected' : 'Select'}
+                                            {isSelected ? 'Dipilih' : 'Pilih'}
                                         </button>
                                     </button>
                                 );
@@ -231,12 +231,12 @@ export default function DoorsmeerIndex() {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="text-label-sm text-foreground/60 uppercase">Nomor Polisi</label>
+                                    <label className="text-label-sm text-foreground/60 uppercase">Nomor Plat</label>
                                     <input
                                         type="text"
                                         placeholder="Contoh: B 1234 ABC"
                                         value={licensePlate}
-                                        onChange={e => { setLicensePlate(e.target.value); setPlateError(''); }}
+                                        onChange={e => { setLicensePlate(e.target.value.toUpperCase()); setPlateError(''); }}
                                         className={`w-full bg-background border rounded-venus px-4 py-3 text-body-m text-foreground placeholder:text-foreground/30 focus:outline-none transition-colors ${
                                             plateError ? 'border-error focus:border-error' : 'border-border focus:border-primary'
                                         }`}
@@ -312,13 +312,13 @@ export default function DoorsmeerIndex() {
                     </div>
 
                     {/* ── RIGHT SIDEBAR (1/3) ────────────────────────────── */}
-                    <div className="space-y-5">
+                    <div className="space-y-5 lg:sticky lg:top-24 self-start">
 
-                        {/* Live Availability */}
+                        {/* Slot Doorsmeer */}
                         <div className="bg-card border border-border rounded-venus p-5">
                             <div className="flex items-center gap-2 mb-5">
                                 <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
-                                <p className="text-h4 text-super-black">Live Availability</p>
+                                <p className="text-h4 text-super-black">Slot Doorsmeer</p>
                             </div>
                             <div className="space-y-4">
                                 {bayStatus.map(bay => (
