@@ -17,28 +17,49 @@ class DoorsmeerBooking extends Model
         'service_duration',
         'vehicle_class',
         'license_plate',
-        'appointment_date',
-        'time_slot',
         'status',
         'stall',
+        'queue_position',
         'admin_notes',
         'verified_at',
+        'bay_assigned_at',
         'done_at',
     ];
 
     protected $casts = [
-        'appointment_date' => 'date',
-        'verified_at'      => 'datetime',
-        'done_at'          => 'datetime',
-        'service_price'    => 'integer',
+        'verified_at'    => 'datetime',
+        'bay_assigned_at'=> 'datetime',
+        'done_at'        => 'datetime',
+        'service_price'  => 'integer',
+        'queue_position' => 'integer',
+    ];
+
+    // ── Status constants ──────────────────────────────────────────────────────
+
+    const STATUS_PENDING   = 'pending';
+    const STATUS_VERIFIED  = 'verified';
+    const STATUS_IN_QUEUE  = 'in_queue';
+    const STATUS_WASHING   = 'washing';
+    const STATUS_DONE      = 'done';
+    const STATUS_CANCELLED = 'cancelled';
+
+    const STATUSES = [
+        self::STATUS_PENDING,
+        self::STATUS_VERIFIED,
+        self::STATUS_IN_QUEUE,
+        self::STATUS_WASHING,
+        self::STATUS_DONE,
+        self::STATUS_CANCELLED,
     ];
 
     // ── Status helpers ────────────────────────────────────────────────────────
 
-    public function isPending(): bool    { return $this->status === 'pending'; }
-    public function isVerified(): bool   { return $this->status === 'verified'; }
-    public function isRejected(): bool   { return $this->status === 'rejected'; }
-    public function isDone(): bool       { return $this->status === 'done'; }
+    public function isPending(): bool   { return $this->status === self::STATUS_PENDING; }
+    public function isVerified(): bool  { return $this->status === self::STATUS_VERIFIED; }
+    public function isInQueue(): bool   { return $this->status === self::STATUS_IN_QUEUE; }
+    public function isWashing(): bool   { return $this->status === self::STATUS_WASHING; }
+    public function isDone(): bool      { return $this->status === self::STATUS_DONE; }
+    public function isCancelled(): bool { return $this->status === self::STATUS_CANCELLED; }
 
     /** Label progress yang ditampilkan ke pengguna */
     public function progressLabel(): string
@@ -46,11 +67,10 @@ class DoorsmeerBooking extends Model
         return match ($this->status) {
             'pending'   => 'Menunggu Verifikasi',
             'verified'  => 'Booking Dikonfirmasi',
-            'rejected'  => 'Booking Ditolak',
             'in_queue'  => 'Dalam Antrian',
             'washing'   => 'Sedang Dicuci',
-            'rinsing'   => 'Finishing / Bilas',
             'done'      => 'Selesai',
+            'cancelled' => 'Dibatalkan',
             default     => 'Tidak Diketahui',
         };
     }
@@ -59,14 +79,87 @@ class DoorsmeerBooking extends Model
     public function progressStep(): int
     {
         return match ($this->status) {
-            'pending'  => 0,
-            'verified' => 1,
-            'in_queue' => 2,
-            'washing'  => 3,
-            'rinsing'  => 4,
-            'done'     => 5,
-            default    => 0,
+            'pending'   => 0,
+            'verified'  => 1,
+            'in_queue'  => 2,
+            'washing'   => 3,
+            'done'      => 4,
+            'cancelled' => -1, // Dibatalkan tidak punya step progres
+            default     => 0,
         };
+    }
+
+    /**
+     * Allowed next status (forward-only transitions).
+     */
+    public function allowedNextStatuses(): array
+    {
+        if ($this->status === self::STATUS_CANCELLED) return [];
+
+        return match ($this->status) {
+            'pending'  => ['verified', 'cancelled'],
+            'verified' => ['in_queue', 'washing', 'cancelled'],
+            'in_queue' => ['washing', 'cancelled'],
+            'washing'  => ['done', 'cancelled'],
+            'done'     => [],
+            default    => [],
+        };
+    }
+
+    /**
+     * Check if transition to given status is allowed.
+     */
+    public function canTransitionTo(string $status): bool
+    {
+        return in_array($status, $this->allowedNextStatuses());
+    }
+
+    // ── Bay management helpers ────────────────────────────────────────────────
+
+    /**
+     * Get the first available bay, or null if all occupied.
+     */
+    public static function getAvailableBay(): ?string
+    {
+        $stallNames = ['Stall 1', 'Stall 2', 'Stall 3'];
+
+        $occupied = self::where('status', 'washing')
+            ->whereNotNull('stall')
+            ->pluck('stall')
+            ->toArray();
+
+        foreach ($stallNames as $name) {
+            if (!in_array($name, $occupied)) {
+                return $name;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Assign the next queued booking (FIFO) to a free bay.
+     * Returns the booking that was assigned, or null.
+     */
+    public static function assignNextInQueue(): ?self
+    {
+        $bay = self::getAvailableBay();
+        if (!$bay) return null;
+
+        $next = self::where('status', 'in_queue')
+            ->orderBy('verified_at')
+            ->orderBy('id')
+            ->first();
+
+        if (!$next) return null;
+
+        $next->update([
+            'status'         => 'washing',
+            'stall'          => $bay,
+            'bay_assigned_at'=> now(),
+        ]);
+
+        return $next;
     }
 
     // ── Relationships ─────────────────────────────────────────────────────────
@@ -78,17 +171,16 @@ class DoorsmeerBooking extends Model
 
     // ── Scopes ────────────────────────────────────────────────────────────────
 
-    public function scopeToday($query)
+    /**
+     * Active bookings (belum selesai & tidak dibatalkan).
+     */
+    public function scopeActive($query)
     {
-        return $query->whereDate('appointment_date', today())
-                     ->orWhere(function ($q) {
-                         $q->whereIn('status', ['pending', 'verified', 'in_queue', 'washing', 'rinsing'])
-                           ->whereDate('appointment_date', '<=', today());
-                     });
+        return $query->whereIn('status', ['pending', 'verified', 'in_queue', 'washing']);
     }
 
     public function scopePendingFirst($query)
     {
-        return $query->orderByRaw("FIELD(status, 'pending', 'verified', 'in_queue', 'washing', 'rinsing', 'done', 'rejected')");
+        return $query->orderByRaw("FIELD(status, 'pending', 'verified', 'in_queue', 'washing', 'done', 'cancelled')");
     }
 }
