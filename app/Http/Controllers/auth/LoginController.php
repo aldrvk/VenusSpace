@@ -11,20 +11,29 @@ class LoginController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'email'    => [
-                'required',
-                'email',
-                'regex:/@gmail\.com$/',
-            ],
+            'email'    => ['required', 'email'],
             'password' => ['required'],
-        ], [
-            'email.regex' => 'Email harus menggunakan alamat @gmail.com.',
         ]);
 
         $credentials = $request->only('email', 'password');
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
+            $user = Auth::user();
+
+            // Redirect ke admin dashboard jika user adalah admin
+            if ($user->role === 'admin') {
+                return redirect('/admin/dashboard')->with('success', 'Masuk berhasil! Selamat datang admin.');
+            }
+
+            // Validasi email @gmail.com untuk user biasa
+            if (!str_ends_with($user->email, '@gmail.com')) {
+                Auth::logout();
+                return back()->withErrors([
+                    'email' => 'Email harus menggunakan alamat @gmail.com.',
+                ])->onlyInput('email');
+            }
+
             return redirect()->intended('/')->with('success', 'Masuk berhasil! Selamat datang kembali.');
         }
 
