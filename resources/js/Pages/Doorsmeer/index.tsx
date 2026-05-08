@@ -1,7 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
 import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
+
+// ── Types ────────────────────────────────────────────────────────────────────
+
+interface Stall {
+    id: string;
+    label: string;
+    status: 'terisi' | 'tersedia';
+    plate?: string;
+    vehicle?: string;
+    progress?: string;
+}
+
+interface Props {
+    stalls: Stall[];
+    queueCount: number;
+    availableBays: number;
+    totalBays: number;
+    washingCount: number;
+}
+
+// ── Data ─────────────────────────────────────────────────────────────────────
 
 const services = [
     {
@@ -41,11 +62,7 @@ const vehicleClasses = [
     'Minibus',
 ];
 
-const bayStatus = [
-    { name: 'Bay 1 (Standard)', status: 'in-use', detail: 'Selesai dalam 12 menit' },
-    { name: 'Bay 2 (Available)', status: 'available', detail: 'Siap digunakan' },
-    { name: 'Detailing Zone', status: 'maintenance', detail: 'Dalam Perbaikan' },
-];
+// ── Icons ────────────────────────────────────────────────────────────────────
 
 const CheckIcon = () => (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -53,44 +70,80 @@ const CheckIcon = () => (
     </svg>
 );
 
-
 const ChevronDownIcon = () => (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <polyline points="6 9 12 15 18 9" />
     </svg>
 );
 
-function getNextDays(count: number) {
-    const days = ['MIN', 'SEN', 'SEL', 'RAB', 'KAM', 'JUM', 'SAB'];
-    const result = [];
+const ClockIcon = () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+    </svg>
+);
+
+const QueueIcon = () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" />
+        <line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" />
+    </svg>
+);
+
+// ── Operational Hours Helper ──────────────────────────────────────────────────
+
+const OPEN_HOUR = 8;
+const CLOSE_HOUR = 17;
+
+function isWithinOperationalHours(): boolean {
     const now = new Date();
-    for (let i = 0; i < count; i++) {
-        const d = new Date(now);
-        d.setDate(now.getDate() + i);
-        result.push({
-            label: days[d.getDay()],
-            date: d.getDate(),
-            fullDate: d.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
-            iso: d.toISOString().split('T')[0],
-        });
-    }
-    return result;
+    const hour = now.getHours();
+    return hour >= OPEN_HOUR && hour < CLOSE_HOUR;
 }
 
-const timeSlots = ['09:00', '10:30', '12:00', '14:00', '15:30', '17:00'];
+function getOperationalStatus(): { open: boolean; message: string } {
+    const now = new Date();
+    const hour = now.getHours();
+
+    if (hour < OPEN_HOUR) {
+        return { open: false, message: `Buka pukul ${String(OPEN_HOUR).padStart(2, '0')}:00 WIB` };
+    }
+    if (hour >= CLOSE_HOUR) {
+        return { open: false, message: 'Sudah tutup hari ini. Buka besok 08:00 WIB' };
+    }
+    const remaining = CLOSE_HOUR - hour;
+    return { open: true, message: `Tutup dalam ${remaining} jam` };
+}
+
+// ── Main Page ────────────────────────────────────────────────────────────────
 
 export default function DoorsmeerIndex() {
-    const { auth } = usePage<{ auth: { user?: { id: number } } }>().props;
+    const { auth, stalls, queueCount, availableBays, totalBays, washingCount } = usePage<{
+        auth: { user?: { id: number } };
+        stalls: Stall[];
+        queueCount: number;
+        availableBays: number;
+        totalBays: number;
+        washingCount: number;
+    }>().props;
+
     const [selectedService, setSelectedService] = useState('premium');
     const [vehicleClass, setVehicleClass] = useState('City Car / Sedan');
     const [licensePlate, setLicensePlate] = useState('');
-    const [selectedDay, setSelectedDay] = useState(0);
-    const [selectedTime, setSelectedTime] = useState('10:30');
     const [plateError, setPlateError] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const days = getNextDays(4);
     const service = services.find(s => s.id === selectedService)!;
+    const operational = useMemo(() => getOperationalStatus(), []);
+    const isOpen = operational.open;
+
+    // Estimated wait time based on queue + washing
+    const estimatedWait = useMemo(() => {
+        if (availableBays > 0 && queueCount === 0) return 'Langsung dilayani';
+        const activeBays = Math.max(washingCount, 1);
+        const waitMinutes = Math.ceil((queueCount / activeBays) * 30);
+        if (waitMinutes <= 0) return '~5 menit';
+        return `~${waitMinutes} menit`;
+    }, [queueCount, availableBays, washingCount]);
 
     const handleConfirm = () => {
         if (!licensePlate.trim()) {
@@ -98,9 +151,13 @@ export default function DoorsmeerIndex() {
             return;
         }
 
-        // Redirect ke login jika belum login
         if (!auth?.user) {
             router.visit('/login');
+            return;
+        }
+
+        if (!isWithinOperationalHours()) {
+            setPlateError('Booking hanya tersedia saat jam operasional (08:00 – 17:00).');
             return;
         }
 
@@ -117,8 +174,6 @@ export default function DoorsmeerIndex() {
                 service_duration: service.duration,
                 vehicle_class:    vehicleClass,
                 license_plate:    licensePlate.trim().toUpperCase(),
-                appointment_date: days[selectedDay].iso,
-                time_slot:        selectedTime,
             },
             {
                 onError: () => setIsSubmitting(false),
@@ -152,7 +207,7 @@ export default function DoorsmeerIndex() {
                                 Elite <span className="text-primary">Car Wash</span> Experience
                             </h1>
                             <p className="text-body-l text-foreground/70 mt-4 max-w-lg">
-                                Manjakan kendaraan Anda dengan ritual perawatan premium. Kami tidak hanya mencuci—kami memulihkan kilau arsitektural mobil Anda menggunakan elemen pH-balanced.
+                                Manjakan kendaraan Anda dengan ritual perawatan premium. Booking sekarang dan masuk ke antrian realtime — tanpa perlu janji temu.
                             </p>
                         </div>
 
@@ -207,10 +262,10 @@ export default function DoorsmeerIndex() {
                             })}
                         </div>
 
-                        {/* Booking Form */}
+                        {/* Booking Form — Realtime Queue */}
                         <div className="bg-card border border-border rounded-venus p-6 space-y-6">
 
-                            {/* Row 1: Vehicle class + License plate */}
+                            {/* Vehicle info */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                 <div className="space-y-2">
                                     <label className="text-label-sm text-foreground/60 uppercase">Klasifikasi Kendaraan</label>
@@ -247,61 +302,93 @@ export default function DoorsmeerIndex() {
                                 </div>
                             </div>
 
-                            {/* Row 2: Date selector */}
-                            <div className="space-y-3">
-                                <label className="text-label-sm text-foreground/60 uppercase">Tanggal Perjanjian</label>
-                                <div className="flex flex-wrap gap-3">
-                                    {days.map((d, idx) => (
-                                        <button
-                                            key={d.iso}
-                                            onClick={() => setSelectedDay(idx)}
-                                            className={`flex flex-col items-center justify-center w-16 h-16 rounded-venus border-2 transition-all ${
-                                                selectedDay === idx
-                                                    ? 'bg-secondary border-secondary text-secondary-foreground shadow-md'
-                                                    : 'bg-background border-border text-foreground hover:border-primary/50'
-                                            }`}
-                                        >
-                                            <span className="text-label-sm font-bold">{d.label}</span>
-                                            <span className="text-h4 leading-tight">{d.date}</span>
-                                        </button>
-                                    ))}
+                            {/* Realtime Queue Status */}
+                            <div className="bg-background border border-border rounded-venus p-5">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <span className="text-primary"><QueueIcon /></span>
+                                    <p className="text-h4 text-super-black">Status Antrian Realtime</p>
+                                    <span className="w-2 h-2 rounded-full bg-primary animate-pulse ml-1" />
                                 </div>
+
+                                <div className="grid grid-cols-3 gap-4">
+                                    {/* Bay Available */}
+                                    <div className="bg-card border border-border rounded-venus p-4 text-center">
+                                        <p className={`text-h3 font-extrabold ${availableBays > 0 ? 'text-primary' : 'text-foreground/30'}`}>
+                                            {availableBays}
+                                        </p>
+                                        <p className="text-label-sm text-foreground/50 mt-1">Bay Tersedia</p>
+                                    </div>
+
+                                    {/* In Queue */}
+                                    <div className="bg-card border border-border rounded-venus p-4 text-center">
+                                        <p className="text-h3 text-super-black font-extrabold">{queueCount}</p>
+                                        <p className="text-label-sm text-foreground/50 mt-1">Dalam Antrian</p>
+                                    </div>
+
+                                    {/* Wait Time */}
+                                    <div className="bg-card border border-border rounded-venus p-4 text-center">
+                                        <p className="text-h4 text-super-black font-extrabold leading-snug">{estimatedWait}</p>
+                                        <p className="text-label-sm text-foreground/50 mt-1">Est. Tunggu</p>
+                                    </div>
+                                </div>
+
+                                {availableBays > 0 && queueCount === 0 && (
+                                    <div className="mt-4 flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-venus px-4 py-3">
+                                        <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse shrink-0" />
+                                        <p className="text-body-reg text-foreground/80">
+                                            <span className="font-semibold text-primary">Bay tersedia sekarang!</span> Booking Anda bisa langsung diproses.
+                                        </p>
+                                    </div>
+                                )}
+
+                                {availableBays === 0 && (
+                                    <div className="mt-4 flex items-center gap-2 bg-surface border border-border rounded-venus px-4 py-3">
+                                        <span className="text-foreground/40"><ClockIcon /></span>
+                                        <p className="text-body-reg text-foreground/60">
+                                            Semua bay sedang terisi. Anda akan masuk antrian otomatis setelah booking dikonfirmasi.
+                                        </p>
+                                    </div>
+                                )}
                             </div>
 
-                            {/* Row 3: Time slot */}
-                            <div className="space-y-3">
-                                <label className="text-label-sm text-foreground/60 uppercase">Jendela Waktu</label>
-                                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                                    {timeSlots.map(slot => (
-                                        <button
-                                            key={slot}
-                                            onClick={() => setSelectedTime(slot)}
-                                            className={`py-2.5 px-3 rounded-venus text-label-sm font-semibold border-2 transition-all ${
-                                                selectedTime === slot
-                                                    ? 'bg-secondary border-secondary text-secondary-foreground'
-                                                    : 'bg-background border-border text-foreground hover:border-primary/50'
-                                            }`}
-                                        >
-                                            {slot}
-                                        </button>
-                                    ))}
+                            {/* Operational Hours Notice */}
+                            {!isOpen && (
+                                <div className="flex items-center gap-3 bg-surface border border-border rounded-venus px-5 py-4">
+                                    <span className="w-10 h-10 rounded-full bg-foreground/10 flex items-center justify-center text-foreground/40 shrink-0">
+                                        <ClockIcon />
+                                    </span>
+                                    <div>
+                                        <p className="text-h4 text-super-black">Di Luar Jam Operasional</p>
+                                        <p className="text-body-reg text-foreground/60 mt-0.5">
+                                            Booking hanya tersedia saat jam operasional (08:00 – 17:00 WIB). {operational.message}.
+                                        </p>
+                                    </div>
                                 </div>
-                            </div>
+                            )}
 
                             {/* CTA */}
                             <button
                                 onClick={handleConfirm}
-                                disabled={isSubmitting}
-                                className="w-full bg-secondary hover:bg-secondary/90 disabled:opacity-70 text-secondary-foreground h-14 rounded-full flex items-center justify-center gap-3 transition-all shadow-lg text-label-sm tracking-widest font-bold group"
+                                disabled={isSubmitting || !isOpen}
+                                className={`w-full h-14 rounded-full flex items-center justify-center gap-3 transition-all shadow-lg text-label-sm tracking-widest font-bold group ${
+                                    isOpen
+                                        ? 'bg-secondary hover:bg-secondary/90 text-secondary-foreground'
+                                        : 'bg-surface text-foreground/40 cursor-not-allowed shadow-none'
+                                } disabled:opacity-70`}
                             >
                                 {isSubmitting ? (
                                     <>
                                         <div className="w-4 h-4 border-2 border-secondary-foreground border-t-transparent rounded-full animate-spin" />
                                         Memproses…
                                     </>
+                                ) : !isOpen ? (
+                                    <>
+                                        <ClockIcon />
+                                        Booking hanya tersedia saat jam operasional
+                                    </>
                                 ) : (
                                     <>
-                                        {!auth?.user ? 'Login untuk Booking' : 'Konfirmasi Booking Saya'}
+                                        {!auth?.user ? 'Login untuk Booking' : 'Booking Sekarang'}
                                         <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                                         </svg>
@@ -314,57 +401,81 @@ export default function DoorsmeerIndex() {
                     {/* ── RIGHT SIDEBAR (1/3) ────────────────────────────── */}
                     <div className="space-y-5 lg:sticky lg:top-24 self-start">
 
-                        {/* Slot Doorsmeer */}
+                        {/* Operational Hours Banner */}
+                        <div className={`rounded-venus p-5 border ${isOpen ? 'bg-primary/10 border-primary/20' : 'bg-surface border-border'}`}>
+                            <div className="flex items-center gap-3">
+                                <span className={`w-3 h-3 rounded-full shrink-0 ${isOpen ? 'bg-primary animate-pulse' : 'bg-foreground/30'}`} />
+                                <div>
+                                    <p className="text-h4 text-super-black">
+                                        {isOpen ? 'Sedang Beroperasi' : 'Tutup'}
+                                    </p>
+                                    <p className="text-body-reg text-foreground/60 mt-0.5">
+                                        {operational.message} · 08:00 – 17:00 WIB
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Bay Availability */}
                         <div className="bg-card border border-border rounded-venus p-5">
                             <div className="flex items-center gap-2 mb-5">
                                 <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
-                                <p className="text-h4 text-super-black">Slot Doorsmeer</p>
+                                <p className="text-h4 text-super-black">Bay Pencucian</p>
                             </div>
-                            <div className="space-y-4">
-                                {bayStatus.map(bay => (
-                                    <div key={bay.name} className="flex items-center gap-3">
-                                        <div className="w-3 h-3 rounded-full shrink-0 ml-3 mr-1 mt-0.5 flex-none" style={{
-                                            background: bay.status === 'available' ? 'hsl(var(--primary))' :
-                                                        bay.status === 'in-use'    ? 'hsl(var(--secondary))' :
-                                                        'hsl(var(--surface))',
-                                            boxShadow: bay.status === 'available' ? '0 0 6px hsl(var(--primary))' : 'none'
+                            <div className="space-y-3">
+                                {stalls.map(stall => (
+                                    <div key={stall.id} className="flex items-center gap-3">
+                                        <div className="w-3 h-3 rounded-full shrink-0 ml-3 mr-1 flex-none" style={{
+                                            background: stall.status === 'tersedia'
+                                                ? 'hsl(var(--primary))'
+                                                : 'hsl(var(--secondary))',
+                                            boxShadow: stall.status === 'tersedia'
+                                                ? '0 0 6px hsl(var(--primary))'
+                                                : 'none'
                                         }} />
-                                        <div>
-                                            <p className="text-label-sm font-semibold text-super-black">{bay.name}</p>
-                                            <p className="text-body-reg text-foreground/60">{bay.detail}</p>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-label-sm font-semibold text-super-black">{stall.label}</p>
+                                            {stall.status === 'terisi' ? (
+                                                <p className="text-body-reg text-foreground/60 truncate">
+                                                    {stall.plate} · {stall.vehicle}
+                                                </p>
+                                            ) : (
+                                                <p className="text-body-reg text-primary font-semibold">Tersedia</p>
+                                            )}
                                         </div>
+                                        <span className={`text-label-sm px-2.5 py-0.5 rounded-full font-semibold ${
+                                            stall.status === 'tersedia'
+                                                ? 'bg-primary/15 text-primary'
+                                                : 'bg-secondary/15 text-secondary'
+                                        }`}>
+                                            {stall.status === 'tersedia' ? 'Kosong' : 'Terisi'}
+                                        </span>
                                     </div>
                                 ))}
+                            </div>
+                            <div className="mt-4 pt-4 border-t border-border">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-body-reg text-foreground/60">Bay tersedia</span>
+                                    <span className={`text-h4 font-extrabold ${availableBays > 0 ? 'text-primary' : 'text-foreground/40'}`}>
+                                        {availableBays}/{totalBays}
+                                    </span>
+                                </div>
                             </div>
                         </div>
 
                         {/* Current Queue */}
                         <div className="bg-card border border-border rounded-venus p-5">
                             <p className="text-label-sm text-foreground/60 uppercase mb-4">Antrian Saat Ini</p>
-                            <div className="flex items-center gap-2 mb-3">
-                                {/* Avatar placeholders */}
-                                {['A', 'B', 'C'].map((l, i) => (
-                                    <div key={i} className={`w-8 h-8 rounded-full flex items-center justify-center text-label-sm font-bold text-secondary-foreground bg-secondary -ml-${i > 0 ? '2' : '0'}`}>
-                                        {l}
-                                    </div>
-                                ))}
-                                <span className="w-8 h-8 rounded-full bg-surface border border-border flex items-center justify-center text-label-sm font-bold text-foreground -ml-2">
-                                    +3
-                                </span>
+                            <div className="flex items-end justify-between gap-4">
+                                <div>
+                                    <p className="text-h2 text-super-black">{queueCount}</p>
+                                    <p className="text-body-reg text-foreground/50">kendaraan menunggu</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-label-sm text-foreground/40 uppercase">Est. Tunggu</p>
+                                    <p className="text-h4 text-foreground">{estimatedWait}</p>
+                                </div>
                             </div>
-                            <p className="text-body-reg text-foreground/60">Estimasi waktu tunggu: <span className="font-semibold text-foreground">15 menit</span></p>
-                        </div>
-
-                        {/* Member Perk Banner */}
-                        <div className="bg-secondary rounded-venus p-5 overflow-hidden relative">
-                            <div className="absolute -bottom-4 -right-4 w-24 h-24 rounded-full bg-primary/20" />
-                            <p className="text-label-sm text-secondary-foreground/70 mb-1 uppercase">Member Perk</p>
-                            <p className="text-h4 text-secondary-foreground leading-snug">
-                                Dapatkan setiap cuci ke-5 <span className="text-primary">GRATIS</span> dengan Venus Membership.
-                            </p>
-                            <button className="mt-4 bg-primary text-primary-foreground text-label-sm font-bold px-4 py-2 rounded-full hover:bg-primary/90 transition-colors">
-                                Pelajari Lebih Lanjut
-                            </button>
                         </div>
 
                         {/* Selected Service Summary */}

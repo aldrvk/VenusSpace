@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\DoorsmeerBooking;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -10,7 +11,37 @@ use Inertia\Inertia;
 class DoorsmeerBookingController extends Controller
 {
     // ─────────────────────────────────────────────────────────────────────────
-    // USER: submit booking baru
+    // USER: halaman booking doorsmeer (customer-facing)
+    // GET /doorsmeer
+    // ─────────────────────────────────────────────────────────────────────────
+    public function index()
+    {
+        $stalls = $this->getStallSummary();
+
+        // Hitung antrian aktif (menunggu verifikasi + dikonfirmasi + dalam antrian)
+        $queueCount = DoorsmeerBooking::whereIn('status', ['pending', 'verified', 'in_queue'])->count();
+
+        // Hitung bay tersedia
+        $occupiedBays = DoorsmeerBooking::whereIn('status', ['washing'])
+            ->whereNotNull('stall')
+            ->count();
+        $totalBays = 3;
+        $availableBays = $totalBays - $occupiedBays;
+
+        // Sedang dicuci count
+        $washingCount = DoorsmeerBooking::where('status', 'washing')->count();
+
+        return Inertia::render('Doorsmeer/index', [
+            'stalls'        => $stalls,
+            'queueCount'    => $queueCount,
+            'availableBays' => $availableBays,
+            'totalBays'     => $totalBays,
+            'washingCount'  => $washingCount,
+        ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // USER: submit booking baru (realtime queue, no appointment)
     // POST /doorsmeer/booking
     // ─────────────────────────────────────────────────────────────────────────
     public function store(Request $request)
@@ -23,8 +54,6 @@ class DoorsmeerBookingController extends Controller
             'service_duration' => 'required|string',
             'vehicle_class'    => 'required|string',
             'license_plate'    => 'required|string|max:20',
-            'appointment_date' => 'required|date|after_or_equal:today',
-            'time_slot'        => 'required|string',
         ]);
 
         $booking = DoorsmeerBooking::create([
@@ -37,12 +66,10 @@ class DoorsmeerBookingController extends Controller
             'service_duration' => $request->service_duration,
             'vehicle_class'    => $request->vehicle_class,
             'license_plate'    => strtoupper(trim($request->license_plate)),
-            'appointment_date' => $request->appointment_date,
-            'time_slot'        => $request->time_slot,
             'status'           => 'pending',
         ]);
 
-        return redirect()->route('doorsmeer.tracking', $booking->booking_code);
+        return redirect()->route('doorsmeer.tracking', ['code' => $booking->booking_code, 'new' => 1]);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -57,6 +84,7 @@ class DoorsmeerBookingController extends Controller
 
         return Inertia::render('Doorsmeer/tracking', [
             'booking' => $this->formatBooking($booking),
+            'showAd'  => request()->query('new') == 1,
         ]);
     }
 
@@ -83,85 +111,165 @@ class DoorsmeerBookingController extends Controller
     public function adminIndex()
     {
         $bookings = DoorsmeerBooking::with('user')
-            ->orderByRaw("FIELD(status, 'pending', 'in_queue', 'washing', 'rinsing', 'verified', 'done', 'rejected')")
-            ->orderBy('appointment_date')
-            ->orderBy('time_slot')
+            ->orderByRaw("FIELD(status, 'pending', 'verified', 'in_queue', 'washing', 'done', 'cancelled')")
+            ->orderBy('created_at', 'desc')
             ->get()
             ->map(fn ($b) => $this->formatBookingAdmin($b));
 
         // Stall summary
         $stalls = $this->getStallSummary();
 
+        // Queue count
+        $queueCount = DoorsmeerBooking::where('status', 'in_queue')->count();
+
         return Inertia::render('Admin/BookingDoorsmeer', [
-            'bookings' => $bookings,
-            'stalls'   => $stalls,
+            'bookings'   => $bookings,
+            'stalls'     => $stalls,
+            'queueCount' => $queueCount,
         ]);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // ADMIN: verifikasi booking (approve)
+    // ADMIN: konfirmasi kedatangan pelanggan
     // POST /admin/doorsmeer/verify/{id}
     // ─────────────────────────────────────────────────────────────────────────
     public function verify(Request $request, DoorsmeerBooking $booking)
     {
-        $request->validate([
-            'stall' => 'required|string',
-        ]);
-
-        abort_if($booking->status !== 'pending', 422, 'Booking sudah diproses sebelumnya.');
+        abort_if(!$booking->canTransitionTo('verified'), 422, 'Booking sudah diproses sebelumnya.');
 
         $booking->update([
             'status'      => 'verified',
-            'stall'       => $request->stall,
             'verified_at' => now(),
         ]);
 
-        return back()->with('success', "Booking {$booking->booking_code} berhasil diverifikasi.");
-    }
+        // Auto bay assignment: cek bay kosong
+        $availableBay = DoorsmeerBooking::getAvailableBay();
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // ADMIN: tolak booking
-    // POST /admin/doorsmeer/reject/{id}
-    // ─────────────────────────────────────────────────────────────────────────
-    public function reject(Request $request, DoorsmeerBooking $booking)
-    {
-        $request->validate([
-            'admin_notes' => 'nullable|string|max:255',
-        ]);
+        if ($availableBay) {
+            // Bay tersedia → langsung masuk washing
+            $booking->update([
+                'status'          => 'washing',
+                'stall'           => $availableBay,
+                'bay_assigned_at' => now(),
+            ]);
+            return back()->with('success', "Booking {$booking->booking_code} dikonfirmasi → langsung masuk {$availableBay}.");
+        }
 
-        abort_if($booking->status !== 'pending', 422, 'Booking sudah diproses sebelumnya.');
-
+        // Semua bay penuh → masuk antrian
         $booking->update([
-            'status'      => 'rejected',
-            'admin_notes' => $request->admin_notes ?? 'Ditolak oleh admin.',
+            'status' => 'in_queue',
         ]);
 
-        return back()->with('success', "Booking {$booking->booking_code} ditolak.");
+        return back()->with('success', "Booking {$booking->booking_code} dikonfirmasi → masuk antrian.");
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // ADMIN: update progress pengerjaan
+    // ADMIN: update progress pengerjaan (forward-only)
     // POST /admin/doorsmeer/progress/{id}
     // ─────────────────────────────────────────────────────────────────────────
     public function updateProgress(Request $request, DoorsmeerBooking $booking)
     {
-        $allowed = ['in_queue', 'washing', 'rinsing', 'done'];
-
         $request->validate([
-            'status' => 'required|in:' . implode(',', $allowed),
+            'status' => 'required|in:done',
         ]);
 
-        $currentAllowed = ['verified', 'in_queue', 'washing', 'rinsing'];
-        abort_if(!in_array($booking->status, $currentAllowed), 422, 'Status tidak dapat diperbarui.');
+        abort_if(!$booking->canTransitionTo('done'), 422, 'Status tidak dapat diperbarui.');
 
-        $data = ['status' => $request->status];
-        if ($request->status === 'done') {
-            $data['done_at'] = now();
+        // Tandai selesai & release bay
+        $booking->update([
+            'status'  => 'done',
+            'done_at' => now(),
+            'stall'   => null,
+        ]);
+
+        // Auto-assign: pindahkan antrian berikutnya ke bay yang baru kosong
+        DoorsmeerBooking::assignNextInQueue();
+
+        return back()->with('success', "Booking {$booking->booking_code} selesai.");
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // ADMIN: Batalkan booking
+    // POST /admin/doorsmeer/cancel/{id}
+    // ─────────────────────────────────────────────────────────────────────────
+    public function cancel(Request $request, DoorsmeerBooking $booking)
+    {
+        $request->validate([
+            'reason' => 'required|string|max:255',
+        ]);
+
+        abort_if(!$booking->canTransitionTo('cancelled'), 422, 'Booking tidak dapat dibatalkan.');
+
+        // If it was washing, release the stall
+        $wasWashing = $booking->status === 'washing';
+
+        $booking->update([
+            'status'      => 'cancelled',
+            'admin_notes' => $request->reason,
+            'stall'       => null,
+        ]);
+
+        if ($wasWashing) {
+            DoorsmeerBooking::assignNextInQueue();
         }
 
-        $booking->update($data);
+        return back()->with('success', "Booking {$booking->booking_code} telah dibatalkan.");
+    }
 
-        return back()->with('success', "Status booking {$booking->booking_code} diperbarui.");
+    // ─────────────────────────────────────────────────────────────────────────
+    // ADMIN: Halaman Walk-in
+    // GET /admin/doorsmeer/walk-in
+    // ─────────────────────────────────────────────────────────────────────────
+    public function walkIn()
+    {
+        return Inertia::render('Admin/DoorsmeerWalkIn', [
+            'stalls' => $this->getStallSummary(),
+        ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // ADMIN: Submit Walk-in
+    // POST /admin/doorsmeer/walk-in
+    // ─────────────────────────────────────────────────────────────────────────
+    public function storeWalkIn(Request $request)
+    {
+        $request->validate([
+            'service_id'       => 'required|string',
+            'service_name'     => 'required|string',
+            'service_subtitle' => 'required|string',
+            'service_price'    => 'required|integer|min:0',
+            'service_duration' => 'required|string',
+            'vehicle_class'    => 'required|string',
+            'license_plate'    => 'required|string|max:20',
+            'customer_name'    => 'required|string|max:50',
+            'customer_email'   => 'nullable|email|max:50',
+        ]);
+
+        // Walk-in users are usually "guest" or a specific "Walk-in" user account.
+        // For simplicity, we'll assign to the current admin user but we could also create a guest user.
+        // Let's assume we use the current admin user as owner but store name in notes or something.
+        // Better: create a "Walk-in" booking that might not have a user_id or use a placeholder.
+        // Since the system relies on user_id for tracking, let's create it with user_id null or admin.
+        // However, the model has user_id. Let's see if we can make it nullable or use the admin's ID.
+
+        $booking = DoorsmeerBooking::create([
+            'booking_code'     => 'WK-' . strtoupper(Str::random(5)),
+            'user_id'          => auth()->id(), // Admin is the creator
+            'service_id'       => $request->service_id,
+            'service_name'     => $request->service_name,
+            'service_subtitle' => $request->service_subtitle,
+            'service_price'    => $request->service_price,
+            'service_duration' => $request->service_duration,
+            'vehicle_class'    => $request->vehicle_class,
+            'license_plate'    => strtoupper(trim($request->license_plate)),
+            'status'           => 'pending', // Will be verified immediately
+            'admin_notes'      => "Walk-in Customer: {$request->customer_name}" . ($request->customer_email ? " ({$request->customer_email})" : ""),
+        ]);
+
+        // Auto verify walk-in
+        $this->verify(new Request(), $booking);
+
+        return redirect()->route('admin.doorsmeer')->with('success', "Walk-in booking {$booking->booking_code} berhasil dibuat.");
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -175,11 +283,12 @@ class DoorsmeerBookingController extends Controller
             ->firstOrFail();
 
         return response()->json([
-            'status'        => $booking->status,
-            'progressLabel' => $booking->progressLabel(),
-            'progressStep'  => $booking->progressStep(),
-            'stall'         => $booking->stall,
-            'admin_notes'   => $booking->admin_notes,
+            'status'         => $booking->status,
+            'progressLabel'  => $booking->progressLabel(),
+            'progressStep'   => $booking->progressStep(),
+            'stall'          => $booking->stall,
+            'queue_position' => $booking->queue_position,
+            'admin_notes'    => $booking->admin_notes,
         ]);
     }
 
@@ -198,14 +307,14 @@ class DoorsmeerBookingController extends Controller
             'service_duration'=> $b->service_duration,
             'vehicle_class'   => $b->vehicle_class,
             'license_plate'   => $b->license_plate,
-            'appointment_date'=> $b->appointment_date->format('d M Y'),
-            'time_slot'       => $b->time_slot,
             'status'          => $b->status,
             'progress_label'  => $b->progressLabel(),
             'progress_step'   => $b->progressStep(),
             'stall'           => $b->stall,
+            'queue_position'  => $b->queue_position,
             'admin_notes'     => $b->admin_notes,
             'verified_at'     => $b->verified_at?->format('d M Y H:i'),
+            'bay_assigned_at' => $b->bay_assigned_at?->format('d M Y H:i'),
             'done_at'         => $b->done_at?->format('d M Y H:i'),
             'created_at'      => $b->created_at->format('d M Y H:i'),
         ];
@@ -214,17 +323,16 @@ class DoorsmeerBookingController extends Controller
     private function formatBookingAdmin(DoorsmeerBooking $b): array
     {
         return array_merge($this->formatBooking($b), [
-            'customer_name'  => $b->user->name,
-            'customer_email' => $b->user->email,
+            'customer_name'  => $b->user?->name ?? 'GUEST',
+            'customer_email' => $b->user?->email ?? '-',
         ]);
     }
 
     private function getStallSummary(): array
     {
         $stallNames = ['Stall 1', 'Stall 2', 'Stall 3'];
-        $activeStatuses = ['in_queue', 'washing', 'rinsing'];
 
-        $occupied = DoorsmeerBooking::whereIn('status', $activeStatuses)
+        $occupied = DoorsmeerBooking::where('status', 'washing')
             ->whereNotNull('stall')
             ->get()
             ->keyBy('stall');

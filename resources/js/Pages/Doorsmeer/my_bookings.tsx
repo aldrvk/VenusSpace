@@ -9,12 +9,11 @@ interface Booking {
     service_name: string;
     license_plate: string;
     vehicle_class: string;
-    appointment_date: string;
-    time_slot: string;
     status: string;
     progress_label: string;
     progress_step: number;
     service_price: number;
+    stall: string | null;
     created_at: string;
 }
 
@@ -25,11 +24,9 @@ interface Props {
 function statusColor(status: string) {
     switch (status) {
         case 'pending':  return 'text-amber-600 bg-amber-50 border-amber-200';
-        case 'verified': return 'text-blue-600 bg-blue-50 border-blue-200';
-        case 'rejected': return 'text-red-600 bg-red-50 border-red-200';
+        case 'verified': return 'text-primary bg-primary/10 border-primary/30';
         case 'in_queue': return 'text-purple-600 bg-purple-50 border-purple-200';
         case 'washing':  return 'text-primary bg-primary/10 border-primary/30';
-        case 'rinsing':  return 'text-cyan-600 bg-cyan-50 border-cyan-200';
         case 'done':     return 'text-emerald-600 bg-emerald-50 border-emerald-200';
         default:         return 'text-foreground/50 bg-surface border-border';
     }
@@ -37,10 +34,9 @@ function statusColor(status: string) {
 
 function statusDot(status: string) {
     switch (status) {
-        case 'washing': case 'rinsing': return 'bg-primary animate-pulse';
+        case 'washing':  return 'bg-primary animate-pulse';
         case 'pending':  return 'bg-amber-400';
-        case 'verified': return 'bg-blue-500';
-        case 'rejected': return 'bg-red-500';
+        case 'verified': return 'bg-primary animate-pulse';
         case 'in_queue': return 'bg-purple-500';
         case 'done':     return 'bg-emerald-500';
         default:         return 'bg-foreground/30';
@@ -50,8 +46,8 @@ function statusDot(status: string) {
 const SERVICE_FEE = 5000;
 
 export default function MyBookings({ bookings }: Props) {
-    const active = bookings.filter(b => !['done', 'rejected'].includes(b.status));
-    const history = bookings.filter(b => ['done', 'rejected'].includes(b.status));
+    const active = bookings.filter(b => b.status !== 'done');
+    const history = bookings.filter(b => b.status === 'done');
 
     return (
         <div className="min-h-screen bg-background flex flex-col">
@@ -137,7 +133,7 @@ export default function MyBookings({ bookings }: Props) {
 }
 
 function BookingCard({ booking }: { booking: Booking }) {
-    const isActive = !['done', 'rejected'].includes(booking.status);
+    const isActive = booking.status !== 'done';
     return (
         <Link
             href={`/doorsmeer/tracking/${booking.booking_code}`}
@@ -147,13 +143,10 @@ function BookingCard({ booking }: { booking: Booking }) {
                 <div className="flex items-start gap-4">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
                         booking.status === 'done' ? 'bg-emerald-100 text-emerald-600' :
-                        booking.status === 'rejected' ? 'bg-red-100 text-red-500' :
                         'bg-primary/10 text-primary'
                     }`}>
                         {booking.status === 'done' ? (
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-                        ) : booking.status === 'rejected' ? (
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></svg>
                         ) : (
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
                         )}
@@ -164,7 +157,10 @@ function BookingCard({ booking }: { booking: Booking }) {
                             {isActive && <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />}
                         </div>
                         <p className="text-body-reg text-foreground/60 mt-0.5">{booking.service_name} · {booking.license_plate}</p>
-                        <p className="text-body-reg text-foreground/40 text-sm">{booking.appointment_date} · {booking.time_slot} WIB</p>
+                        <p className="text-body-reg text-foreground/40 text-sm">
+                            {booking.created_at}
+                            {booking.stall && <span className="text-primary font-semibold"> · {booking.stall}</span>}
+                        </p>
                     </div>
                 </div>
                 <div className="flex sm:flex-col items-center sm:items-end gap-3">

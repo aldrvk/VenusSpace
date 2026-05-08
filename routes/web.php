@@ -13,9 +13,7 @@ Route::get('/', function () {
 });
 
 // ── Doorsmeer ─────────────────────────────────────────────────────────────────
-Route::get('/doorsmeer', function () {
-    return Inertia::render('Doorsmeer/index');
-})->name('doorsmeer.index');
+Route::get('/doorsmeer', [DoorsmeerBookingController::class, 'index'])->name('doorsmeer.index');
 
 Route::get('/doorsmeer/booking-detail', function () {
     return Inertia::render('Doorsmeer/booking_detail');
@@ -94,8 +92,12 @@ Route::middleware('auth')->group(function () {
         // Doorsmeer – data dari DB + actions
         Route::get('/booking-doorsmeer', [DoorsmeerBookingController::class, 'adminIndex'])->name('doorsmeer');
         Route::post('/doorsmeer/verify/{booking}', [DoorsmeerBookingController::class, 'verify'])->name('doorsmeer.verify');
-        Route::post('/doorsmeer/reject/{booking}', [DoorsmeerBookingController::class, 'reject'])->name('doorsmeer.reject');
         Route::post('/doorsmeer/progress/{booking}', [DoorsmeerBookingController::class, 'updateProgress'])->name('doorsmeer.progress');
+        Route::post('/doorsmeer/cancel/{booking}', [DoorsmeerBookingController::class, 'cancel'])->name('doorsmeer.cancel');
+
+        // Walk-in
+        Route::get('/doorsmeer/walk-in', [DoorsmeerBookingController::class, 'walkIn'])->name('doorsmeer.walk-in');
+        Route::post('/doorsmeer/walk-in', [DoorsmeerBookingController::class, 'storeWalkIn'])->name('doorsmeer.store-walk-in');
 
         Route::get('/booking-bengkel', fn () => Inertia::render('Admin/BookingBengkel'))->name('bengkel');
         Route::get('/booking-rental-ps', fn () => Inertia::render('Admin/BookingRentalPS'))->name('rentalps');
