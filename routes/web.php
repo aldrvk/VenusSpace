@@ -5,6 +5,7 @@ use Inertia\Inertia;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\DoorsmeerBookingController;
 
 // ── Halaman Utama ──────────────────────────────────────────────────────────────
 Route::get('/', function () {
@@ -69,10 +70,41 @@ Route::middleware('guest')->group(function () {
 // ── Auth: Butuh login ─────────────────────────────────────────────────────────
 Route::middleware('auth')->group(function () {
 
-    // Dashboard
+    // Dashboard (legacy, redirect ke admin)
     Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard');
+        return redirect('/admin/dashboard');
     })->name('dashboard');
+
+    // ── Doorsmeer Booking (user) ──────────────────────────────────────────────
+    Route::post('/doorsmeer/booking', [DoorsmeerBookingController::class, 'store'])
+         ->name('doorsmeer.booking.store');
+    Route::get('/doorsmeer/tracking/{code}', [DoorsmeerBookingController::class, 'tracking'])
+         ->name('doorsmeer.tracking');
+    Route::get('/doorsmeer/my-bookings', [DoorsmeerBookingController::class, 'myBookings'])
+         ->name('doorsmeer.my_bookings');
+
+    // Polling AJAX – real-time status tanpa reload halaman
+    Route::get('/api/doorsmeer/status/{code}', [DoorsmeerBookingController::class, 'statusPoll'])
+         ->name('doorsmeer.status_poll');
+
+    // ── Admin Routes ──────────────────────────────────────────────────────────
+    Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/dashboard', fn () => Inertia::render('Admin/Dashboard'))->name('dashboard');
+
+        // Doorsmeer – data dari DB + actions
+        Route::get('/booking-doorsmeer', [DoorsmeerBookingController::class, 'adminIndex'])->name('doorsmeer');
+        Route::post('/doorsmeer/verify/{booking}', [DoorsmeerBookingController::class, 'verify'])->name('doorsmeer.verify');
+        Route::post('/doorsmeer/reject/{booking}', [DoorsmeerBookingController::class, 'reject'])->name('doorsmeer.reject');
+        Route::post('/doorsmeer/progress/{booking}', [DoorsmeerBookingController::class, 'updateProgress'])->name('doorsmeer.progress');
+
+        Route::get('/booking-bengkel', fn () => Inertia::render('Admin/BookingBengkel'))->name('bengkel');
+        Route::get('/booking-rental-ps', fn () => Inertia::render('Admin/BookingRentalPS'))->name('rentalps');
+        Route::get('/katalog-coffee', fn () => Inertia::render('Admin/KatalogCoffeeShop'))->name('coffee');
+        Route::get('/katalog-vape', fn () => Inertia::render('Admin/KatalogVapeStore'))->name('vape');
+        Route::get('/jadwal', fn () => Inertia::render('Admin/Jadwal'))->name('jadwal');
+        Route::get('/laporan', fn () => Inertia::render('Admin/Laporan'))->name('laporan');
+        Route::get('/pengaturan', fn () => Inertia::render('Admin/Pengaturan'))->name('pengaturan');
+    });
 
     // Logout
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');

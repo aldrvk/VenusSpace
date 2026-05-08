@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
-
-// ─── Data ────────────────────────────────────────────────────────────────────
 
 const services = [
     {
@@ -49,8 +47,6 @@ const bayStatus = [
     { name: 'Detailing Zone', status: 'maintenance', detail: 'Dalam Perbaikan' },
 ];
 
-// ─── Icons ───────────────────────────────────────────────────────────────────
-
 const CheckIcon = () => (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <polyline points="20 6 9 17 4 12" />
@@ -63,8 +59,6 @@ const ChevronDownIcon = () => (
         <polyline points="6 9 12 15 18 9" />
     </svg>
 );
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function getNextDays(count: number) {
     const days = ['MIN', 'SEN', 'SEL', 'RAB', 'KAM', 'JUM', 'SAB'];
@@ -85,15 +79,15 @@ function getNextDays(count: number) {
 
 const timeSlots = ['09:00', '10:30', '12:00', '14:00', '15:30', '17:00'];
 
-// ─── Component ───────────────────────────────────────────────────────────────
-
 export default function DoorsmeerIndex() {
+    const { auth } = usePage<{ auth: { user?: { id: number } } }>().props;
     const [selectedService, setSelectedService] = useState('premium');
     const [vehicleClass, setVehicleClass] = useState('City Car / Sedan');
     const [licensePlate, setLicensePlate] = useState('');
     const [selectedDay, setSelectedDay] = useState(0);
     const [selectedTime, setSelectedTime] = useState('10:30');
     const [plateError, setPlateError] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const days = getNextDays(4);
     const service = services.find(s => s.id === selectedService)!;
@@ -103,26 +97,34 @@ export default function DoorsmeerIndex() {
             setPlateError('Nomor plat wajib diisi.');
             return;
         }
+
+        // Redirect ke login jika belum login
+        if (!auth?.user) {
+            router.visit('/login');
+            return;
+        }
+
         setPlateError('');
+        setIsSubmitting(true);
 
-        const booking = {
-            serviceId: service.id,
-            serviceName: service.name,
-            serviceSubtitle: service.subtitle,
-            servicePrice: service.price,
-            serviceDuration: service.duration,
-            serviceFeatures: service.features,
-            vehicleClass,
-            licensePlate: licensePlate.trim().toUpperCase(),
-            appointmentDate: days[selectedDay].fullDate,
-            appointmentIso: days[selectedDay].iso,
-            timeSlot: selectedTime,
-            bookingId: `#DS-${Math.random().toString(36).substring(2, 7).toUpperCase()}`,
-            createdAt: new Date().toISOString(),
-        };
-
-        localStorage.setItem('doorsmeer_booking', JSON.stringify(booking));
-        router.visit('/doorsmeer/booking-detail');
+        router.post(
+            '/doorsmeer/booking',
+            {
+                service_id:       service.id,
+                service_name:     service.name,
+                service_subtitle: service.subtitle,
+                service_price:    service.price,
+                service_duration: service.duration,
+                vehicle_class:    vehicleClass,
+                license_plate:    licensePlate.trim().toUpperCase(),
+                appointment_date: days[selectedDay].iso,
+                time_slot:        selectedTime,
+            },
+            {
+                onError: () => setIsSubmitting(false),
+                onFinish: () => setIsSubmitting(false),
+            }
+        );
     };
 
     return (
@@ -289,12 +291,22 @@ export default function DoorsmeerIndex() {
                             {/* CTA */}
                             <button
                                 onClick={handleConfirm}
-                                className="w-full bg-secondary hover:bg-secondary/90 text-secondary-foreground h-14 rounded-full flex items-center justify-center gap-3 transition-all shadow-lg text-label-sm tracking-widest font-bold group"
+                                disabled={isSubmitting}
+                                className="w-full bg-secondary hover:bg-secondary/90 disabled:opacity-70 text-secondary-foreground h-14 rounded-full flex items-center justify-center gap-3 transition-all shadow-lg text-label-sm tracking-widest font-bold group"
                             >
-                                Konfirmasi Booking Saya
-                                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                                </svg>
+                                {isSubmitting ? (
+                                    <>
+                                        <div className="w-4 h-4 border-2 border-secondary-foreground border-t-transparent rounded-full animate-spin" />
+                                        Memproses…
+                                    </>
+                                ) : (
+                                    <>
+                                        {!auth?.user ? 'Login untuk Booking' : 'Konfirmasi Booking Saya'}
+                                        <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                        </svg>
+                                    </>
+                                )}
                             </button>
                         </div>
                     </div>
