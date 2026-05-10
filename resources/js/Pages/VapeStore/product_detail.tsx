@@ -5,310 +5,23 @@ import Footer from '../../Components/Footer';
 import ProductDetailButton from '../../Components/ProductDetailButton';
 import Card from '../../Components/Card/Card';
 
-// Images - Devices
-import nanoImg from '../../../images/Vape Store/nano pod s ii.jpg';
-import earthyNano from '../../../images/Vape Store/earthy nano pod s ii.png';
-import goldNano from '../../../images/Vape Store/gold nano pod s ii.png';
-import apexImg from '../../../images/Vape Store/apex titanium.jpg';
-import dragImg from '../../../images/Vape Store/drag q pod kit.png';
-import argusImg from '../../../images/Vape Store/voopoo argus.jpg';
-import thelemaImg from '../../../images/Vape Store/thelema aura s.jpg';
-import oxvaImg from '../../../images/Vape Store/oxva xlim go 2.jpg';
-import xmaxImg from '../../../images/Vape Store/xmax v3 pro.jpg';
+interface Product {
+    id: number;
+    name: string;
+    category: string;
+    price: number;
+    description: string;
+    image: string;
+    tag: string;
+    options?: Record<string, string[]>;
+}
 
-// Liquids
-import arcticImg from '../../../images/Vape Store/arctic menthol.jpg';
-import blueberryImg from '../../../images/Vape Store/blueberry ice.jpg';
-import blackcurrantImg from '../../../images/Vape Store/blackcurrant tea.jpg';
-import buleboluImg from '../../../images/Vape Store/blue bolu.jpeg';
-import kingsImg from '../../../images/Vape Store/king\'s reserve.jpeg';
-import bananaImg from '../../../images/Vape Store/banana licious.jpeg';
-import sundaeImg from '../../../images/Vape Store/good sundae.png';
-import englishImg from '../../../images/Vape Store/english breakfast.png';
+interface Props {
+    product: Product;
+    recommendations: Product[];
+}
 
-// Accessories
-import nitecoreImg from '../../../images/Vape Store/nitecore battery.png';
-import casanImg from '../../../images/Vape Store/casan type c.png';
-import cartridgeImg from '../../../images/Vape Store/cartridge.png';
-import cottonImg from '../../../images/Vape Store/cotton bacon.png';
-import coilImg from '../../../images/Vape Store/coil.png';
-import vapebandImg from '../../../images/Vape Store/vapeband.png';
-
-const productsData = [
-    {
-        id: 1,
-        name: 'Apex Titanium',
-        price: 400000,
-        category: 'PERANGKAT',
-        tag: 'KONSTRUKSI PREMIUM',
-        description: 'Sasis titanium kelas kedirgantaraan dengan Omni-Chip 4.0 revolusioner untuk presisi yang tak tertandingi.',
-        images: [apexImg],
-        options: {
-            Color: ['METALLIC', 'MATTE BLACK'],
-            'Vapor Intensity': ['SMOOTH', 'INTENSE']
-        }
-    },
-    {
-        id: 2,
-        name: 'Nano Pod S II',
-        price: 350000,
-        category: 'PERANGKAT',
-        tag: 'DAYA PORTABEL',
-        description: 'Puncak dari teknologi penguapan kompak, menawarkan daya tahan baterai 12 jam dalam bentuk yang seukuran saku dengan sistem pengisian atas yang anti bocor.',
-        images: [nanoImg, goldNano, earthyNano],
-        options: {
-            Color: ['MIDNIGHT BLACK', 'EMPIRE GOLD', 'EARTHY GREEN'],
-            'Vapor Intensity': ['SMOOTH', 'DIRECT', 'INTENSE']
-        }
-    },
-    {
-        id: 3,
-        name: 'Drag Q Pod Kit',
-        price: 350000,
-        category: 'PERANGKAT',
-        tag: 'SPESIFIKASI TEKNIS',
-        description: 'Kit pemula serbaguna yang menyeimbangkan desain estetika dengan performa profesional. Termasuk cincin pengatur aliran udara dan pegangan kulit yang nyaman.',
-        images: [dragImg],
-        options: {
-            Color: ['CLASSIC RED', 'CARBON FIBER'],
-            'Vapor Intensity': ['REGULAR', 'HIGH']
-        }
-    },
-    {
-        id: 4,
-        name: 'VOOPOO Argus',
-        price: 400000,
-        category: 'PERANGKAT',
-        tag: 'KELAS PREMIUM',
-        description: 'Dilengkapi dengan kumparan jala sarang lebah inovatif yang memastikan permukaan pemanas lebih luas untuk produksi uap yang kaya dan padat.',
-        images: [argusImg],
-        options: {
-            Color: ['BLACK', 'SILVER', 'GUNMETAL']
-        }
-    },
-    {
-        id: 5,
-        name: 'Thelema Aura S',
-        price: 200000,
-        category: 'PERANGKAT',
-        tag: 'KUALITAS TINGGI',
-        description: 'Sistem pod berperforma tinggi ini dilengkapi dengan chipset canggih yang memastikan pengaktifan cepat dan profil rasa yang konsisten dan kaya di setiap hisapan.',
-        images: [thelemaImg],
-        options: {
-            Color: ['BLUE', 'RED', 'BLACK']
-        }
-    },
-    {
-        id: 6,
-        name: 'Oxva Xlim Go 2',
-        price: 180000,
-        category: 'PERANGKAT',
-        tag: 'CHIPSET CANGGIH',
-        description: 'Perangkat serbaguna ini mendukung berbagai tingkat resistansi, menjadikannya pilihan sempurna bagi pencari rasa maupun penggemar uap tebal.',
-        images: [oxvaImg],
-        options: {
-            Color: ['DARK GREY', 'GREEN', 'RED']
-        }
-    },
-    {
-        id: 7,
-        name: 'XMax V3 Pro',
-        price: 260000,
-        category: 'PERANGKAT',
-        tag: 'KUALITAS TINGGI',
-        description: 'Vaporizer konveksi ini memiliki waktu pemanasan yang cepat dan layar OLED yang jernih yang menampilkan suhu dan pemantauan baterai.',
-        images: [xmaxImg],
-        options: {
-            Color: ['BLACK', 'SILVER']
-        }
-    },
-    {
-        id: 101,
-        name: 'Blackcurrant Tea',
-        price: 110000,
-        category: 'CAIRAN',
-        tag: 'RASA MENYEGARKAN',
-        description: 'Perpaduan halus antara blackcurrant kaya dan sentuhan teh, memberikan sensasi menyegarkan namun sedikit asam.',
-        images: [blackcurrantImg],
-        options: {
-            Nicotine: ['3MG', '6MG'],
-            Size: ['30ML', '60ML']
-        }
-    },
-    {
-        id: 102,
-        name: 'Bule Bolu',
-        price: 120000,
-        category: 'CAIRAN',
-        tag: 'AWAN CREAMY',
-        description: 'Rasa yang terinspirasi makanan penutup yang lezat, menangkap kemanisan lembut kue spons klasik. Ringan, creamy, dan memuaskan.',
-        images: [buleboluImg],
-        options: {
-            Nicotine: ['3MG', '6MG'],
-            Size: ['30ML', '60ML']
-        }
-    },
-    {
-        id: 103,
-        name: 'King\'s Reserve',
-        price: 145000,
-        category: 'CAIRAN',
-        tag: 'CAMPURAN PREMIUM',
-        description: 'Dibuat untuk pengalaman premium, campuran ini menawarkan profil rasa yang berani namun halus dengan lapisan rasa yang mendalam.',
-        images: [kingsImg],
-        options: {
-            Nicotine: ['3MG', '6MG'],
-            Size: ['30ML', '60ML']
-        }
-    },
-    {
-        id: 104,
-        name: 'Banana Licious',
-        price: 162000,
-        category: 'CAIRAN',
-        tag: 'RASA KAYA',
-        description: 'Campuran pisang creamy dengan aroma manis alami dan tekstur halus di setiap hisapan. Memberikan pengalaman yang lembut dan penuh rasa.',
-        images: [bananaImg],
-        options: {
-            Nicotine: ['3MG', '6MG'],
-            Size: ['30ML', '60ML']
-        }
-    },
-    {
-        id: 105,
-        name: 'Good Sundae',
-        price: 145000,
-        category: 'CAIRAN',
-        tag: 'DESSERT MANIS',
-        description: 'Rasa ini menggabungkan setiap kemanisan dengan sentuhan topping buah. Vape yang menyenangkan dan memanjakan yang membawa nuansa hidangan penutup di setiap hisapan.',
-        images: [sundaeImg],
-        options: {
-            Nicotine: ['3MG', '6MG'],
-            Size: ['30ML', '60ML']
-        }
-    },
-    {
-        id: 106,
-        name: 'English Breakfast',
-        price: 165000,
-        category: 'CAIRAN',
-        tag: 'RASA KLASIK',
-        description: 'Interpretasi unik dari rasa teh tradisional, menawarkan rasa yang hangat dan sedikit berani dengan akhir yang halus.',
-        images: [englishImg],
-        options: {
-            Nicotine: ['3MG', '6MG'],
-            Size: ['30ML', '60ML']
-        }
-    },
-    {
-        id: 107,
-        name: 'Arctic Menthol',
-        price: 100000,
-        category: 'CAIRAN',
-        tag: 'RASA MENYEGARKAN',
-        description: 'Cairan vape yang menyegarkan, dirancang untuk menghasilkan uap yang halus dan konsisten, menghadirkan sensasi menthol yang segar dengan intensitas rasa yang seimbang.',
-        images: [arcticImg],
-        options: {
-            Nicotine: ['3MG', '6MG'],
-            Size: ['30ML', '60ML']
-        }
-    },
-    {
-        id: 108,
-        name: 'Blueberry Ice',
-        price: 100000,
-        category: 'CAIRAN',
-        tag: 'RASA MANIS',
-        description: 'Perpaduan rasa yang lezat, menggabungkan aroma blueberry manis dengan sensasi dingin di akhir, dirancang untuk memberikan sensasi lembut di tenggorokan dengan uap yang memuaskan.',
-        images: [blueberryImg],
-        options: {
-            Nicotine: ['3MG', '6MG'],
-            Size: ['30ML', '60ML']
-        }
-    },
-    {
-        id: 201,
-        name: 'Nitecore Battery',
-        price: 136000,
-        category: 'AKSESORIS',
-        tag: 'KAPASITAS TINGGI',
-        description: 'Baterai andal berperforma tinggi yang dirancang untuk memberikan daya stabil dan penggunaan tahan lama. Dibuat dengan mengutamakan keamanan dan efisiensi.',
-        images: [nitecoreImg],
-        options: {
-            Quantity: ['1 PCS', '2 PCS']
-        }
-    },
-    {
-        id: 202,
-        name: 'Casan Type C',
-        price: 40000,
-        category: 'AKSESORIS',
-        tag: 'PENGISIAN CEPAT',
-        description: 'Pengisi daya dua slot serbaguna yang dilengkapi dengan input Type-C untuk pengisian daya yang lebih cepat dan nyaman. Dilengkapi dengan manajemen daya cerdas.',
-        images: [casanImg],
-        options: {
-            Color: ['BLACK', 'WHITE']
-        }
-    },
-    {
-        id: 203,
-        name: 'Cartridge',
-        price: 40000,
-        category: 'AKSESORIS',
-        tag: 'ANTI BOCOR',
-        description: 'Pod yang ringkas dan mudah digunakan, dirancang untuk menghasilkan uap yang halus dan konsisten. Ideal untuk memberikan rasa yang bersih dan desain yang ramah pengguna.',
-        images: [cartridgeImg],
-        options: {
-            Resistance: ['0.6 OHM', '0.8 OHM', '1.2 OHM']
-        }
-    },
-    {
-        id: 204,
-        name: 'Cotton Bacon',
-        price: 50000,
-        category: 'AKSESORIS',
-        tag: 'RASA MURNI',
-        description: 'Kapas berkualitas premium yang dibuat khusus untuk vaping, menawarkan daya serap yang sangat baik dan penyampaian rasa yang bersih.',
-        images: [cottonImg],
-        options: {
-            Quantity: ['1 PACK', '2 PACK']
-        }
-    },
-    {
-        id: 205,
-        name: 'Coil',
-        price: 25000,
-        category: 'AKSESORIS',
-        tag: 'PEMANASAN OPTIMAL',
-        description: 'Dirancang untuk pemanasan dan produksi rasa yang optimal, koil ini memberikan pengalaman vaping yang seimbang.',
-        images: [coilImg],
-        options: {
-            Resistance: ['0.15 OHM', '0.2 OHM', '0.3 OHM']
-        }
-    },
-    {
-        id: 206,
-        name: 'Vapeband',
-        price: 2500,
-        category: 'AKSESORIS',
-        tag: 'PELINDUNG',
-        description: 'Aksesori praktis yang melindungi tangki Anda dari benturan ringan dan menambahkan sentuhan gaya pribadi.',
-        images: [vapebandImg],
-        options: {
-            Color: ['BLACK', 'RED', 'BLUE']
-        }
-    }
-];
-
-const recommendations = [
-    productsData.find(p => p.id === 107)!, // Arctic Menthol
-    productsData.find(p => p.id === 1)!,   // Apex Titanium
-    productsData.find(p => p.id === 108)!  // Blueberry Ice
-];
-
-export default function ProductDetail({ id }: { id?: string | number }) {
-    const productId = id ? parseInt(id.toString()) : 2;
-    const product = productsData.find(p => p.id === productId) || productsData.find(p => p.id === 2)!;
+export default function ProductDetail({ product, recommendations }: Props) {
 
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
     const [quantity, setQuantity] = useState(1);
@@ -352,7 +65,7 @@ export default function ProductDetail({ id }: { id?: string | number }) {
                 productId: product.id,
                 name: product.name,
                 price: product.price,
-                image: product.images[selectedImageIndex] || product.images[0],
+                image: product.image,
                 quantity,
                 optionsStr
             });
@@ -388,27 +101,11 @@ export default function ProductDetail({ id }: { id?: string | number }) {
                                 </div>
                             )}
                             <img 
-                                src={product.images[selectedImageIndex]} 
+                                src={product.image || 'https://via.placeholder.com/600x800'} 
                                 alt={product.name} 
                                 className="w-full h-full object-cover"
                             />
                         </div>
-                        
-                        {product.images.length > 1 && (
-                            <div className="flex justify-center gap-4">
-                                {product.images.map((img, idx) => (
-                                    <button 
-                                        key={idx}
-                                        onClick={() => setSelectedImageIndex(idx)}
-                                        className={`w-20 h-20 rounded-venus overflow-hidden border-2 transition-all ${selectedImageIndex === idx ? 'border-primary' : 'border-transparent hover:border-border'}`}
-                                    >
-                                        <div className="w-full h-full bg-surface flex items-center justify-center">
-                                            <img src={img} alt={`Thumbnail ${idx}`} className="w-full h-full object-cover" />
-                                        </div>
-                                    </button>
-                                ))}
-                            </div>
-                        )}
                     </div>
 
                     {/* Right Column: Product Info */}
@@ -514,7 +211,7 @@ export default function ProductDetail({ id }: { id?: string | number }) {
                                 name={rec.name}
                                 price={rec.price}
                                 description={rec.description}
-                                image={rec.images[0]}
+                                image={rec.image}
                             />
                         ))}
                     </div>

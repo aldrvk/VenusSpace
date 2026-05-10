@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\StoreOrder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
 use Inertia\Inertia;
 
 class StoreAdminController extends Controller
@@ -28,14 +30,33 @@ class StoreAdminController extends Controller
     public function storeProduct(Request $request)
     {
         $request->validate([
-            'unit'     => 'required|in:VAPE STORE,COFFEE SHOP',
-            'name'     => 'required|string|max:255',
-            'category' => 'required|string|max:255',
-            'price'    => 'required|integer|min:0',
-            'stock'    => 'required|in:Tersedia,Habis,Terbatas'
+            'unit'        => 'required|in:VAPE STORE,COFFEE SHOP',
+            'name'        => 'required|string|max:255',
+            'category'    => 'required|string|max:255',
+            'price'       => 'required|integer|min:0',
+            'stock'       => 'required|in:Tersedia,Habis,Terbatas',
+            'image'       => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'description' => 'nullable|string',
+            'options'     => 'nullable|array',
         ]);
 
-        Product::create($request->all());
+        $data = $request->except('image');
+
+        if ($request->hasFile('image')) {
+            $folder = $request->unit === 'VAPE STORE' ? 'Vape Store' : 'Coffee Shop';
+            $imageName = strtolower($request->name) . '.' . $request->file('image')->getClientOriginalExtension();
+            
+            // Move file directly to public directory
+            $destinationPath = public_path('images/' . $folder);
+            if (!File::exists($destinationPath)) {
+                File::makeDirectory($destinationPath, 0755, true);
+            }
+            
+            $request->file('image')->move($destinationPath, $imageName);
+            $data['image'] = '/images/' . $folder . '/' . $imageName;
+        }
+
+        Product::create($data);
 
         return back()->with('success', 'Produk berhasil ditambahkan.');
     }
@@ -43,13 +64,36 @@ class StoreAdminController extends Controller
     public function updateProduct(Request $request, Product $product)
     {
         $request->validate([
-            'name'     => 'required|string|max:255',
-            'category' => 'required|string|max:255',
-            'price'    => 'required|integer|min:0',
-            'stock'    => 'required|in:Tersedia,Habis,Terbatas'
+            'name'        => 'required|string|max:255',
+            'category'    => 'required|string|max:255',
+            'price'       => 'required|integer|min:0',
+            'stock'       => 'required|in:Tersedia,Habis,Terbatas',
+            'image'       => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'description' => 'nullable|string',
+            'options'     => 'nullable|array',
         ]);
 
-        $product->update($request->all());
+        $data = $request->except('image');
+
+        if ($request->hasFile('image')) {
+            $folder = $product->unit === 'VAPE STORE' ? 'Vape Store' : 'Coffee Shop';
+            $imageName = strtolower($request->name) . '.' . $request->file('image')->getClientOriginalExtension();
+            
+            $destinationPath = public_path('images/' . $folder);
+            if (!File::exists($destinationPath)) {
+                File::makeDirectory($destinationPath, 0755, true);
+            }
+            
+            // Delete old image if exists
+            if ($product->image && File::exists(public_path($product->image))) {
+                File::delete(public_path($product->image));
+            }
+
+            $request->file('image')->move($destinationPath, $imageName);
+            $data['image'] = '/images/' . $folder . '/' . $imageName;
+        }
+
+        $product->update($data);
 
         return back()->with('success', 'Produk berhasil diperbarui.');
     }

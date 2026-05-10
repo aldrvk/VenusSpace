@@ -18,40 +18,28 @@ const CupIcon = () => (
 const BeanIcon = () => (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"></path><path d="M12 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c1.66 0 3.14-.68 4.22-1.78l-8.44-8.44C8.86 6.68 10.34 6 12 6z"></path></svg>
 );
+const FoodIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"></path><path d="M12 6v6l4 2"></path></svg>
+);
 
+interface Product {
+    id: number;
+    name: string;
+    category: string;
+    price: number;
+    stock: string;
+    description: string;
+    image: string;
+    tag: string;
+    tag_icon: string;
+}
 
-export default function Drinks() {
+interface Props {
+    products: Product[];
+}
+
+export default function Drinks({ products }: Props) {
     const [searchTerm, setSearchTerm] = useState('');
-
-    const products = [
-        {
-            id: 301,
-            name: 'Caramel Macchiato',
-            price: 'Rp45.000',
-            description: 'Perpaduan sempurna antara espresso kuat, susu murni yang di-steam, dan sirup karamel manis yang lembut.',
-            image: 'https://images.unsplash.com/photo-1485808191679-5f86510681a2?q=80&w=600&auto=format&fit=crop',
-            tag: 'TERLARIS',
-            tagIcon: <StarIcon />
-        },
-        {
-            id: 302,
-            name: 'V60 Pour Over',
-            price: 'Rp35.000',
-            description: 'Kopi hitam manual brew menggunakan biji kopi pilihan dengan metode V60 untuk mengeluarkan aroma dan rasa yang bersih dan tajam.',
-            image: 'https://images.unsplash.com/photo-1497935586351-b67a49e012bf?q=80&w=600&auto=format&fit=crop',
-            tag: 'BIJI KOPI PREMIUM',
-            tagIcon: <BeanIcon />
-        },
-        {
-            id: 303,
-            name: 'Matcha Latte',
-            price: 'Rp40.000',
-            description: 'Bubuk matcha premium dari Jepang dipadukan dengan susu segar, menghasilkan tekstur creamy dan rasa manis yang seimbang.',
-            image: 'https://images.unsplash.com/photo-1515823662972-da6a2e4d3002?q=80&w=600&auto=format&fit=crop',
-            tag: 'FAVORITE',
-            tagIcon: <CupIcon />
-        }
-    ];
 
     const filteredProducts = products.filter(product =>
         product.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -94,7 +82,7 @@ export default function Drinks() {
                                 key={product.id}
                                 id={product.id}
                                 name={product.name}
-                                price={product.price}
+                                price={`Rp${product.price.toLocaleString('id-ID')}`}
                                 description={product.description}
                                 image={product.image}
                                 href={`/coffee-shop/product/${product.id}`}

@@ -23,66 +23,31 @@ const FoodIcon = () => (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"></path><path d="M12 6v6l4 2"></path></svg>
 );
 
+const iconMap: Record<string, React.ReactNode> = {
+    'StarIcon': <StarIcon />,
+    'CupIcon': <CupIcon />,
+    'BeanIcon': <BeanIcon />,
+    'FoodIcon': <FoodIcon />,
+};
 
-export default function AllItems() {
+interface Product {
+    id: number;
+    name: string;
+    category: string;
+    price: number;
+    stock: string;
+    description: string;
+    image: string;
+    tag: string;
+    tag_icon: string;
+}
+
+interface Props {
+    products: Product[];
+}
+
+export default function AllItems({ products }: Props) {
     const [searchTerm, setSearchTerm] = useState('');
-
-    const products = [
-        {
-            id: 301,
-            name: 'Caramel Macchiato',
-            price: 'Rp45.000',
-            description: 'Perpaduan sempurna antara espresso kuat, susu murni yang di-steam, dan sirup karamel manis yang lembut.',
-            image: 'https://images.unsplash.com/photo-1485808191679-5f86510681a2?q=80&w=600&auto=format&fit=crop',
-            tag: 'BEST SELLER',
-            tagIcon: <StarIcon />
-        },
-        {
-            id: 302,
-            name: 'V60 Pour Over',
-            price: 'Rp35.000',
-            description: 'Kopi hitam manual brew menggunakan biji kopi pilihan dengan metode V60 untuk mengeluarkan aroma dan rasa yang bersih dan tajam.',
-            image: 'https://images.unsplash.com/photo-1497935586351-b67a49e012bf?q=80&w=600&auto=format&fit=crop',
-            tag: 'PREMIUM BEANS',
-            tagIcon: <BeanIcon />
-        },
-        {
-            id: 303,
-            name: 'Matcha Latte',
-            price: 'Rp40.000',
-            description: 'Bubuk matcha premium dari Jepang dipadukan dengan susu segar, menghasilkan tekstur creamy dan rasa manis yang seimbang.',
-            image: 'https://images.unsplash.com/photo-1515823662972-da6a2e4d3002?q=80&w=600&auto=format&fit=crop',
-            tag: 'FAVORITE',
-            tagIcon: <CupIcon />
-        },
-        {
-            id: 401,
-            name: 'Croissant Butter',
-            price: 'Rp25.000',
-            description: 'Croissant klasik dengan tekstur renyah di luar dan lembut di dalam, dibuat dengan mentega premium.',
-            image: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?q=80&w=600&auto=format&fit=crop',
-            tag: 'FRESH BAKED',
-            tagIcon: <FoodIcon />
-        },
-        {
-            id: 402,
-            name: 'Beef Sandwich',
-            price: 'Rp55.000',
-            description: 'Sandwich daging sapi pilihan dengan sayuran segar dan saus spesial, disajikan dengan roti yang dipanggang sempurna.',
-            image: 'https://images.unsplash.com/photo-1528735602780-2552fd46c7af?q=80&w=600&auto=format&fit=crop',
-            tag: 'HEARTY MEAL',
-            tagIcon: <StarIcon />
-        },
-        {
-            id: 501,
-            name: 'French Fries',
-            price: 'Rp30.000',
-            description: 'Kentang goreng renyah yang dibumbui dengan garam dan herbs pilihan, cocok untuk teman nongkrong.',
-            image: 'https://images.unsplash.com/photo-1576107232684-1279f3908594?q=80&w=600&auto=format&fit=crop',
-            tag: 'SNACK',
-            tagIcon: <FoodIcon />
-        }
-    ];
 
     const filteredProducts = products.filter(product =>
         product.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -133,7 +98,7 @@ export default function AllItems() {
                                 key={product.id}
                                 id={product.id}
                                 name={product.name}
-                                price={product.price}
+                                price={`Rp${product.price.toLocaleString('id-ID')}`}
                                 description={product.description}
                                 image={product.image}
                                 href={`/coffee-shop/product/${product.id}`}

@@ -11,21 +11,24 @@ const FoodIcon = () => (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"></path><path d="M12 6v6l4 2"></path></svg>
 );
 
+interface Product {
+    id: number;
+    name: string;
+    category: string;
+    price: number;
+    stock: string;
+    description: string;
+    image: string;
+    tag: string;
+    tag_icon: string;
+}
 
-export default function Snacks() {
+interface Props {
+    products: Product[];
+}
+
+export default function Snacks({ products }: Props) {
     const [searchTerm, setSearchTerm] = useState('');
-
-    const products = [
-        {
-            id: 501,
-            name: 'French Fries',
-            price: 'Rp30.000',
-            description: 'Kentang goreng renyah yang dibumbui dengan garam dan herbs pilihan, cocok untuk teman nongkrong.',
-            image: 'https://images.unsplash.com/photo-1576107232684-1279f3908594?q=80&w=600&auto=format&fit=crop',
-            tag: 'CAMILAN',
-            tagIcon: <FoodIcon />
-        }
-    ];
 
     const filteredProducts = products.filter(product =>
         product.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -68,7 +71,7 @@ export default function Snacks() {
                                 key={product.id}
                                 id={product.id}
                                 name={product.name}
-                                price={product.price}
+                                price={`Rp${product.price.toLocaleString('id-ID')}`}
                                 description={product.description}
                                 image={product.image}
                                 href={`/coffee-shop/product/${product.id}`}
