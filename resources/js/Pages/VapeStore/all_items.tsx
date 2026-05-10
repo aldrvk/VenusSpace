@@ -42,7 +42,7 @@ export default function AllItems() {
             price: 'Rp260.000',
             description: 'Vaporizer konveksi ini memiliki waktu pemanasan yang cepat dan layar OLED yang jernih yang menampilkan suhu dan pemantauan baterai.',
             image: xmaxImg,
-            tag: 'HIGH QUALITY',
+            tag: 'KUALITAS TINGGI',
             tagIcon: <StarIcon />
         },
         {
@@ -51,7 +51,7 @@ export default function AllItems() {
             price: 'Rp100.000',
             description: 'Cairan vape yang menyegarkan, dirancang untuk menghasilkan uap yang halus dan konsisten, menghadirkan sensasi menthol yang segar dengan intensitas rasa yang seimbang.',
             image: arcticImg,
-            tag: 'REFRESHING TASTE',
+            tag: 'RASA MENYEGARKAN',
             tagIcon: <DropIcon />
         },
         {
@@ -60,7 +60,7 @@ export default function AllItems() {
             price: 'Rp100.000',
             description: 'Perpaduan rasa yang lezat, menggabungkan aroma blueberry manis dengan sensasi dingin di akhir, dirancang untuk memberikan sensasi lembut di tenggorokan dengan uap yang memuaskan.',
             image: blueberryImg,
-            tag: 'SWEET FLAVOR',
+            tag: 'RASA MANIS',
             tagIcon: <StarIcon />
         },
         {
@@ -69,7 +69,7 @@ export default function AllItems() {
             price: 'Rp136.000',
             description: 'Baterai andal berperforma tinggi yang dirancang untuk memberikan daya stabil dan penggunaan tahan lama. Dibuat dengan mengutamakan keamanan dan efisiensi.',
             image: nitecoreImg,
-            tag: 'HIGH CAPACITY',
+            tag: 'KAPASITAS TINGGI',
             tagIcon: <BatteryIcon />
         },
         {
@@ -78,7 +78,7 @@ export default function AllItems() {
             price: 'Rp400.000',
             description: 'Sasis titanium kelas kedirgantaraan dengan Omni-Chip 4.0 revolusioner untuk presisi yang tak tertandingi.',
             image: apexImg,
-            tag: 'PREMIUM BUILD',
+            tag: 'KONSTRUKSI PREMIUM',
             tagIcon: <ShieldIcon />
         },
         {
@@ -108,7 +108,7 @@ export default function AllItems() {
                     <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                         <div className="max-w-2xl">
                             <h1 className="text-h1 text-super-black mb-4">
-                                Redefining the Art of <span className="text-primary">Vapor</span>
+                                Mendefinisikan Ulang Seni <span className="text-primary">Vapor</span>
                             </h1>
                             <p className="text-body-l text-foreground">
                                 Temukan pilihan perangkat premium dan e-liquid buatan tangan yang dirancang khusus untuk para penggemar yang cerdas.

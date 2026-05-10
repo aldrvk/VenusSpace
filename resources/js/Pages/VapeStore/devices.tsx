@@ -42,7 +42,7 @@ export default function Devices() {
             price: 'Rp400.000',
             description: 'Sasis titanium kelas kedirgantaraan dengan Omni-Chip 4.0 revolusioner untuk presisi yang tak tertandingi.',
             image: apexImg,
-            tag: 'PREMIUM BUILD',
+            tag: 'KONSTRUKSI PREMIUM',
             tagIcon: <ShieldIcon />
         },
         {
@@ -51,7 +51,7 @@ export default function Devices() {
             price: 'Rp350.000',
             description: 'Puncak dari teknologi penguapan kompak, menawarkan daya tahan baterai 12 jam dalam bentuk yang seukuran saku dengan sistem pengisian atas yang anti bocor.',
             image: nanoImg,
-            tag: 'PORTABLE POWER',
+            tag: 'DAYA PORTABEL',
             tagIcon: <BatteryIcon />
         },
         {
@@ -60,7 +60,7 @@ export default function Devices() {
             price: 'Rp350.000',
             description: 'Kit pemula serbaguna yang menyeimbangkan desain estetika dengan performa profesional. Termasuk cincin pengatur aliran udara dan pegangan kulit yang nyaman.',
             image: dragImg,
-            tag: 'TECH SPECS',
+            tag: 'SPESIFIKASI TEKNIS',
             tagIcon: <ChipIcon />
         },
         {
@@ -69,7 +69,7 @@ export default function Devices() {
             price: 'Rp400.000',
             description: 'Dilengkapi dengan kumparan jala sarang lebah inovatif yang memastikan permukaan pemanas lebih luas untuk produksi uap yang kaya dan padat.',
             image: argusImg,
-            tag: 'PREMIUM GRADE',
+            tag: 'KELAS PREMIUM',
             tagIcon: <ShieldIcon />
         },
         {
@@ -78,7 +78,7 @@ export default function Devices() {
             price: 'Rp200.000',
             description: 'Sistem pod berperforma tinggi ini dilengkapi dengan chipset canggih yang memastikan pengaktifan cepat dan profil rasa yang konsisten dan kaya di setiap hisapan.',
             image: thelemaImg,
-            tag: 'HIGH QUALITY',
+            tag: 'KUALITAS TINGGI',
             tagIcon: <StarIcon />
         },
         {
@@ -108,10 +108,10 @@ export default function Devices() {
                     <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                         <div className="max-w-2xl">
                             <h1 className="text-h1 text-super-black mb-4">
-                                Redefining the Art of <span className="text-primary">Vapor</span>
+                                Mendefinisikan Ulang Seni <span className="text-primary">Vapor</span>
                             </h1>
                             <p className="text-body-l text-foreground">
-                                Discover a handpicked selection of premium devices and artisanal e-liquids designed for the discerning enthusiast.
+                                Temukan pilihan perangkat premium dan cairan buatan tangan yang dirancang khusus untuk para penggemar yang cerdas.
                             </p>
                         </div>
 

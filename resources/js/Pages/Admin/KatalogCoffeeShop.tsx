@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Head } from "@inertiajs/react";
+import { Head, useForm, router } from "@inertiajs/react";
 import AdminLayout from "../../Layouts/AdminLayout";
 import {
     PageHeader,
@@ -20,87 +20,74 @@ interface MenuItem {
 
 type FilterTab = "Semua" | "Kopi" | "Non-Kopi" | "Makanan";
 
-const menuItems: MenuItem[] = [
-    {
-        id: 1,
-        name: "Americano",
-        category: "Kopi",
-        price: 18000,
-        stock: "Tersedia",
-        sold: 42,
-    },
-    {
-        id: 2,
-        name: "Cappuccino",
-        category: "Kopi",
-        price: 22000,
-        stock: "Tersedia",
-        sold: 38,
-    },
-    {
-        id: 3,
-        name: "Latte",
-        category: "Kopi",
-        price: 24000,
-        stock: "Tersedia",
-        sold: 55,
-    },
-    {
-        id: 4,
-        name: "Espresso",
-        category: "Kopi",
-        price: 15000,
-        stock: "Tersedia",
-        sold: 29,
-    },
-    {
-        id: 5,
-        name: "Matcha Latte",
-        category: "Non-Kopi",
-        price: 25000,
-        stock: "Terbatas",
-        sold: 20,
-    },
-    {
-        id: 6,
-        name: "Chocolate Frappe",
-        category: "Non-Kopi",
-        price: 27000,
-        stock: "Tersedia",
-        sold: 18,
-    },
-    {
-        id: 7,
-        name: "Teh Tarik",
-        category: "Non-Kopi",
-        price: 12000,
-        stock: "Tersedia",
-        sold: 31,
-    },
-    {
-        id: 8,
-        name: "Croissant",
-        category: "Makanan",
-        price: 20000,
-        stock: "Habis",
-        sold: 14,
-    },
-    {
-        id: 9,
-        name: "Roti Bakar",
-        category: "Makanan",
-        price: 15000,
-        stock: "Tersedia",
-        sold: 22,
-    },
-];
+interface Props {
+    products: MenuItem[];
+}
 
-export default function KatalogCoffeeShop() {
+export default function KatalogCoffeeShop({ products = [] }: Props) {
     const [activeFilter, setActiveFilter] = useState<FilterTab>("Semua");
     const [search, setSearch] = useState("");
+    const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [editingProduct, setEditingProduct] = useState<MenuItem | null>(null);
+    const [deletingProduct, setDeletingProduct] = useState<MenuItem | null>(null);
+
+    const { data, setData, post, put, reset, processing, errors } = useForm({
+        unit: "COFFEE SHOP",
+        name: "",
+        category: "Kopi",
+        price: 0,
+        stock: "Tersedia",
+    });
+
+    const openAddModal = () => {
+        reset();
+        setData("unit", "COFFEE SHOP");
+        setEditingProduct(null);
+        setIsProductModalOpen(true);
+    };
+
+    const openEditModal = (product: MenuItem) => {
+        setEditingProduct(product);
+        setData({
+            unit: "COFFEE SHOP",
+            name: product.name,
+            category: product.category,
+            price: product.price,
+            stock: product.stock,
+        });
+        setIsProductModalOpen(true);
+    };
+
+    const submitProduct = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (editingProduct) {
+            put(`/admin/store/product/${editingProduct.id}`, {
+                onSuccess: () => setIsProductModalOpen(false),
+            });
+        } else {
+            post(`/admin/store/product`, {
+                onSuccess: () => setIsProductModalOpen(false),
+            });
+        }
+    };
+
+    const openDeleteModal = (product: MenuItem) => {
+        setDeletingProduct(product);
+        setIsDeleteModalOpen(true);
+    };
+
+    const confirmDelete = () => {
+        if (deletingProduct) {
+            router.delete(`/admin/store/product/${deletingProduct.id}`, {
+                onSuccess: () => setIsDeleteModalOpen(false),
+            });
+        }
+    };
+
     const filters: FilterTab[] = ["Semua", "Kopi", "Non-Kopi", "Makanan"];
 
-    const filtered = menuItems.filter((item) => {
+    const filtered = products.filter((item) => {
         const matchCat =
             activeFilter === "Semua" || item.category === activeFilter;
         const matchSearch = item.name
@@ -109,10 +96,10 @@ export default function KatalogCoffeeShop() {
         return matchCat && matchSearch;
     });
 
-    const totalItems = menuItems.length;
-    const totalSold = menuItems.reduce((s, i) => s + i.sold, 0);
-    const habisCount = menuItems.filter((i) => i.stock === "Habis").length;
-    const revenue = menuItems.reduce((s, i) => s + i.price * i.sold, 0);
+    const totalItems = products.length;
+    const totalSold = products.reduce((s, i) => s + i.sold, 0);
+    const habisCount = products.filter((i) => i.stock === "Habis").length;
+    const revenue = products.reduce((s, i) => s + i.price * i.sold, 0);
 
     return (
         <AdminLayout>
@@ -122,7 +109,7 @@ export default function KatalogCoffeeShop() {
             <PageHeader
                 title="Katalog Coffee Shop"
                 subtitle="Kelola menu, harga, dan ketersediaan item di Coffee Shop."
-                action={<PrimaryButton>Tambah Menu</PrimaryButton>}
+                action={<PrimaryButton onClick={openAddModal}>Tambah Menu</PrimaryButton>}
             />
 
             {/* Stats */}
@@ -277,7 +264,10 @@ export default function KatalogCoffeeShop() {
                                         data-label="AKSI"
                                     >
                                         <div className="flex items-center gap-1.5 md:gap-2">
-                                            <button className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center hover:bg-primary/20 transition-all">
+                                            <button 
+                                                onClick={() => openEditModal(item)}
+                                                className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center hover:bg-primary/20 transition-all"
+                                            >
                                                 <svg
                                                     width="13"
                                                     height="13"
@@ -292,7 +282,10 @@ export default function KatalogCoffeeShop() {
                                                     <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
                                                 </svg>
                                             </button>
-                                            <button className="w-8 h-8 rounded-full bg-red-100 text-red-500 flex items-center justify-center hover:bg-red-200 transition-all">
+                                            <button 
+                                                onClick={() => openDeleteModal(item)}
+                                                className="w-8 h-8 rounded-full bg-red-100 text-red-500 flex items-center justify-center hover:bg-red-200 transition-all"
+                                            >
                                                 <svg
                                                     width="13"
                                                     height="13"
@@ -321,6 +314,114 @@ export default function KatalogCoffeeShop() {
                     </p>
                 </div>
             </div>
+
+            {/* Product Modal */}
+            {isProductModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsProductModalOpen(false)} />
+                    <div className="relative bg-card border border-border rounded-venus p-6 w-full max-w-md shadow-2xl">
+                        <h3 className="text-h4 text-super-black mb-5">{editingProduct ? "Edit Menu" : "Tambah Menu"}</h3>
+                        <form onSubmit={submitProduct} className="space-y-4">
+                            <div>
+                                <label className="text-label-sm text-foreground/60 uppercase">Nama Menu</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={data.name}
+                                    onChange={e => setData('name', e.target.value)}
+                                    className="w-full bg-background border border-border rounded-venus px-4 py-2 mt-1 text-body-m text-foreground focus:outline-none focus:border-primary transition-colors"
+                                />
+                                {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
+                            </div>
+                            <div>
+                                <label className="text-label-sm text-foreground/60 uppercase">Kategori</label>
+                                <select
+                                    required
+                                    value={data.category}
+                                    onChange={e => setData('category', e.target.value)}
+                                    className="w-full bg-background border border-border rounded-venus px-4 py-2 mt-1 text-body-m text-foreground focus:outline-none focus:border-primary transition-colors"
+                                >
+                                    <option value="Kopi">Kopi</option>
+                                    <option value="Non-Kopi">Non-Kopi</option>
+                                    <option value="Makanan">Makanan</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="text-label-sm text-foreground/60 uppercase">Harga (Rp)</label>
+                                <input
+                                    type="number"
+                                    required
+                                    min="0"
+                                    value={data.price}
+                                    onChange={e => setData('price', parseInt(e.target.value) || 0)}
+                                    className="w-full bg-background border border-border rounded-venus px-4 py-2 mt-1 text-body-m text-foreground focus:outline-none focus:border-primary transition-colors"
+                                />
+                            </div>
+                            <div>
+                                <label className="text-label-sm text-foreground/60 uppercase">Stok</label>
+                                <select
+                                    required
+                                    value={data.stock}
+                                    onChange={e => setData('stock', e.target.value)}
+                                    className="w-full bg-background border border-border rounded-venus px-4 py-2 mt-1 text-body-m text-foreground focus:outline-none focus:border-primary transition-colors"
+                                >
+                                    <option value="Tersedia">Tersedia</option>
+                                    <option value="Terbatas">Terbatas</option>
+                                    <option value="Habis">Habis</option>
+                                </select>
+                            </div>
+                            <div className="flex gap-3 pt-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsProductModalOpen(false)}
+                                    className="flex-1 border border-border rounded-venus py-2.5 text-label-sm font-semibold text-foreground/70 hover:bg-surface transition-all"
+                                >
+                                    Batal
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={processing}
+                                    className="flex-1 bg-primary text-white rounded-venus py-2.5 text-label-sm font-semibold hover:bg-primary/90 disabled:opacity-70 transition-all"
+                                >
+                                    {processing ? "Menyimpan..." : "Simpan"}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Modal */}
+            {isDeleteModalOpen && deletingProduct && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsDeleteModalOpen(false)} />
+                    <div className="relative bg-card border border-border rounded-venus p-6 w-full max-w-md shadow-2xl text-center">
+                        <div className="w-16 h-16 rounded-full bg-red-100 text-red-500 flex items-center justify-center mx-auto mb-4">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6" />
+                            </svg>
+                        </div>
+                        <h3 className="text-h4 text-super-black mb-2">Hapus Menu?</h3>
+                        <p className="text-body-reg text-foreground/60 mb-6">
+                            Apakah Anda yakin ingin menghapus <strong>{deletingProduct.name}</strong>? Tindakan ini tidak dapat dibatalkan.
+                        </p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setIsDeleteModalOpen(false)}
+                                className="flex-1 border border-border rounded-venus py-2.5 text-label-sm font-semibold text-foreground/70 hover:bg-surface transition-all"
+                            >
+                                Batal
+                            </button>
+                            <button
+                                onClick={confirmDelete}
+                                className="flex-1 bg-red-500 text-white rounded-venus py-2.5 text-label-sm font-semibold hover:bg-red-600 transition-all"
+                            >
+                                Ya, Hapus
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </AdminLayout>
     );
 }

@@ -18,7 +18,7 @@ export default function Cart() {
     const [isLoaded, setIsLoaded] = useState(false);
 
     useEffect(() => {
-        const cart = JSON.parse(localStorage.getItem('venus_cart') || '[]');
+        const cart = JSON.parse(localStorage.getItem('venus_cart_coffee') || '[]');
         setCartItems(cart);
         setIsLoaded(true);
     }, []);
@@ -29,14 +29,14 @@ export default function Cart() {
             item.cartItemId === cartItemId ? { ...item, quantity: newQty } : item
         );
         setCartItems(newCart);
-        localStorage.setItem('venus_cart', JSON.stringify(newCart));
+        localStorage.setItem('venus_cart_coffee', JSON.stringify(newCart));
         window.dispatchEvent(new Event('cart_updated'));
     };
 
     const removeItem = (cartItemId: string) => {
         const newCart = cartItems.filter(item => item.cartItemId !== cartItemId);
         setCartItems(newCart);
-        localStorage.setItem('venus_cart', JSON.stringify(newCart));
+        localStorage.setItem('venus_cart_coffee', JSON.stringify(newCart));
         window.dispatchEvent(new Event('cart_updated'));
     };
 
@@ -51,25 +51,25 @@ export default function Cart() {
 
     return (
         <div className="min-h-screen bg-background flex flex-col">
-            <Head title="Vape Store - Cart" />
+            <Head title="Coffee Shop - Keranjang" />
             <Navbar />
 
             <main className="flex-grow max-w-7xl mx-auto px-6 py-12 w-full">
                 {/* Header Section */}
                 <div className="mb-16">
-                    <h1 className="text-h1 text-super-black mb-4">Keranjang Anda</h1>
+                    <h1 className="text-h1 text-super-black mb-4">Pesanan Kamu</h1>
                     <p className="text-body-l text-foreground/80 max-w-2xl">
-                        Tinjau kembali pilihan Anda. Setiap item dipilih untuk presisi teknik dan harmoni estetika.
+                        Cek kembali pesanan kamu sebelum melanjutkan ke pembayaran.
                     </p>
                 </div>
 
                 {cartItems.length === 0 ? (
                     <div className="text-center py-24 bg-card rounded-venus border border-border">
                         <svg className="w-16 h-16 mx-auto text-border mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-                        <h2 className="text-h3 text-super-black mb-4">Keranjang Anda kosong</h2>
-                        <p className="text-body-m text-foreground/60 mb-8">Temukan koleksi perangkat dan cairan premium kami.</p>
-                        <Link href="/vape-store" className="inline-flex items-center gap-2 bg-secondary text-secondary-foreground px-8 py-4 rounded-full text-label-sm transition-all hover:bg-secondary/90 shadow-lg">
-                            LANJUTKAN BELANJA
+                        <h2 className="text-h3 text-super-black mb-4">Keranjang masih kosong</h2>
+                        <p className="text-body-m text-foreground/60 mb-8">Yuk pilih minuman atau makanan favoritmu dari menu kami.</p>
+                        <Link href="/coffee-shop" className="inline-flex items-center gap-2 bg-secondary text-secondary-foreground px-8 py-4 rounded-full text-label-sm transition-all hover:bg-secondary/90 shadow-lg">
+                            KEMBALI KE MENU
                         </Link>
                     </div>
                 ) : (
@@ -127,7 +127,7 @@ export default function Cart() {
                                                 <button 
                                                     onClick={() => removeItem(item.cartItemId)}
                                                     className="w-10 h-10 flex items-center justify-center rounded-full bg-red-100 text-red-800 hover:bg-red-200 transition-all"
-                                                    title="Hapus item"
+                                                    title="Hapus produk"
                                                 >
                                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                                         <polyline points="3 6 5 6 21 6"></polyline>
@@ -153,7 +153,6 @@ export default function Cart() {
                                         <span>Subtotal</span>
                                         <span className="font-bold text-super-black">{formatPrice(subtotal)}</span>
                                     </div>
-                                    {/* Add tax/shipping here if needed in future */}
                                 </div>
                                 
                                 <div className="border-t border-border/50 my-6 pt-6 flex justify-between items-end">
@@ -161,14 +160,15 @@ export default function Cart() {
                                     <span className="text-h2 text-secondary">{formatPrice(total)}</span>
                                 </div>
 
-                                <Link href="/vape-store/checkout" className="w-full bg-primary text-primary-foreground py-4 rounded-venus text-label-sm tracking-widest text-center hover:bg-primary/90 transition-all font-bold shadow-lg mt-8 inline-block uppercase">
-                                    LANJUT KE PEMBAYARAN
-                                </Link>
-                                
-                                {/* <div className="flex items-center justify-center gap-2 mt-6 text-label-sm text-foreground/50">
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                                    SECURE SSL ENCRYPTED PAYMENT
-                                </div> */}
+                                {new Date().getHours() >= 8 && new Date().getHours() < 22 ? (
+                                    <Link href="/coffee-shop/checkout" className="w-full bg-primary text-primary-foreground py-4 rounded-venus text-label-sm tracking-widest text-center hover:bg-primary/90 transition-all font-bold shadow-lg mt-8 uppercase inline-block">
+                                        Lanjut ke Pembayaran
+                                    </Link>
+                                ) : (
+                                    <div className="w-full bg-surface border border-border text-foreground/40 py-4 rounded-venus text-label-sm tracking-widest text-center font-bold mt-8 shadow-none uppercase cursor-not-allowed">
+                                        Toko Tutup (Buka 08:00 - 22:00)
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>

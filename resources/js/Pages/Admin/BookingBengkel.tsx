@@ -1,132 +1,378 @@
-import { useState } from "react";
-import { Head } from "@inertiajs/react";
+import React, { useState } from "react";
+import { Head, router, Link } from "@inertiajs/react";
 import AdminLayout from "../../Layouts/AdminLayout";
 import {
     PageHeader,
-    PrimaryButton,
     Badge,
     FilterTabs,
 } from "../../Components/AdminUI";
 
-type PitStatus = "sedang-service" | "tersedia" | "standby";
-type QueueStatus = "IN PROGRESS" | "WAITING" | "SELESAI";
-type FilterTab = "Semua" | "Menunggu" | "Proses" | "Selesai";
+// ── Types ────────────────────────────────────────────────────────────────────
+type BookingStatus =
+    | "pending"
+    | "verified"
+    | "in_queue"
+    | "servicing"
+    | "done"
+    | "cancelled";
 
-interface Pit {
+type FilterTab = "Semua" | "Menunggu" | "Antrian" | "Diservis" | "Selesai" | "Dibatalkan";
+
+interface Booking {
+    id: number;
+    booking_code: string;
+    service_name: string;
+    service_subtitle: string;
+    service_price: number;
+    service_duration: string;
+    vehicle_class: string;
+    license_plate: string;
+    status: BookingStatus;
+    progress_label: string;
+    progress_step: number;
+    stall: string | null;
+    queue_position: number | null;
+    admin_notes: string | null;
+    verified_at: string | null;
+    pit_assigned_at: string | null;
+    done_at: string | null;
+    created_at: string;
+    customer_name: string;
+    customer_email: string;
+}
+
+interface Stall {
     id: string;
     label: string;
-    type: string;
-    status: PitStatus;
-    mechanic?: string;
+    status: "terisi" | "tersedia";
     plate?: string;
     vehicle?: string;
-    service?: string;
-    eta?: string;
-    note?: string;
+    progress?: string;
 }
 
-interface QueueItem {
-    time: string;
-    plate: string;
-    vehicle: string;
-    serviceType: string;
-    mechanic: string | null;
-    pitName: string | null;
-    status: QueueStatus;
+interface Props {
+    bookings: Booking[];
+    stalls: Stall[];
+    queueCount: number;
 }
 
-const pits: Pit[] = [
-    {
-        id: "PIT MOBIL 01",
-        label: "PIT MOBIL 01",
-        type: "Mobil",
-        status: "sedang-service",
-        mechanic: "Anton",
-        plate: "BK 1234 AB",
-        vehicle: "Avanza",
-        service: "Tune Up",
-        eta: "Estimasi selesai: 15 mnt",
-    },
-    {
-        id: "PIT MOTOR 01",
-        label: "PIT MOTOR 01",
-        type: "Motor",
-        status: "standby",
-        mechanic: "Budi",
-        note: "Standby / Area siap digunakan",
-    },
-    {
-        id: "PIT MOTOR 01B",
-        label: "PIT MOTOR 01",
-        type: "Motor",
-        status: "sedang-service",
-        mechanic: "Joko",
-        plate: "BK 6780 BH",
-        vehicle: "ZX25",
-        service: "Service CVT",
-        eta: "Estimasi selesai: 30 mnt",
-    },
-];
-
-const queueData: QueueItem[] = [
-    {
-        time: "14:00",
-        plate: "BK 1234 AB",
-        vehicle: "Avanza",
-        serviceType: "Tune Up & Ganti Oli",
-        mechanic: "Anton",
-        pitName: "Pit Mobil 01",
-        status: "IN PROGRESS",
-    },
-    {
-        time: "14:30",
-        plate: "BK 9911 KL",
-        vehicle: "Beat FI",
-        serviceType: "Ganti Kampas Rem",
-        mechanic: null,
-        pitName: null,
-        status: "WAITING",
-    },
-    {
-        time: "15:00",
-        plate: "BK 7742 XY",
-        vehicle: "Nmax",
-        serviceType: "Servis Berkala",
-        mechanic: null,
-        pitName: null,
-        status: "WAITING",
-    },
-];
-
-const StatusBadge = ({ status }: { status: QueueStatus }) => {
-    const variantMap: Record<
-        QueueStatus,
-        "default" | "warning" | "success" | "danger"
-    > = {
-        "IN PROGRESS": "default",
-        WAITING: "warning",
-        SELESAI: "success",
-    };
-    const icons = { "IN PROGRESS": "▶", WAITING: "⏱", SELESAI: "✓" };
-    return (
-        <Badge
-            text={`${icons[status]} ${status}`}
-            variant={variantMap[status]}
-        />
-    );
+// ── Helpers ───────────────────────────────────────────────────────────────────
+const STATUS_BADGE: Record<BookingStatus, "default" | "warning" | "success" | "danger"> = {
+    pending:   "warning",
+    verified:  "default",
+    in_queue:  "warning",
+    servicing:   "default",
+    done:      "success",
+    cancelled: "danger",
 };
 
-export default function BookingBengkel() {
-    const [activeFilter, setActiveFilter] = useState<FilterTab>("Semua");
-    const filters: FilterTab[] = ["Semua", "Menunggu", "Proses", "Selesai"];
+const STATUS_LABEL: Record<BookingStatus, string> = {
+    pending:   "⏱ Menunggu",
+    verified:  "✓ Dikonfirmasi",
+    in_queue:  "● Di Antrian",
+    servicing:   "▶ Diservis",
+    done:      "✓ Selesai",
+    cancelled: "❌ Batal",
+};
 
-    const filteredQueue = queueData.filter((q) => {
-        if (activeFilter === "Semua") return true;
-        if (activeFilter === "Menunggu") return q.status === "WAITING";
-        if (activeFilter === "Proses") return q.status === "IN PROGRESS";
-        if (activeFilter === "Selesai") return q.status === "SELESAI";
+// ── Car Silhouette ────────────────────────────────────────────────────────────
+const CarSilhouette = () => (
+    <svg
+        style={{ opacity: 0.07 }}
+        width="100"
+        height="50"
+        viewBox="0 0 100 50"
+        fill="currentColor"
+    >
+        <path d="M10 35 L15 20 Q20 12 30 12 L70 12 Q80 12 85 20 L90 35 Q92 38 90 40 L10 40 Q8 38 10 35Z" />
+        <rect x="20" y="38" width="15" height="5" rx="2.5" />
+        <rect x="65" y="38" width="15" height="5" rx="2.5" />
+    </svg>
+);
+
+// ── Modal: Confirm Arrival ────────────────────────────────────────────────────
+function ConfirmArrivalModal({
+    booking,
+    onClose,
+}: {
+    booking: Booking;
+    onClose: () => void;
+}) {
+    const [loading, setLoading] = useState(false);
+
+    const handle = () => {
+        setLoading(true);
+        router.post(
+            `/admin/bengkel/verify/${booking.id}`,
+            {},
+            {
+                onFinish: () => { setLoading(false); onClose(); },
+                preserveScroll: true,
+            }
+        );
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+            <div className="relative bg-card border border-border rounded-venus p-6 w-full max-w-md shadow-2xl">
+                <h3 className="text-h4 text-super-black mb-1">Konfirmasi Kedatangan</h3>
+                <p className="text-body-reg text-foreground/60 mb-5">
+                    <span className="font-semibold text-foreground">{booking.booking_code}</span> –{" "}
+                    {booking.customer_name} · {booking.license_plate}
+                </p>
+
+                <div className="bg-background border border-border rounded-venus p-4 mb-6">
+                    <p className="text-body-reg text-foreground/60">
+                        Sistem akan <span className="font-semibold text-foreground">otomatis</span> memeriksa pit yang tersedia:
+                    </p>
+                    <ul className="mt-2 space-y-1.5 text-body-reg text-foreground/70">
+                        <li className="flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+                            Pit kosong → langsung masuk pencucian
+                        </li>
+                        <li className="flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0" />
+                            Pit penuh → masuk antrian otomatis
+                        </li>
+                    </ul>
+                </div>
+
+                <div className="flex gap-3">
+                    <button
+                        onClick={onClose}
+                        className="flex-1 border border-border rounded-venus py-2.5 text-label-sm font-semibold text-foreground/70 hover:bg-surface transition-all"
+                    >
+                        Batal
+                    </button>
+                    <button
+                        onClick={handle}
+                        disabled={loading}
+                        className="flex-1 bg-secondary text-secondary-foreground rounded-venus py-2.5 text-label-sm font-semibold hover:bg-secondary/90 disabled:opacity-70 transition-all"
+                    >
+                        {loading ? "Memproses…" : "✓ Konfirmasi Kedatangan"}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// ── Modal: Mark Done ──────────────────────────────────────────────────────────
+function MarkDoneModal({
+    booking,
+    onClose,
+}: {
+    booking: Booking;
+    onClose: () => void;
+}) {
+    const [loading, setLoading] = useState(false);
+
+    const handle = () => {
+        setLoading(true);
+        router.post(
+            `/admin/bengkel/progress/${booking.id}`,
+            { status: 'done' },
+            {
+                onFinish: () => { setLoading(false); onClose(); },
+                preserveScroll: true,
+            }
+        );
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+            <div className="relative bg-card border border-border rounded-venus p-6 w-full max-w-md shadow-2xl">
+                <h3 className="text-h4 text-super-black mb-1">Tandai Selesai</h3>
+                <p className="text-body-reg text-foreground/60 mb-5">
+                    <span className="font-semibold text-foreground">{booking.booking_code}</span> –{" "}
+                    {booking.customer_name} · {booking.license_plate}
+                    {booking.stall && <span className="text-primary font-semibold"> · {booking.stall}</span>}
+                </p>
+
+                <div className="bg-background border border-border rounded-venus p-4 mb-6">
+                    <p className="text-body-reg text-foreground/60">
+                        Pit <span className="font-semibold text-foreground">{booking.stall}</span> akan dibebaskan dan antrian berikutnya akan otomatis masuk.
+                    </p>
+                </div>
+
+                <div className="flex gap-3">
+                    <button
+                        onClick={onClose}
+                        className="flex-1 border border-border rounded-venus py-2.5 text-label-sm font-semibold text-foreground/70 hover:bg-surface transition-all"
+                    >
+                        Batal
+                    </button>
+                    <button
+                        onClick={handle}
+                        disabled={loading}
+                        className="flex-1 bg-emerald-600 text-white rounded-venus py-2.5 text-label-sm font-semibold hover:bg-emerald-700 disabled:opacity-70 transition-all"
+                    >
+                        {loading ? "Memproses…" : "✓ Tandai Selesai"}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// ── Modal: Cancel Booking ─────────────────────────────────────────────────────
+function CancelBookingModal({
+    booking,
+    onClose,
+}: {
+    booking: Booking;
+    onClose: () => void;
+}) {
+    const [loading, setLoading] = useState(false);
+    const [reason, setReason] = useState("");
+
+    const handle = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!reason.trim()) return;
+        
+        setLoading(true);
+        router.post(
+            `/admin/bengkel/cancel/${booking.id}`,
+            { reason: reason.trim() },
+            {
+                onFinish: () => { setLoading(false); onClose(); },
+                preserveScroll: true,
+            }
+        );
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+            <div className="relative bg-card border border-border rounded-venus p-6 w-full max-w-md shadow-2xl">
+                <h3 className="text-h4 text-super-black mb-1">Batalkan Booking</h3>
+                <p className="text-body-reg text-foreground/60 mb-5">
+                    <span className="font-semibold text-foreground">{booking.booking_code}</span> –{" "}
+                    {booking.customer_name} · {booking.license_plate}
+                </p>
+
+                <form onSubmit={handle}>
+                    <div className="space-y-2 mb-6">
+                        <label className="text-label-sm text-foreground/60 uppercase">Alasan Pembatalan</label>
+                        <textarea
+                            required
+                            placeholder="Contoh: Order fiktif, Pelanggan tidak datang, dll."
+                            value={reason}
+                            onChange={(e) => setReason(e.target.value)}
+                            className="w-full bg-background border border-border rounded-venus px-4 py-3 text-body-m text-foreground focus:outline-none focus:border-red-500 transition-colors min-h-[100px]"
+                        />
+                    </div>
+
+                    <div className="flex gap-3">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="flex-1 border border-border rounded-venus py-2.5 text-label-sm font-semibold text-foreground/70 hover:bg-surface transition-all"
+                        >
+                            Batal
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={loading || !reason.trim()}
+                            className="flex-1 bg-red-600 text-white rounded-venus py-2.5 text-label-sm font-semibold hover:bg-red-700 disabled:opacity-70 transition-all"
+                        >
+                            {loading ? "Memproses…" : "✘ Batalkan Booking"}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+}
+
+// ── Action Button (context-aware, forward-only) ───────────────────────────────
+function ActionButton({
+    booking,
+    onConfirm,
+    onDone,
+    onCancel,
+}: {
+    booking: Booking;
+    onConfirm: () => void;
+    onDone: () => void;
+    onCancel: () => void;
+}) {
+    if (booking.status === 'done' || booking.status === 'cancelled') {
+        return (
+            <div className="flex flex-col gap-1">
+                <span className={`text-xs font-bold ${booking.status === 'done' ? 'text-emerald-600' : 'text-red-600'}`}>
+                    {booking.status === 'done' ? '✓ SELESAI' : '✘ BATAL'}
+                </span>
+                {booking.admin_notes && (
+                    <span className="text-[9px] text-foreground/40 italic truncate max-w-[100px]">
+                        {booking.admin_notes}
+                    </span>
+                )}
+            </div>
+        );
+    }
+
+    return (
+        <div className="flex items-center gap-2">
+            {booking.status === 'pending' && (
+                <button
+                    onClick={onConfirm}
+                    className="flex items-center gap-1.5 bg-secondary text-white px-3 py-1.5 rounded-venus text-xs font-semibold hover:bg-secondary/90 active:scale-95 transition-all"
+                >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    Konfirmasi
+                </button>
+            )}
+
+            {booking.status === 'servicing' && (
+                <button
+                    onClick={onDone}
+                    className="flex items-center gap-1.5 bg-emerald-600 text-white px-3 py-1.5 rounded-venus text-xs font-semibold hover:bg-emerald-700 active:scale-95 transition-all"
+                >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    Selesai
+                </button>
+            )}
+
+            <button
+                onClick={onCancel}
+                title="Batalkan Booking"
+                className="w-8 h-8 flex items-center justify-center rounded-venus border border-red-200 text-red-500 hover:bg-red-50 active:scale-90 transition-all"
+            >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+            </button>
+        </div>
+    );
+}
+
+// ── Main Page ─────────────────────────────────────────────────────────────────
+export default function BookingBengkel({ bookings, stalls, queueCount }: Props) {
+    const [activeFilter, setActiveFilter] = useState<FilterTab>("Semua");
+    const [confirmTarget, setConfirmTarget] = useState<Booking | null>(null);
+    const [doneTarget, setDoneTarget] = useState<Booking | null>(null);
+    const [cancelTarget, setCancelTarget] = useState<Booking | null>(null);
+    
+    const filters: FilterTab[] = ["Semua", "Menunggu", "Antrian", "Diservis", "Selesai", "Dibatalkan"];
+
+    const filteredBookings = bookings.filter((b) => {
+        if (activeFilter === "Semua")      return true;
+        if (activeFilter === "Menunggu")   return b.status === "pending";
+        if (activeFilter === "Antrian")    return ["verified", "in_queue"].includes(b.status);
+        if (activeFilter === "Diservis")     return b.status === "servicing";
+        if (activeFilter === "Selesai")    return b.status === "done";
+        if (activeFilter === "Dibatalkan") return b.status === "cancelled";
         return true;
     });
+
+    const pendingCount = bookings.filter((b) => b.status === "pending").length;
 
     return (
         <AdminLayout>
@@ -135,157 +381,96 @@ export default function BookingBengkel() {
             {/* Header */}
             <PageHeader
                 title="Booking Bengkel"
-                subtitle="Pantau antrean service, alokasi area kerja, dan penugasan mekanik."
+                subtitle={
+                    pendingCount > 0
+                        ? `⚠ ${pendingCount} booking menunggu konfirmasi kedatangan.`
+                        : "Kelola antrean dan pit pencucian kendaraan."
+                }
                 action={
-                    <PrimaryButton>
-                        <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
+                    <div className="flex items-center gap-3">
+                        <Link
+                            href="/admin/bengkel/walk-in"
+                            className="bg-primary text-white text-label-sm font-bold px-5 py-2.5 rounded-full hover:bg-primary/90 shadow-md flex items-center gap-2 transition-all active:scale-95"
                         >
-                            <circle cx="12" cy="12" r="10" />
-                            <line x1="12" y1="8" x2="12" y2="16" />
-                            <line x1="8" y1="12" x2="16" y2="12" />
-                        </svg>
-                        Tambah Service Baru
-                    </PrimaryButton>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+                            </svg>
+                            Registrasi Walk-in
+                        </Link>
+                        {pendingCount > 0 && (
+                            <span className="bg-amber-100 text-amber-600 border border-amber-200 text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-wider">
+                                {pendingCount} Menunggu
+                            </span>
+                        )}
+                    </div>
                 }
             />
 
-            {/* Pit Cards */}
-            <div className="relative mb-6 md:mb-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-                    {pits.map((pit) =>
-                        pit.status === "sedang-service" ? (
-                            <div
-                                key={pit.id}
-                                className="bg-secondary rounded-venus p-4 md:p-5 relative overflow-hidden text-white"
-                            >
-                                <div className="absolute bottom-2 right-3 opacity-10">
-                                    <svg
-                                        width="80"
-                                        height="60"
-                                        viewBox="0 0 80 60"
-                                        fill="currentColor"
-                                    >
-                                        <path d="M5 40 L10 22 Q15 12 25 12 L55 12 Q65 12 70 22 L75 40 Q77 44 75 46 L5 46 Q3 44 5 40Z" />
-                                        <rect
-                                            x="12"
-                                            y="44"
-                                            width="12"
-                                            height="6"
-                                            rx="3"
-                                        />
-                                        <rect
-                                            x="56"
-                                            y="44"
-                                            width="12"
-                                            height="6"
-                                            rx="3"
-                                        />
-                                    </svg>
-                                </div>
-                                <div className="flex items-center justify-between mb-3">
-                                    <span className="text-xs md:text-label-sm text-white/60">
-                                        {pit.label}
-                                    </span>
-                                    <span className="bg-white/20 text-white text-[10px] font-bold px-2.5 py-1 rounded-full tracking-widest">
-                                        Sedang Service
-                                    </span>
-                                </div>
-                                <p className="text-xl md:text-h3 text-white font-extrabold mb-0.5">
-                                    {pit.mechanic}
-                                </p>
-                                <p className="text-xs md:text-body-reg text-white/70 mb-4">
-                                    {pit.plate} – {pit.vehicle}
-                                    <br />
-                                    <span className="text-white/50">
-                                        ({pit.service})
-                                    </span>
-                                </p>
-                                <div className="flex items-center gap-1.5">
-                                    <svg
-                                        width="13"
-                                        height="13"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                    >
-                                        <circle cx="12" cy="12" r="10" />
-                                        <polyline points="12 6 12 12 16 14" />
-                                    </svg>
-                                    <span className="text-xs md:text-body-reg text-white/70">
-                                        {pit.eta}
-                                    </span>
-                                </div>
+            {/* Stall Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 mb-6 md:mb-8">
+                {stalls.map((stall) =>
+                    stall.status === "terisi" ? (
+                        <div
+                            key={stall.id}
+                            className="bg-secondary rounded-venus p-4 md:p-5 relative overflow-hidden text-white"
+                        >
+                            <div className="absolute bottom-0 right-0 text-white">
+                                <CarSilhouette />
                             </div>
-                        ) : (
-                            <div
-                                key={pit.id}
-                                className="bg-card border-2 border-dashed border-border rounded-venus p-4 md:p-5 flex flex-col items-center justify-center gap-3 min-h-[140px] md:min-h-[160px]"
-                            >
-                                <span className="w-12 h-12 rounded-full bg-surface flex items-center justify-center text-foreground/30">
-                                    <svg
-                                        width="22"
-                                        height="22"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                    >
-                                        <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
-                                        <polyline points="22 4 12 14.01 9 11.01" />
-                                    </svg>
+                            <div className="flex items-center justify-between mb-3">
+                                <span className="text-xs text-white/60">{stall.label}</span>
+                                <span className="bg-white/20 text-white text-[10px] font-bold px-2.5 py-1 rounded-full tracking-widest uppercase">
+                                    Terisi
                                 </span>
-                                <div className="text-center">
-                                    <p className="text-xs md:text-label-sm text-foreground/40">
-                                        {pit.label}
-                                    </p>
-                                    <p className="text-base md:text-h4 text-super-black mt-1 font-bold">
-                                        {pit.mechanic}
-                                    </p>
-                                    <p className="text-xs md:text-body-reg text-foreground/50 mt-0.5">
-                                        {pit.note}
-                                    </p>
-                                    <span className="inline-block mt-2 border border-border text-foreground/50 text-[10px] font-bold px-3 py-1 rounded-full tracking-widest">
-                                        TERSEDIA
-                                    </span>
-                                </div>
                             </div>
-                        ),
-                    )}
+                            <p className="text-xl md:text-h3 text-white font-extrabold mb-0.5 uppercase">
+                                {stall.plate}
+                            </p>
+                            <p className="text-xs text-white/70 mb-2">{stall.vehicle}</p>
+                            <span className="inline-block bg-white/15 text-white/90 text-[10px] px-2.5 py-1 rounded-full font-semibold">
+                                {stall.progress}
+                            </span>
+                        </div>
+                    ) : (
+                        <div
+                            key={stall.id}
+                            className="bg-card border-2 border-dashed border-border rounded-venus p-4 md:p-5 flex flex-col items-center justify-center gap-3 min-h-[130px]"
+                        >
+                            <span className="w-12 h-12 rounded-full bg-surface flex items-center justify-center text-foreground/30">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
+                                </svg>
+                            </span>
+                            <div className="text-center">
+                                <p className="text-xs text-foreground/40">{stall.label}</p>
+                                <p className="text-base md:text-h4 text-super-black font-bold mt-1">Tersedia</p>
+                            </div>
+                        </div>
+                    )
+                )}
+
+                {/* Queue count card */}
+                <div className="bg-card border border-border rounded-venus p-4 md:p-5 flex flex-col items-center justify-center gap-2 min-h-[130px]">
+                    <span className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center text-purple-500">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" />
+                            <line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" />
+                        </svg>
+                    </span>
+                    <div className="text-center">
+                        <p className="text-xs text-foreground/40">Antrian</p>
+                        <p className="text-h3 text-super-black font-bold">{queueCount}</p>
+                        <p className="text-[10px] text-foreground/40">kendaraan menunggu</p>
+                    </div>
                 </div>
-                <button className="absolute -right-5 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-secondary text-white flex items-center justify-center shadow-lg hover:bg-secondary/90 transition-all z-10">
-                    <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                    >
-                        <polyline points="9 18 15 12 9 6" />
-                    </svg>
-                </button>
             </div>
 
             {/* Queue Table */}
-            <div className="bg-card border border-border rounded-venus overflow-hidden flex flex-col">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-0 px-4 md:px-6 py-3 md:py-4 border-b border-border">
+            <div className="bg-card border border-border rounded-venus overflow-hidden">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 px-4 md:px-6 py-3 md:py-4 border-b border-border">
                     <h2 className="text-lg md:text-h4 text-super-black font-bold">
-                        Antrean Hari Ini
+                        Semua Booking
+                        <span className="ml-2 text-label-sm text-foreground/40 font-normal">({bookings.length})</span>
                     </h2>
                     <FilterTabs
                         tabs={filters}
@@ -293,159 +478,98 @@ export default function BookingBengkel() {
                         onChange={(tab) => setActiveFilter(tab as FilterTab)}
                     />
                 </div>
-                <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead>
-                            <tr className="border-b border-border">
-                                {[
-                                    "WAKTU",
-                                    "PLAT & KENDARAAN",
-                                    "JENIS SERVIS",
-                                    "MEKANIK / PIT",
-                                    "STATUS",
-                                    "AKSI",
-                                ].map((h) => (
-                                    <th
-                                        key={h}
-                                        className="text-left px-6 py-3 text-label-sm text-foreground/40"
-                                    >
-                                        {h}
-                                    </th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredQueue.map((q, i) => (
-                                <tr
-                                    key={i}
-                                    className="border-b border-border/50 hover:bg-background/60 transition-colors"
-                                >
-                                    <td className="px-6 py-4 text-body-m text-super-black font-semibold">
-                                        {q.time}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <p className="text-body-m text-super-black font-semibold">
-                                            {q.plate}
-                                        </p>
-                                        <p className="text-body-reg text-foreground/50">
-                                            {q.vehicle}
-                                        </p>
-                                    </td>
-                                    <td className="px-6 py-4 text-body-m text-foreground/70">
-                                        {q.serviceType}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        {q.mechanic ? (
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-7 h-7 rounded-full bg-secondary/20 text-secondary flex items-center justify-center font-bold text-xs">
-                                                    {q.mechanic[0]}
-                                                </div>
-                                                <div>
-                                                    <p className="text-body-m text-foreground font-semibold">
-                                                        {q.mechanic}
-                                                    </p>
-                                                    <p className="text-body-reg text-foreground/50">
-                                                        {q.pitName}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <span className="text-body-reg text-foreground/40">
-                                                Belum Ditugaskan
-                                            </span>
-                                        )}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <StatusBadge status={q.status} />
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        {q.status === "IN PROGRESS" ? (
-                                            <button className="bg-secondary text-white px-4 py-2 rounded-venus text-label-sm font-semibold hover:bg-secondary/90 transition-all">
-                                                TANDAI SELESAI
-                                            </button>
-                                        ) : q.status === "WAITING" ? (
-                                            <div className="flex items-center gap-2">
-                                                <button className="border border-border text-foreground/70 px-3 py-2 rounded-venus text-label-sm font-semibold hover:bg-surface transition-all">
-                                                    TUGASKAN MEKANIK
-                                                </button>
-                                                <button className="w-8 h-8 rounded-full bg-red-100 text-red-500 flex items-center justify-center hover:bg-red-200 transition-all">
-                                                    <svg
-                                                        width="14"
-                                                        height="14"
-                                                        viewBox="0 0 24 24"
-                                                        fill="none"
-                                                        stroke="currentColor"
-                                                        strokeWidth="2.5"
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                    >
-                                                        <circle
-                                                            cx="12"
-                                                            cy="12"
-                                                            r="10"
-                                                        />
-                                                        <line
-                                                            x1="15"
-                                                            y1="9"
-                                                            x2="9"
-                                                            y2="15"
-                                                        />
-                                                        <line
-                                                            x1="9"
-                                                            y1="9"
-                                                            x2="15"
-                                                            y2="15"
-                                                        />
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <span className="text-foreground/30 text-body-reg">
-                                                —
-                                            </span>
-                                        )}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-                <div className="flex items-center justify-between px-6 py-3 border-t border-border">
-                    <p className="text-body-reg text-foreground/40">
-                        Menampilkan 3 dari 12 antrean hari ini
-                    </p>
-                    <div className="flex gap-1">
-                        <button className="w-7 h-7 rounded-venus border border-border flex items-center justify-center text-foreground/50 hover:bg-surface transition-all">
-                            <svg
-                                width="12"
-                                height="12"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                            >
-                                <polyline points="15 18 9 12 15 6" />
-                            </svg>
-                        </button>
-                        <button className="w-7 h-7 rounded-venus border border-border flex items-center justify-center text-foreground/50 hover:bg-surface transition-all">
-                            <svg
-                                width="12"
-                                height="12"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                            >
-                                <polyline points="9 18 15 12 9 6" />
-                            </svg>
-                        </button>
+
+                {filteredBookings.length === 0 ? (
+                    <div className="px-6 py-12 text-center text-foreground/40 text-body-reg">
+                        Tidak ada booking yang cocok dengan filter ini.
                     </div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-xs md:text-body-reg">
+                            <thead className="hidden md:table-header-group">
+                                <tr className="border-b border-border">
+                                    {["KODE", "PELANGGAN", "KENDARAAN", "LAYANAN", "BAY", "STATUS", "AKSI"].map((h) => (
+                                        <th
+                                            key={h}
+                                            className="text-left px-4 md:px-5 py-3 text-[10px] text-foreground/40 font-bold"
+                                        >
+                                            {h}
+                                        </th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filteredBookings.map((b) => (
+                                    <tr
+                                        key={b.id}
+                                        className={`border-b border-border/50 hover:bg-background/40 transition-colors ${
+                                            b.status === "pending" ? "bg-amber-50/40" : 
+                                            b.status === "cancelled" ? "bg-red-50/30" : ""
+                                        }`}
+                                    >
+                                        <td className="px-4 md:px-5 py-3 md:py-4">
+                                            <p className="text-super-black font-bold uppercase">{b.booking_code}</p>
+                                            <p className="text-foreground/40 text-[10px]">{b.created_at}</p>
+                                        </td>
+                                        <td className="px-4 md:px-5 py-3 md:py-4">
+                                            <p className="text-super-black font-semibold">{b.customer_name}</p>
+                                            <p className="text-foreground/50 text-[10px] truncate max-w-[150px]">{b.customer_email}</p>
+                                        </td>
+                                        <td className="px-4 md:px-5 py-3 md:py-4">
+                                            <p className="text-super-black font-semibold uppercase">{b.license_plate}</p>
+                                            <p className="text-foreground/50 text-[10px]">{b.vehicle_class}</p>
+                                        </td>
+                                        <td className="px-4 md:px-5 py-3 md:py-4">
+                                            <p className="text-foreground">{b.service_name}</p>
+                                            <p className="text-foreground/40 text-[10px]">{b.service_duration}</p>
+                                        </td>
+                                        <td className="px-4 md:px-5 py-3 md:py-4">
+                                            {b.stall ? (
+                                                <p className="text-primary text-xs font-bold uppercase">{b.stall}</p>
+                                            ) : b.status === 'in_queue' ? (
+                                                <p className="text-purple-500 text-[10px] font-semibold">DI ANTRIAN</p>
+                                            ) : (
+                                                <span className="text-foreground/30 text-xs">—</span>
+                                            )}
+                                        </td>
+                                        <td className="px-4 md:px-5 py-3 md:py-4">
+                                            <Badge
+                                                text={STATUS_LABEL[b.status]}
+                                                variant={STATUS_BADGE[b.status]}
+                                            />
+                                        </td>
+                                        <td className="px-4 md:px-5 py-3 md:py-4">
+                                            <ActionButton
+                                                booking={b}
+                                                onConfirm={() => setConfirmTarget(b)}
+                                                onDone={() => setDoneTarget(b)}
+                                                onCancel={() => setCancelTarget(b)}
+                                            />
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+
+                <div className="px-4 md:px-6 py-3 border-t border-border text-center md:text-left">
+                    <p className="text-xs text-foreground/40">
+                        Menampilkan {filteredBookings.length} dari {bookings.length} booking
+                    </p>
                 </div>
             </div>
+
+            {/* Modals */}
+            {confirmTarget && (
+                <ConfirmArrivalModal booking={confirmTarget} onClose={() => setConfirmTarget(null)} />
+            )}
+            {doneTarget && (
+                <MarkDoneModal booking={doneTarget} onClose={() => setDoneTarget(null)} />
+            )}
+            {cancelTarget && (
+                <CancelBookingModal booking={cancelTarget} onClose={() => setCancelTarget(null)} />
+            )}
         </AdminLayout>
     );
 }

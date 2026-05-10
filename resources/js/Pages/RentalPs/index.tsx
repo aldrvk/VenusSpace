@@ -17,40 +17,40 @@ interface Stall {
 interface Props {
     stalls: Stall[];
     queueCount: number;
-    availableBays: number;
-    totalBays: number;
-    washingCount: number;
+    availableTVs: number;
+    totalTVs: number;
+    playingCount: number;
 }
 
 // ── Data ─────────────────────────────────────────────────────────────────────
 
 const services = [
     {
-        id: 'basic',
-        name: 'Basic Wash',
-        subtitle: 'Exterior & Foam Wash',
-        price: 35000,
-        priceLabel: '35k',
-        duration: '20 menit',
-        features: ['Tire shine'],
+        id: 'ps3',
+        name: 'Sewa PS3',
+        subtitle: '1 Jam Main PS3',
+        price: 15000,
+        priceLabel: '15k',
+        duration: '60 menit',
+        features: ['2 Stick', 'Bebas ganti game'],
     },
     {
-        id: 'premium',
-        name: 'Premium Wash',
-        subtitle: 'Interior & Vacuum Included',
-        price: 65000,
-        priceLabel: '65k',
-        duration: '45 menit',
-        features: ['Interior vacuum', 'Fragrance blast'],
+        id: 'ps4',
+        name: 'Sewa PS4',
+        subtitle: '1 Jam Main PS4',
+        price: 30000,
+        priceLabel: '30k',
+        duration: '60 menit',
+        features: ['2 Stick', 'Game terbaru'],
     },
     {
-        id: 'detailing',
-        name: 'Full Detailing',
-        subtitle: 'Engine & Coating',
-        price: 150000,
-        priceLabel: '150k',
-        duration: '120 menit',
-        features: ['Clay bar treatment', 'Wax finish'],
+        id: 'ps5',
+        name: 'Sewa PS5',
+        subtitle: '1 Jam Main PS5',
+        price: 50000,
+        priceLabel: '50k',
+        duration: '60 menit',
+        features: ['DualSense', '4K Gaming'],
     },
 ];
 
@@ -92,7 +92,7 @@ const QueueIcon = () => (
 // ── Operational Hours Helper ──────────────────────────────────────────────────
 
 const OPEN_HOUR = 8;
-const CLOSE_HOUR = 17;
+const CLOSE_HOUR = 22;
 
 function isWithinOperationalHours(): boolean {
     const now = new Date();
@@ -116,64 +116,48 @@ function getOperationalStatus(): { open: boolean; message: string } {
 
 // ── Main Page ────────────────────────────────────────────────────────────────
 
-export default function DoorsmeerIndex() {
-    const { auth, stalls, queueCount, availableBays, totalBays, washingCount } = usePage<{
+export default function RentalPsIndex() {
+    const { auth, stalls, queueCount, availableTVs, totalTVs, playingCount } = usePage<{
         auth: { user?: { id: number } };
         stalls: Stall[];
         queueCount: number;
-        availableBays: number;
-        totalBays: number;
-        washingCount: number;
+        availableTVs: number;
+        totalTVs: number;
+        playingCount: number;
     }>().props;
 
-    const [selectedService, setSelectedService] = useState('premium');
-    const [vehicleClass, setVehicleClass] = useState('City Car / Sedan');
-    const [licensePlate, setLicensePlate] = useState('');
-    const [plateError, setPlateError] = useState('');
+    const [selectedService, setSelectedService] = useState('ps4');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const service = services.find(s => s.id === selectedService)!;
     const operational = useMemo(() => getOperationalStatus(), []);
     const isOpen = operational.open;
 
-    // Estimated wait time based on queue + washing
+    // Estimated wait time based on queue + playing
     const estimatedWait = useMemo(() => {
-        if (availableBays > 0 && queueCount === 0) return 'Langsung dilayani';
-        const activeBays = Math.max(washingCount, 1);
-        const waitMinutes = Math.ceil((queueCount / activeBays) * 30);
+        if (availableTVs > 0 && queueCount === 0) return 'Langsung dilayani';
+        const activeTVs = Math.max(playingCount, 1);
+        const waitMinutes = Math.ceil((queueCount / activeTVs) * 30);
         if (waitMinutes <= 0) return '~5 menit';
         return `~${waitMinutes} menit`;
-    }, [queueCount, availableBays, washingCount]);
+    }, [queueCount, availableTVs, playingCount]);
 
     const handleConfirm = () => {
-        if (!licensePlate.trim()) {
-            setPlateError('Nomor plat wajib diisi.');
-            return;
-        }
-
         if (!auth?.user) {
             router.visit('/login');
             return;
         }
 
-        if (!isWithinOperationalHours()) {
-            setPlateError('Booking hanya tersedia saat jam operasional (08:00 – 17:00).');
-            return;
-        }
-
-        setPlateError('');
         setIsSubmitting(true);
 
         router.post(
-            '/doorsmeer/booking',
+            '/rental-ps/booking',
             {
                 service_id:       service.id,
                 service_name:     service.name,
                 service_subtitle: service.subtitle,
                 service_price:    service.price,
                 service_duration: service.duration,
-                vehicle_class:    vehicleClass,
-                license_plate:    licensePlate.trim().toUpperCase(),
             },
             {
                 onError: () => setIsSubmitting(false),
@@ -184,7 +168,7 @@ export default function DoorsmeerIndex() {
 
     return (
         <div className="min-h-screen bg-background">
-            <Head title="Doorsmeer – Venus Hub" />
+            <Head title="RentalPs – Venus Hub" />
             <Navbar />
 
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -193,7 +177,7 @@ export default function DoorsmeerIndex() {
                 <div className="flex items-center gap-2 mb-8 text-label-sm text-foreground/50 uppercase">
                     <span>BERANDA</span>
                     <span>›</span>
-                    <span className="text-foreground font-semibold">DOORSMEER</span>
+                    <span className="text-foreground font-semibold">RENTAL PS</span>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -204,10 +188,10 @@ export default function DoorsmeerIndex() {
                         {/* Hero */}
                         <div>
                             <h1 className="text-h2 text-super-black">
-                                Pengalaman <span className="text-primary">Cuci Kendaraan</span> Elit
+                                Pengalaman <span className="text-primary">PlayStation</span> Elit
                             </h1>
                             <p className="text-body-l text-foreground/70 mt-4 max-w-lg">
-                                Manjakan kendaraan Anda dengan ritual perawatan premium. Booking sekarang dan masuk ke antrian realtime — tanpa perlu janji temu.
+                                Manjakan sesi Anda dengan ritual perawatan premium. Booking sekarang dan masuk ke antrian realtime — tanpa perlu janji temu.
                             </p>
                         </div>
 
@@ -265,42 +249,7 @@ export default function DoorsmeerIndex() {
                         {/* Booking Form — Realtime Queue */}
                         <div className="bg-card border border-border rounded-venus p-6 space-y-6">
 
-                            {/* Vehicle info */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <label className="text-label-sm text-foreground/60 uppercase">Klasifikasi Kendaraan</label>
-                                    <div className="relative">
-                                        <select
-                                            value={vehicleClass}
-                                            onChange={e => setVehicleClass(e.target.value)}
-                                            className="w-full appearance-none bg-background border border-border rounded-venus px-4 py-3 text-body-m text-foreground focus:outline-none focus:border-primary transition-colors"
-                                        >
-                                            {vehicleClasses.map(vc => (
-                                                <option key={vc} value={vc}>{vc}</option>
-                                            ))}
-                                        </select>
-                                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-foreground/50 pointer-events-none">
-                                            <ChevronDownIcon />
-                                        </span>
-                                    </div>
-                                </div>
 
-                                <div className="space-y-2">
-                                    <label className="text-label-sm text-foreground/60 uppercase">Nomor Plat</label>
-                                    <input
-                                        type="text"
-                                        placeholder="Contoh: B 1234 ABC"
-                                        value={licensePlate}
-                                        onChange={e => { setLicensePlate(e.target.value.toUpperCase()); setPlateError(''); }}
-                                        className={`w-full bg-background border rounded-venus px-4 py-3 text-body-m text-foreground placeholder:text-foreground/30 focus:outline-none transition-colors ${
-                                            plateError ? 'border-error focus:border-error' : 'border-border focus:border-primary'
-                                        }`}
-                                    />
-                                    {plateError && (
-                                        <p className="text-label-sm text-error">{plateError}</p>
-                                    )}
-                                </div>
-                            </div>
 
                             {/* Realtime Queue Status */}
                             <div className="bg-background border border-border rounded-venus p-5">
@@ -311,12 +260,12 @@ export default function DoorsmeerIndex() {
                                 </div>
 
                                 <div className="grid grid-cols-3 gap-4">
-                                    {/* Bay Available */}
+                                    {/* TV Available */}
                                     <div className="bg-card border border-border rounded-venus p-4 text-center">
-                                        <p className={`text-h3 font-extrabold ${availableBays > 0 ? 'text-primary' : 'text-foreground/30'}`}>
-                                            {availableBays}
+                                        <p className={`text-h3 font-extrabold ${availableTVs > 0 ? 'text-primary' : 'text-foreground/30'}`}>
+                                            {availableTVs}
                                         </p>
-                                        <p className="text-label-sm text-foreground/50 mt-1">Bay Tersedia</p>
+                                        <p className="text-label-sm text-foreground/50 mt-1">TV Tersedia</p>
                                     </div>
 
                                     {/* In Queue */}
@@ -332,20 +281,20 @@ export default function DoorsmeerIndex() {
                                     </div>
                                 </div>
 
-                                {availableBays > 0 && queueCount === 0 && (
+                                {availableTVs > 0 && queueCount === 0 && (
                                     <div className="mt-4 flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-venus px-4 py-3">
                                         <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse shrink-0" />
                                         <p className="text-body-reg text-foreground/80">
-                                            <span className="font-semibold text-primary">Bay tersedia sekarang!</span> Booking Anda bisa langsung diproses.
+                                            <span className="font-semibold text-primary">TV tersedia sekarang!</span> Booking Anda bisa langsung diproses.
                                         </p>
                                     </div>
                                 )}
 
-                                {availableBays === 0 && (
+                                {availableTVs === 0 && (
                                     <div className="mt-4 flex items-center gap-2 bg-surface border border-border rounded-venus px-4 py-3">
                                         <span className="text-foreground/40"><ClockIcon /></span>
                                         <p className="text-body-reg text-foreground/60">
-                                            Semua bay sedang terisi. Anda akan masuk antrian otomatis setelah booking dikonfirmasi.
+                                            Semua TV sedang terisi. Anda akan masuk antrian otomatis setelah booking dikonfirmasi.
                                         </p>
                                     </div>
                                 )}
@@ -360,7 +309,7 @@ export default function DoorsmeerIndex() {
                                     <div>
                                         <p className="text-h4 text-super-black">Di Luar Jam Operasional</p>
                                         <p className="text-body-reg text-foreground/60 mt-0.5">
-                                            Booking hanya tersedia saat jam operasional (08:00 – 17:00 WIB). {operational.message}.
+                                            Booking hanya tersedia saat jam operasional (08:00 – 22:00 WIB). {operational.message}.
                                         </p>
                                     </div>
                                 </div>
@@ -410,17 +359,17 @@ export default function DoorsmeerIndex() {
                                         {isOpen ? 'Sedang Beroperasi' : 'Tutup'}
                                     </p>
                                     <p className="text-body-reg text-foreground/60 mt-0.5">
-                                        {operational.message} · 08:00 – 17:00 WIB
+                                        {operational.message} · 08:00 – 22:00 WIB
                                     </p>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Bay Availability */}
+                        {/* TV Availability */}
                         <div className="bg-card border border-border rounded-venus p-5">
                             <div className="flex items-center gap-2 mb-5">
                                 <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
-                                <p className="text-h4 text-super-black">Bay Pencucian</p>
+                                <p className="text-h4 text-super-black">Ruang TV</p>
                             </div>
                             <div className="space-y-3">
                                 {stalls.map(stall => (
@@ -437,7 +386,7 @@ export default function DoorsmeerIndex() {
                                             <p className="text-label-sm font-semibold text-super-black">{stall.label}</p>
                                             {stall.status === 'terisi' ? (
                                                 <p className="text-body-reg text-foreground/60 truncate">
-                                                    {stall.plate} · {stall.vehicle}
+                                                    Sedang disewa
                                                 </p>
                                             ) : (
                                                 <p className="text-body-reg text-primary font-semibold">Tersedia</p>
@@ -455,9 +404,9 @@ export default function DoorsmeerIndex() {
                             </div>
                             <div className="mt-4 pt-4 border-t border-border">
                                 <div className="flex justify-between items-center">
-                                    <span className="text-body-reg text-foreground/60">Bay tersedia</span>
-                                    <span className={`text-h4 font-extrabold ${availableBays > 0 ? 'text-primary' : 'text-foreground/40'}`}>
-                                        {availableBays}/{totalBays}
+                                    <span className="text-body-reg text-foreground/60">TV tersedia</span>
+                                    <span className={`text-h4 font-extrabold ${availableTVs > 0 ? 'text-primary' : 'text-foreground/40'}`}>
+                                        {availableTVs}/{totalTVs}
                                     </span>
                                 </div>
                             </div>
@@ -469,7 +418,7 @@ export default function DoorsmeerIndex() {
                             <div className="flex items-end justify-between gap-4">
                                 <div>
                                     <p className="text-h2 text-super-black">{queueCount}</p>
-                                    <p className="text-body-reg text-foreground/50">kendaraan menunggu</p>
+                                    <p className="text-body-reg text-foreground/50">sesi menunggu</p>
                                 </div>
                                 <div className="text-right">
                                     <p className="text-label-sm text-foreground/40 uppercase">Est. Tunggu</p>
