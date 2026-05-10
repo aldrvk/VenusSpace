@@ -9,6 +9,11 @@ import {
     SearchInput,
 } from "../../Components/AdminUI";
 
+interface ProductOption {
+    group: string;
+    choices: string;
+}
+
 interface Product {
     id: number;
     name: string;
@@ -16,6 +21,9 @@ interface Product {
     price: number;
     stock: "Tersedia" | "Habis" | "Terbatas";
     sold: number;
+    description?: string;
+    image?: string;
+    options?: Record<string, string[]>;
 }
 
 type FilterTab = "Semua" | "Device" | "Liquid" | "Accessories";
@@ -38,41 +46,81 @@ export default function KatalogVapeStore({ products = [] }: Props) {
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
 
+    const [optionsList, setOptionsList] = useState<ProductOption[]>([]);
+
     const { data, setData, post, put, reset, processing, errors } = useForm({
         unit: "VAPE STORE",
         name: "",
         category: "Device",
-        price: 0,
+        price: 0 as number | string,
         stock: "Tersedia",
+        description: "",
+        image: null as File | null,
+        options: null as Record<string, string[]> | null,
     });
 
     const openAddModal = () => {
         reset();
         setData("unit", "VAPE STORE");
+        setOptionsList([]);
         setEditingProduct(null);
         setIsProductModalOpen(true);
     };
 
     const openEditModal = (product: Product) => {
         setEditingProduct(product);
+        
+        let initialOptions: ProductOption[] = [];
+        if (product.options) {
+            initialOptions = Object.entries(product.options).map(([k, v]) => ({
+                group: k,
+                choices: v.join(', ')
+            }));
+        }
+
+        setOptionsList(initialOptions);
+
         setData({
             unit: "VAPE STORE",
             name: product.name,
             category: product.category,
             price: product.price,
             stock: product.stock,
+            description: product.description || "",
+            image: null,
+            options: product.options || null,
         });
         setIsProductModalOpen(true);
     };
 
     const submitProduct = (e: React.FormEvent) => {
         e.preventDefault();
+        
+        // Process optionsList into an object before submit
+        let finalOptions: Record<string, string[]> | null = null;
+        if (optionsList.length > 0) {
+            finalOptions = {};
+            optionsList.forEach(opt => {
+                if (opt.group.trim()) {
+                    finalOptions![opt.group.trim()] = opt.choices.split(',').map(s => s.trim()).filter(s => s);
+                }
+            });
+        }
+
+        const formData = {
+            ...data,
+            options: finalOptions
+        };
+
         if (editingProduct) {
-            put(`/admin/store/product/${editingProduct.id}`, {
+            router.post(`/admin/store/product/${editingProduct.id}`, {
+                _method: 'put',
+                ...formData
+            }, {
                 onSuccess: () => setIsProductModalOpen(false),
             });
         } else {
-            post(`/admin/store/product`, {
+            router.post(`/admin/store/product`, formData, {
                 onSuccess: () => setIsProductModalOpen(false),
             });
         }
@@ -295,7 +343,7 @@ export default function KatalogVapeStore({ products = [] }: Props) {
             {isProductModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsProductModalOpen(false)} />
-                    <div className="relative bg-card border border-border rounded-venus p-6 w-full max-w-md shadow-2xl">
+                    <div className="relative bg-card border border-border rounded-venus p-6 w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
                         <h3 className="text-h4 text-super-black mb-5">{editingProduct ? "Edit Produk" : "Tambah Produk"}</h3>
                         <form onSubmit={submitProduct} className="space-y-4">
                             <div>
@@ -325,11 +373,15 @@ export default function KatalogVapeStore({ products = [] }: Props) {
                             <div>
                                 <label className="text-label-sm text-foreground/60 uppercase">Harga (Rp)</label>
                                 <input
-                                    type="number"
+                                    type="text"
+                                    inputMode="numeric"
                                     required
-                                    min="0"
                                     value={data.price}
-                                    onChange={e => setData('price', parseInt(e.target.value) || 0)}
+                                    onChange={e => {
+                                        let val = e.target.value.replace(/[^0-9]/g, '');
+                                        val = val.replace(/^0+/, '');
+                                        setData('price', val ? parseInt(val) : 0);
+                                    }}
                                     className="w-full bg-background border border-border rounded-venus px-4 py-2 mt-1 text-body-m text-foreground focus:outline-none focus:border-primary transition-colors"
                                 />
                             </div>
@@ -345,6 +397,73 @@ export default function KatalogVapeStore({ products = [] }: Props) {
                                     <option value="Terbatas">Terbatas</option>
                                     <option value="Habis">Habis</option>
                                 </select>
+                            </div>
+                            <div>
+                                <label className="text-label-sm text-foreground/60 uppercase">Gambar Produk (Opsional)</label>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={e => setData('image', e.target.files ? e.target.files[0] : null)}
+                                    className="w-full bg-background border border-border rounded-venus px-4 py-2 mt-1 text-body-m text-foreground focus:outline-none focus:border-primary transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
+                                />
+                                {errors.image && <p className="text-red-500 text-xs mt-1">{errors.image}</p>}
+                            </div>
+                            <div>
+                                <label className="text-label-sm text-foreground/60 uppercase">Deskripsi (Opsional)</label>
+                                <textarea
+                                    rows={3}
+                                    value={data.description}
+                                    onChange={e => setData('description', e.target.value)}
+                                    className="w-full bg-background border border-border rounded-venus px-4 py-2 mt-1 text-body-m text-foreground focus:outline-none focus:border-primary transition-colors"
+                                    placeholder="Masukkan deskripsi produk..."
+                                ></textarea>
+                            </div>
+                            <div>
+                                <div className="flex items-center justify-between mb-1">
+                                    <label className="text-label-sm text-foreground/60 uppercase">Jenis / Varian (Opsional)</label>
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setOptionsList([...optionsList, { group: '', choices: '' }])}
+                                        className="text-xs text-primary font-semibold hover:underline"
+                                    >
+                                        + Tambah Jenis
+                                    </button>
+                                </div>
+                                {optionsList.map((opt, idx) => (
+                                    <div key={idx} className="flex gap-2 mt-2 items-start">
+                                        <div className="flex-1 space-y-2">
+                                            <input 
+                                                type="text" 
+                                                placeholder="Nama Jenis (misal: Color)" 
+                                                value={opt.group}
+                                                onChange={e => {
+                                                    const newList = [...optionsList];
+                                                    newList[idx].group = e.target.value;
+                                                    setOptionsList(newList);
+                                                }}
+                                                className="w-full bg-background border border-border rounded-venus px-3 py-1.5 text-body-m text-foreground focus:outline-none focus:border-primary transition-colors"
+                                            />
+                                            <input 
+                                                type="text" 
+                                                placeholder="Pilihan (pisahkan dengan koma, misal: Hitam, Putih)" 
+                                                value={opt.choices}
+                                                onChange={e => {
+                                                    const newList = [...optionsList];
+                                                    newList[idx].choices = e.target.value;
+                                                    setOptionsList(newList);
+                                                }}
+                                                className="w-full bg-background border border-border rounded-venus px-3 py-1.5 text-body-m text-foreground focus:outline-none focus:border-primary transition-colors"
+                                            />
+                                        </div>
+                                        <button 
+                                            type="button"
+                                            onClick={() => setOptionsList(optionsList.filter((_, i) => i !== idx))}
+                                            className="w-8 h-8 flex-shrink-0 bg-red-100 text-red-500 rounded-venus flex items-center justify-center hover:bg-red-200 transition-colors"
+                                        >
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                                        </button>
+                                    </div>
+                                ))}
                             </div>
                             <div className="flex gap-3 pt-4">
                                 <button

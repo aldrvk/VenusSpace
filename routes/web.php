@@ -50,23 +50,32 @@ Route::middleware('redirectAdmin')->group(function () {
     })->name('rental-ps.booking_receipt');
 
     Route::get('/vape-store', function () {
-        return Inertia::render('VapeStore/all_items');
+        $products = \App\Models\Product::where('unit', 'VAPE STORE')->get();
+        return Inertia::render('VapeStore/all_items', ['products' => $products]);
     })->name('vape.all');
 
     Route::get('/vape-store/devices', function () {
-        return Inertia::render('VapeStore/devices');
+        $products = \App\Models\Product::where('unit', 'VAPE STORE')->where('category', 'Device')->get();
+        return Inertia::render('VapeStore/devices', ['products' => $products]);
     })->name('vape.devices');
 
     Route::get('/vape-store/liquids', function () {
-        return Inertia::render('VapeStore/liquids');
+        $products = \App\Models\Product::where('unit', 'VAPE STORE')->where('category', 'Liquid')->get();
+        return Inertia::render('VapeStore/liquids', ['products' => $products]);
     })->name('vape.liquids');
 
     Route::get('/vape-store/accessories', function () {
-        return Inertia::render('VapeStore/accessories');
+        $products = \App\Models\Product::where('unit', 'VAPE STORE')->where('category', 'Accessories')->get();
+        return Inertia::render('VapeStore/accessories', ['products' => $products]);
     })->name('vape.accessories');
 
     Route::get('/vape-store/product/{id}', function ($id) {
-        return Inertia::render('VapeStore/product_detail', ['id' => $id]);
+        $product = \App\Models\Product::findOrFail($id);
+        $recommendations = \App\Models\Product::where('unit', 'VAPE STORE')->where('id', '!=', $id)->inRandomOrder()->take(3)->get();
+        return Inertia::render('VapeStore/product_detail', [
+            'product' => $product,
+            'recommendations' => $recommendations
+        ]);
     })->name('vape.product');
 
     Route::get('/vape-store/cart', function () {
@@ -83,23 +92,38 @@ Route::middleware('redirectAdmin')->group(function () {
 
     // ── Coffee Shop ───────────────────────────────────────────────────────────────
     Route::get('/coffee-shop', function () {
-        return Inertia::render('CoffeeShop/all_items');
+        $products = \App\Models\Product::where('unit', 'COFFEE SHOP')->get();
+        return Inertia::render('CoffeeShop/all_items', ['products' => $products]);
     })->name('coffee.all');
 
     Route::get('/coffee-shop/drinks', function () {
-        return Inertia::render('CoffeeShop/drinks');
+        $products = \App\Models\Product::where('unit', 'COFFEE SHOP')
+            ->whereIn('category', ['Kopi', 'Non-Kopi'])
+            ->get();
+        return Inertia::render('CoffeeShop/drinks', ['products' => $products]);
     })->name('coffee.drinks');
 
     Route::get('/coffee-shop/foods', function () {
-        return Inertia::render('CoffeeShop/foods');
+        $products = \App\Models\Product::where('unit', 'COFFEE SHOP')
+            ->where('category', 'Makanan')
+            ->get();
+        return Inertia::render('CoffeeShop/foods', ['products' => $products]);
     })->name('coffee.foods');
 
     Route::get('/coffee-shop/snacks', function () {
-        return Inertia::render('CoffeeShop/snacks');
+        $products = \App\Models\Product::where('unit', 'COFFEE SHOP')
+            ->where('category', 'Cemilan')
+            ->get();
+        return Inertia::render('CoffeeShop/snacks', ['products' => $products]);
     })->name('coffee.snacks');
 
     Route::get('/coffee-shop/product/{id}', function ($id) {
-        return Inertia::render('CoffeeShop/product_detail', ['id' => $id]);
+        $product = \App\Models\Product::findOrFail($id);
+        $recommendations = \App\Models\Product::where('unit', 'COFFEE SHOP')->where('id', '!=', $id)->inRandomOrder()->take(3)->get();
+        return Inertia::render('CoffeeShop/product_detail', [
+            'product' => $product,
+            'recommendations' => $recommendations
+        ]);
     })->name('coffee.product');
 
     Route::get('/coffee-shop/cart', function () {

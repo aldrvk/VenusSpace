@@ -32,65 +32,31 @@ const ShieldIcon = () => (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></svg>
 );
 
-export default function AllItems() {
-    const [searchTerm, setSearchTerm] = useState('');
+const iconMap: Record<string, React.ReactNode> = {
+    'StarIcon': <StarIcon />,
+    'DropIcon': <DropIcon />,
+    'BatteryIcon': <BatteryIcon />,
+    'ShieldIcon': <ShieldIcon />,
+};
 
-    const products = [
-        {
-            id: 7,
-            name: 'XMax V3 Pro',
-            price: 'Rp260.000',
-            description: 'Vaporizer konveksi ini memiliki waktu pemanasan yang cepat dan layar OLED yang jernih yang menampilkan suhu dan pemantauan baterai.',
-            image: xmaxImg,
-            tag: 'KUALITAS TINGGI',
-            tagIcon: <StarIcon />
-        },
-        {
-            id: 107,
-            name: 'Arctic Menthol',
-            price: 'Rp100.000',
-            description: 'Cairan vape yang menyegarkan, dirancang untuk menghasilkan uap yang halus dan konsisten, menghadirkan sensasi menthol yang segar dengan intensitas rasa yang seimbang.',
-            image: arcticImg,
-            tag: 'RASA MENYEGARKAN',
-            tagIcon: <DropIcon />
-        },
-        {
-            id: 108,
-            name: 'Blueberry Ice',
-            price: 'Rp100.000',
-            description: 'Perpaduan rasa yang lezat, menggabungkan aroma blueberry manis dengan sensasi dingin di akhir, dirancang untuk memberikan sensasi lembut di tenggorokan dengan uap yang memuaskan.',
-            image: blueberryImg,
-            tag: 'RASA MANIS',
-            tagIcon: <StarIcon />
-        },
-        {
-            id: 201,
-            name: 'Nitecore Battery',
-            price: 'Rp136.000',
-            description: 'Baterai andal berperforma tinggi yang dirancang untuk memberikan daya stabil dan penggunaan tahan lama. Dibuat dengan mengutamakan keamanan dan efisiensi.',
-            image: nitecoreImg,
-            tag: 'KAPASITAS TINGGI',
-            tagIcon: <BatteryIcon />
-        },
-        {
-            id: 1,
-            name: 'Apex Titanium',
-            price: 'Rp400.000',
-            description: 'Sasis titanium kelas kedirgantaraan dengan Omni-Chip 4.0 revolusioner untuk presisi yang tak tertandingi.',
-            image: apexImg,
-            tag: 'KONSTRUKSI PREMIUM',
-            tagIcon: <ShieldIcon />
-        },
-        {
-            id: 2,
-            name: 'Nano Pod S II',
-            price: 'Rp350.000',
-            description: 'Puncak dari teknologi penguapan kompak, menawarkan daya tahan baterai 12 jam dalam bentuk yang seukuran saku dengan sistem pengisian atas yang anti bocor.',
-            image: nanoImg,
-            tag: 'PORTABLE POWER',
-            tagIcon: <BatteryIcon />
-        }
-    ];
+interface Product {
+    id: number;
+    name: string;
+    category: string;
+    price: number;
+    stock: string;
+    description: string;
+    image: string;
+    tag: string;
+    tag_icon: string;
+}
+
+interface Props {
+    products: Product[];
+}
+
+export default function AllItems({ products }: Props) {
+    const [searchTerm, setSearchTerm] = useState('');
 
     const filteredProducts = products.filter(product =>
         product.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -98,7 +64,7 @@ export default function AllItems() {
 
     return (
         <div className="min-h-screen bg-background">
-            <Head title="Vape Store - Terlaris" />
+            <Head title="Vape Store - Semua Produk" />
             <Navbar />
 
             <main className="max-w-7xl mx-auto px-6 py-12">
@@ -133,7 +99,7 @@ export default function AllItems() {
                                 key={product.id}
                                 id={product.id}
                                 name={product.name}
-                                price={product.price}
+                                price={`Rp${product.price.toLocaleString('id-ID')}`}
                                 description={product.description}
                                 image={product.image}
                             />

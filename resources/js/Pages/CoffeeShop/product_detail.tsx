@@ -4,93 +4,23 @@ import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
 import Card from '../../Components/Card/Card';
 
-const productsData = [
-    {
-        id: 301,
-        name: 'Caramel Macchiato',
-        price: 45000,
-        category: 'MINUMAN',
-        tag: 'TERLARIS',
-        description: 'Perpaduan sempurna antara espresso kuat, susu murni yang di-steam, dan sirup karamel manis yang lembut.',
-        images: ['https://images.unsplash.com/photo-1485808191679-5f86510681a2?q=80&w=600&auto=format&fit=crop'],
-        options: {
-            Ukuran: ['REGULER', 'BESAR'],
-            'Level Gula': ['NORMAL', 'KURANG GULA', 'TANPA GULA'],
-            Es: ['ES NORMAL', 'KURANG ES', 'PANAS']
-        }
-    },
-    {
-        id: 302,
-        name: 'V60 Pour Over',
-        price: 35000,
-        category: 'MINUMAN',
-        tag: 'BIJI KOPI PREMIUM',
-        description: 'Kopi hitam manual brew menggunakan biji kopi pilihan dengan metode V60 untuk mengeluarkan aroma dan rasa yang bersih dan tajam.',
-        images: ['https://images.unsplash.com/photo-1497935586351-b67a49e012bf?q=80&w=600&auto=format&fit=crop'],
-        options: {
-            Biji: ['ETHIOPIA YIRGACHEFFE', 'GAYO WINE', 'TORAJA SAPAN'],
-            Suhu: ['PANAS', 'ES']
-        }
-    },
-    {
-        id: 303,
-        name: 'Matcha Latte',
-        price: 40000,
-        category: 'MINUMAN',
-        tag: 'FAVORIT',
-        description: 'Bubuk matcha premium dari Jepang dipadukan dengan susu segar, menghasilkan tekstur creamy dan rasa manis yang seimbang.',
-        images: ['https://images.unsplash.com/photo-1515823662972-da6a2e4d3002?q=80&w=600&auto=format&fit=crop'],
-        options: {
-            Ukuran: ['REGULER', 'BESAR'],
-            Susu: ['SUSU BIASA', 'SUSU GANDUM (OAT)', 'SUSU ALMOND']
-        }
-    },
-    {
-        id: 401,
-        name: 'Croissant Butter',
-        price: 25000,
-        category: 'MAKANAN',
-        tag: 'BARU DIPANGGANG',
-        description: 'Croissant klasik dengan tekstur renyah di luar dan lembut di dalam, dibuat dengan mentega premium.',
-        images: ['https://images.unsplash.com/photo-1555507036-ab1f4038808a?q=80&w=600&auto=format&fit=crop'],
-        options: {}
-    },
-    {
-        id: 402,
-        name: 'Beef Sandwich',
-        price: 55000,
-        category: 'MAKANAN',
-        tag: 'HIDANGAN LEZAT',
-        description: 'Sandwich daging sapi pilihan dengan sayuran segar dan saus spesial, disajikan dengan roti yang dipanggang sempurna.',
-        images: ['https://images.unsplash.com/photo-1528735602780-2552fd46c7af?q=80&w=600&auto=format&fit=crop'],
-        options: {
-            Roti: ['ROTI PUTIH', 'GANDUM UTUH', 'SOURDOUGH'],
-            Kepedasan: ['TIDAK PEDAS', 'SEDANG', 'PEDAS']
-        }
-    },
-    {
-        id: 501,
-        name: 'French Fries',
-        price: 30000,
-        category: 'CAMILAN',
-        tag: 'CAMILAN',
-        description: 'Kentang goreng renyah yang dibumbui dengan garam dan herbs pilihan, cocok untuk teman nongkrong.',
-        images: ['https://images.unsplash.com/photo-1576107232684-1279f3908594?q=80&w=600&auto=format&fit=crop'],
-        options: {
-            Rasa: ['ORIGINAL', 'KEJU', 'BBQ']
-        }
-    }
-];
+interface Product {
+    id: number;
+    name: string;
+    category: string;
+    price: number;
+    description: string;
+    image: string;
+    tag: string;
+    options?: Record<string, string[]>;
+}
 
-const recommendations = [
-    productsData.find(p => p.id === 301)!, // Caramel Macchiato
-    productsData.find(p => p.id === 401)!, // Croissant
-    productsData.find(p => p.id === 501)!  // Fries
-];
+interface Props {
+    product: Product;
+    recommendations: Product[];
+}
 
-export default function ProductDetail({ id }: { id?: string | number }) {
-    const productId = id ? parseInt(id.toString()) : 301;
-    const product = productsData.find(p => p.id === productId) || productsData.find(p => p.id === 301)!;
+export default function ProductDetail({ product, recommendations }: Props) {
 
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
     const [quantity, setQuantity] = useState(1);
@@ -135,7 +65,7 @@ export default function ProductDetail({ id }: { id?: string | number }) {
                 productId: product.id,
                 name: product.name,
                 price: product.price,
-                image: product.images[selectedImageIndex] || product.images[0],
+                image: product.image,
                 quantity,
                 optionsStr
             });
@@ -170,27 +100,11 @@ export default function ProductDetail({ id }: { id?: string | number }) {
                                 </div>
                             )}
                             <img 
-                                src={product.images[selectedImageIndex]} 
+                                src={product.image || 'https://via.placeholder.com/600x800'} 
                                 alt={product.name} 
                                 className="w-full h-full object-cover"
                             />
                         </div>
-                        
-                        {product.images.length > 1 && (
-                            <div className="flex justify-center gap-4">
-                                {product.images.map((img, idx) => (
-                                    <button 
-                                        key={idx}
-                                        onClick={() => setSelectedImageIndex(idx)}
-                                        className={`w-20 h-20 rounded-venus overflow-hidden border-2 transition-all ${selectedImageIndex === idx ? 'border-primary' : 'border-transparent hover:border-border'}`}
-                                    >
-                                        <div className="w-full h-full bg-surface flex items-center justify-center">
-                                            <img src={img} alt={`Thumbnail ${idx}`} className="w-full h-full object-cover" />
-                                        </div>
-                                    </button>
-                                ))}
-                            </div>
-                        )}
                     </div>
 
                     {/* Right Column: Product Info */}
@@ -295,7 +209,7 @@ export default function ProductDetail({ id }: { id?: string | number }) {
                                 name={rec.name}
                                 price={rec.price}
                                 description={rec.description}
-                                image={rec.images[0]}
+                                image={rec.image}
                                 href={`/coffee-shop/product/${rec.id}`}
                             />
                         ))}
