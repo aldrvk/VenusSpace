@@ -69,7 +69,7 @@ export const PrimaryButton = ({
 }) => (
     <button
         onClick={onClick}
-        className={`flex items-center gap-2 bg-secondary text-white px-4 md:px-5 py-2 md:py-2.5 rounded-full hover:bg-secondary/90 active:scale-95 transition-all shadow-lg text-sm md:text-label-sm font-semibold ${className}`}
+        className={`flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-full hover:bg-primary/90 active:scale-95 transition-all shadow-md text-label-sm font-bold ${className}`}
     >
         {children}
     </button>

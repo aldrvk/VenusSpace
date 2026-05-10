@@ -166,7 +166,7 @@ export default function Cart() {
                                     </Link>
                                 ) : (
                                     <div className="w-full bg-surface border border-border text-foreground/40 py-4 rounded-venus text-label-sm tracking-widest text-center font-bold mt-8 shadow-none uppercase cursor-not-allowed">
-                                        Toko Tutup (Buka 08:00 - 22:00)
+                                        Toko Tutup (Buka 08:00 - 23:00)
                                     </div>
                                 )}
                             </div>

@@ -153,13 +153,19 @@ export default function Checkout() {
                                 </div>
                             </div>
 
-                            <Link 
-                                href={`/vape-store/receipt?method=${paymentMethod}`}
-                                className="w-full bg-primary text-primary-foreground py-4 rounded-venus text-label-sm tracking-widest text-center hover:bg-primary/90 transition-all font-bold shadow-lg uppercase group inline-block"
-                            >
-                                Konfirmasi Pesanan
-                                <svg className="inline-block ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                            </Link>
+                            {new Date().getHours() >= 8 && new Date().getHours() < 23 ? (
+                                <Link 
+                                    href={`/vape-store/receipt?method=${paymentMethod}`}
+                                    className="w-full bg-primary text-primary-foreground py-4 rounded-venus text-label-sm tracking-widest text-center hover:bg-primary/90 transition-all font-bold shadow-lg uppercase group inline-block"
+                                >
+                                    Konfirmasi Pesanan
+                                    <svg className="inline-block ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                                </Link>
+                            ) : (
+                                <div className="w-full bg-surface border border-border text-foreground/40 py-4 rounded-venus text-label-sm tracking-widest text-center font-bold shadow-none uppercase cursor-not-allowed">
+                                    Toko Tutup (08:00 - 23:00 WIB)
+                                </div>
+                            )}
                             
                             <Link href="/vape-store/cart" className="block text-center mt-6 text-label-sm text-foreground/40 hover:text-primary transition-colors uppercase tracking-widest">
                                 Kembali ke Keranjang

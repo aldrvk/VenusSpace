@@ -267,9 +267,12 @@ export default function Laporan() {
                             "17",
                             "18",
                             "19",
+                            "20",
+                            "21",
+                            "22",
                         ].map((h, i) => {
                             const heights = [
-                                20, 35, 65, 80, 45, 30, 90, 75, 55, 40, 25, 15,
+                                20, 35, 65, 80, 45, 30, 90, 75, 55, 40, 25, 15, 30, 45, 20,
                             ];
                             const colors = [
                                 "bg-primary",
@@ -301,7 +304,7 @@ export default function Laporan() {
                     </div>
                     <div className="mt-3 flex items-center justify-between">
                         <p className="text-body-reg text-foreground/40">
-                            Jam operasional (08:00 – 20:00)
+                            Jam operasional (08:00 – 23:00)
                         </p>
                         <p className="text-body-reg text-foreground/40">
                             Puncak: 14:00

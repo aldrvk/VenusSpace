@@ -92,7 +92,7 @@ const QueueIcon = () => (
 // ── Operational Hours Helper ──────────────────────────────────────────────────
 
 const OPEN_HOUR = 8;
-const CLOSE_HOUR = 22;
+const CLOSE_HOUR = 23;
 
 function isWithinOperationalHours(): boolean {
     const now = new Date();
@@ -309,7 +309,7 @@ export default function RentalPsIndex() {
                                     <div>
                                         <p className="text-h4 text-super-black">Di Luar Jam Operasional</p>
                                         <p className="text-body-reg text-foreground/60 mt-0.5">
-                                            Booking hanya tersedia saat jam operasional (08:00 – 22:00 WIB). {operational.message}.
+                                            Booking hanya tersedia saat jam operasional (08:00 – 23:00 WIB). {operational.message}.
                                         </p>
                                     </div>
                                 </div>
@@ -359,7 +359,7 @@ export default function RentalPsIndex() {
                                         {isOpen ? 'Sedang Beroperasi' : 'Tutup'}
                                     </p>
                                     <p className="text-body-reg text-foreground/60 mt-0.5">
-                                        {operational.message} · 08:00 – 22:00 WIB
+                                        {operational.message} · 08:00 – 23:00 WIB
                                     </p>
                                 </div>
                             </div>

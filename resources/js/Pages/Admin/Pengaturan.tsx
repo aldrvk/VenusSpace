@@ -213,7 +213,7 @@ export default function Pengaturan() {
                                             <input
                                                 type="time"
                                                 defaultValue={
-                                                    i === 5 ? "22:00" : "20:00"
+                                                    i === 5 || i === 6 ? "23:00" : "20:00"
                                                 }
                                                 className="bg-background border border-border rounded-venus px-3 py-2 text-body-m text-foreground focus:outline-none focus:border-primary transition-colors"
                                             />
