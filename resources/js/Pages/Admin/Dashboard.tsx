@@ -274,12 +274,20 @@ export default function Dashboard() {
                     <h2 className="text-lg md:text-h4 text-super-black font-bold">
                         Booking Terbaru (Semua Unit)
                     </h2>
-                    <Link
-                        href="/admin/booking-doorsmeer"
-                        className="text-xs md:text-label-sm text-primary hover:text-primary/80 transition-colors flex items-center gap-1 font-semibold"
-                    >
-                        Lihat Semua →
-                    </Link>
+                    <div className="flex gap-4">
+                        <Link
+                            href="/admin/booking-doorsmeer"
+                            className="text-xs md:text-label-sm text-primary hover:text-primary/80 transition-colors flex items-center gap-1 font-semibold"
+                        >
+                            Booking Unit →
+                        </Link>
+                        <Link
+                            href="/admin/pesanan-store"
+                            className="text-xs md:text-label-sm text-secondary hover:text-secondary/80 transition-colors flex items-center gap-1 font-semibold"
+                        >
+                            Pesanan Store →
+                        </Link>
+                    </div>
                 </div>
                 <TableResponsive>
                     <table className="w-full text-xs md:text-body-reg">

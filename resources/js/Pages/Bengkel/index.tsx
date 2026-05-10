@@ -17,40 +17,40 @@ interface Stall {
 interface Props {
     stalls: Stall[];
     queueCount: number;
-    availableBays: number;
-    totalBays: number;
-    washingCount: number;
+    availablePits: number;
+    totalPits: number;
+    servicingCount: number;
 }
 
 // ── Data ─────────────────────────────────────────────────────────────────────
 
 const services = [
     {
-        id: 'basic',
-        name: 'Basic Wash',
-        subtitle: 'Exterior & Foam Wash',
-        price: 35000,
-        priceLabel: '35k',
-        duration: '20 menit',
-        features: ['Tire shine'],
+        id: 'ganti_oli',
+        name: 'Ganti Oli',
+        subtitle: 'Penggantian Oli Mesin',
+        price: 75000,
+        priceLabel: '75k',
+        duration: '15 menit',
+        features: ['Oli standar', 'Cek filter'],
     },
     {
-        id: 'premium',
-        name: 'Premium Wash',
-        subtitle: 'Interior & Vacuum Included',
-        price: 65000,
-        priceLabel: '65k',
-        duration: '45 menit',
-        features: ['Interior vacuum', 'Fragrance blast'],
-    },
-    {
-        id: 'detailing',
-        name: 'Full Detailing',
-        subtitle: 'Engine & Coating',
+        id: 'servis_ringan',
+        name: 'Servis Ringan',
+        subtitle: 'Pengecekan Rutin',
         price: 150000,
         priceLabel: '150k',
-        duration: '120 menit',
-        features: ['Clay bar treatment', 'Wax finish'],
+        duration: '45 menit',
+        features: ['Cek busi & aki', 'Pembersihan karburator/injeksi'],
+    },
+    {
+        id: 'servis_berat',
+        name: 'Servis Berat',
+        subtitle: 'Turun Mesin / Overhaul',
+        price: 500000,
+        priceLabel: '500k+',
+        duration: '120+ menit',
+        features: ['Cek kompresi', 'Penggantian part dalam'],
     },
 ];
 
@@ -116,17 +116,17 @@ function getOperationalStatus(): { open: boolean; message: string } {
 
 // ── Main Page ────────────────────────────────────────────────────────────────
 
-export default function DoorsmeerIndex() {
-    const { auth, stalls, queueCount, availableBays, totalBays, washingCount } = usePage<{
+export default function BengkelIndex() {
+    const { auth, stalls, queueCount, availablePits, totalPits, servicingCount } = usePage<{
         auth: { user?: { id: number } };
         stalls: Stall[];
         queueCount: number;
-        availableBays: number;
-        totalBays: number;
-        washingCount: number;
+        availablePits: number;
+        totalPits: number;
+        servicingCount: number;
     }>().props;
 
-    const [selectedService, setSelectedService] = useState('premium');
+    const [selectedService, setSelectedService] = useState('servis_ringan');
     const [vehicleClass, setVehicleClass] = useState('City Car / Sedan');
     const [licensePlate, setLicensePlate] = useState('');
     const [plateError, setPlateError] = useState('');
@@ -136,14 +136,14 @@ export default function DoorsmeerIndex() {
     const operational = useMemo(() => getOperationalStatus(), []);
     const isOpen = operational.open;
 
-    // Estimated wait time based on queue + washing
+    // Estimated wait time based on queue + servicing
     const estimatedWait = useMemo(() => {
-        if (availableBays > 0 && queueCount === 0) return 'Langsung dilayani';
-        const activeBays = Math.max(washingCount, 1);
-        const waitMinutes = Math.ceil((queueCount / activeBays) * 30);
+        if (availablePits > 0 && queueCount === 0) return 'Langsung dilayani';
+        const activePits = Math.max(servicingCount, 1);
+        const waitMinutes = Math.ceil((queueCount / activePits) * 30);
         if (waitMinutes <= 0) return '~5 menit';
         return `~${waitMinutes} menit`;
-    }, [queueCount, availableBays, washingCount]);
+    }, [queueCount, availablePits, servicingCount]);
 
     const handleConfirm = () => {
         if (!licensePlate.trim()) {
@@ -165,7 +165,7 @@ export default function DoorsmeerIndex() {
         setIsSubmitting(true);
 
         router.post(
-            '/doorsmeer/booking',
+            '/bengkel/booking',
             {
                 service_id:       service.id,
                 service_name:     service.name,
@@ -184,7 +184,7 @@ export default function DoorsmeerIndex() {
 
     return (
         <div className="min-h-screen bg-background">
-            <Head title="Doorsmeer – Venus Hub" />
+            <Head title="Bengkel – Venus Hub" />
             <Navbar />
 
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -193,7 +193,7 @@ export default function DoorsmeerIndex() {
                 <div className="flex items-center gap-2 mb-8 text-label-sm text-foreground/50 uppercase">
                     <span>BERANDA</span>
                     <span>›</span>
-                    <span className="text-foreground font-semibold">DOORSMEER</span>
+                    <span className="text-foreground font-semibold">BENGKEL</span>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -204,7 +204,7 @@ export default function DoorsmeerIndex() {
                         {/* Hero */}
                         <div>
                             <h1 className="text-h2 text-super-black">
-                                Pengalaman <span className="text-primary">Cuci Kendaraan</span> Elit
+                                Pengalaman <span className="text-primary">Servis Kendaraan</span> Elit
                             </h1>
                             <p className="text-body-l text-foreground/70 mt-4 max-w-lg">
                                 Manjakan kendaraan Anda dengan ritual perawatan premium. Booking sekarang dan masuk ke antrian realtime — tanpa perlu janji temu.
@@ -311,12 +311,12 @@ export default function DoorsmeerIndex() {
                                 </div>
 
                                 <div className="grid grid-cols-3 gap-4">
-                                    {/* Bay Available */}
+                                    {/* Pit Available */}
                                     <div className="bg-card border border-border rounded-venus p-4 text-center">
-                                        <p className={`text-h3 font-extrabold ${availableBays > 0 ? 'text-primary' : 'text-foreground/30'}`}>
-                                            {availableBays}
+                                        <p className={`text-h3 font-extrabold ${availablePits > 0 ? 'text-primary' : 'text-foreground/30'}`}>
+                                            {availablePits}
                                         </p>
-                                        <p className="text-label-sm text-foreground/50 mt-1">Bay Tersedia</p>
+                                        <p className="text-label-sm text-foreground/50 mt-1">Pit Tersedia</p>
                                     </div>
 
                                     {/* In Queue */}
@@ -332,20 +332,20 @@ export default function DoorsmeerIndex() {
                                     </div>
                                 </div>
 
-                                {availableBays > 0 && queueCount === 0 && (
+                                {availablePits > 0 && queueCount === 0 && (
                                     <div className="mt-4 flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-venus px-4 py-3">
                                         <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse shrink-0" />
                                         <p className="text-body-reg text-foreground/80">
-                                            <span className="font-semibold text-primary">Bay tersedia sekarang!</span> Booking Anda bisa langsung diproses.
+                                            <span className="font-semibold text-primary">Pit tersedia sekarang!</span> Booking Anda bisa langsung diproses.
                                         </p>
                                     </div>
                                 )}
 
-                                {availableBays === 0 && (
+                                {availablePits === 0 && (
                                     <div className="mt-4 flex items-center gap-2 bg-surface border border-border rounded-venus px-4 py-3">
                                         <span className="text-foreground/40"><ClockIcon /></span>
                                         <p className="text-body-reg text-foreground/60">
-                                            Semua bay sedang terisi. Anda akan masuk antrian otomatis setelah booking dikonfirmasi.
+                                            Semua pit sedang terisi. Anda akan masuk antrian otomatis setelah booking dikonfirmasi.
                                         </p>
                                     </div>
                                 )}
@@ -416,11 +416,11 @@ export default function DoorsmeerIndex() {
                             </div>
                         </div>
 
-                        {/* Bay Availability */}
+                        {/* Pit Availability */}
                         <div className="bg-card border border-border rounded-venus p-5">
                             <div className="flex items-center gap-2 mb-5">
                                 <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
-                                <p className="text-h4 text-super-black">Bay Pencucian</p>
+                                <p className="text-h4 text-super-black">Pit Pencucian</p>
                             </div>
                             <div className="space-y-3">
                                 {stalls.map(stall => (
@@ -455,9 +455,9 @@ export default function DoorsmeerIndex() {
                             </div>
                             <div className="mt-4 pt-4 border-t border-border">
                                 <div className="flex justify-between items-center">
-                                    <span className="text-body-reg text-foreground/60">Bay tersedia</span>
-                                    <span className={`text-h4 font-extrabold ${availableBays > 0 ? 'text-primary' : 'text-foreground/40'}`}>
-                                        {availableBays}/{totalBays}
+                                    <span className="text-body-reg text-foreground/60">Pit tersedia</span>
+                                    <span className={`text-h4 font-extrabold ${availablePits > 0 ? 'text-primary' : 'text-foreground/40'}`}>
+                                        {availablePits}/{totalPits}
                                     </span>
                                 </div>
                             </div>

@@ -12,29 +12,33 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps = {}) {
     const { url } = usePage();
     const isVapeStore = url.startsWith('/vape-store');
     const isDoorsmeer = url.startsWith('/doorsmeer');
+    const isBengkel = url.startsWith('/bengkel');
+    const isRentalPs = url.startsWith('/rental-ps');
+    const isCoffeeShop = url.startsWith('/coffee-shop');
     
     const [cartCount, setCartCount] = useState(0);
 
     useEffect(() => {
-        if (!isVapeStore) return;
+        if (!isVapeStore && !isCoffeeShop) return;
         
         const updateCartCount = () => {
-            const cart = JSON.parse(localStorage.getItem('venus_cart') || '[]');
+            const storageKey = isVapeStore ? 'venus_cart' : 'venus_cart_coffee';
+            const cart = JSON.parse(localStorage.getItem(storageKey) || '[]');
             setCartCount(cart.length);
         };
         
         updateCartCount();
         window.addEventListener('cart_updated', updateCartCount);
         return () => window.removeEventListener('cart_updated', updateCartCount);
-    }, [isVapeStore]);
+    }, [isVapeStore, isCoffeeShop]);
 
     const navItems = [
         { name: 'Home', href: '/', active: url === '/' },
         { name: 'Doorsmeer', href: '/doorsmeer', active: isDoorsmeer },
-        { name: 'Coffee Shop', href: '#', active: false },
+        { name: 'Coffee Shop', href: '/coffee-shop', active: isCoffeeShop },
         { name: 'Vape Store', href: '/vape-store', active: isVapeStore },
-        { name: 'Bengkel', href: '#', active: false },
-        { name: 'Rental PS', href: '#', active: false },
+        { name: 'Bengkel', href: '/bengkel', active: isBengkel },
+        { name: 'Rental PS', href: '/rental-ps', active: isRentalPs },
         { name: 'Contact', href: '#', active: false },
     ];
 
@@ -75,8 +79,8 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps = {}) {
                     <div className="flex items-center space-x-4 md:space-x-6">
                         
                         {/* Cart Icon */}
-                        {isVapeStore && (
-                            <Link href="/vape-store/cart" aria-label="Cart" className="relative text-foreground hover:text-primary transition-colors flex items-center">
+                        {(isVapeStore || isCoffeeShop) && (
+                            <Link href={isVapeStore ? "/vape-store/cart" : "/coffee-shop/cart"} aria-label="Cart" className="relative text-foreground hover:text-primary transition-colors flex items-center">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <circle cx="9" cy="21" r="1"></circle>
                                     <circle cx="20" cy="21" r="1"></circle>
@@ -92,6 +96,32 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps = {}) {
                         {isDoorsmeer && auth?.user && (
                             <Link
                                 href="/doorsmeer/my-bookings"
+                                className="flex items-center gap-1.5 text-label-sm font-semibold text-foreground/70 hover:text-primary transition-colors"
+                            >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+                                </svg>
+                                Booking Saya
+                            </Link>
+                        )}
+
+                        {/* Bengkel: My Bookings link */}
+                        {isBengkel && auth?.user && (
+                            <Link
+                                href="/bengkel/my-bookings"
+                                className="flex items-center gap-1.5 text-label-sm font-semibold text-foreground/70 hover:text-primary transition-colors"
+                            >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+                                </svg>
+                                Booking Saya
+                            </Link>
+                        )}
+
+                        {/* Rental PS: My Bookings link */}
+                        {isRentalPs && auth?.user && (
+                            <Link
+                                href="/rental-ps/my-bookings"
                                 className="flex items-center gap-1.5 text-label-sm font-semibold text-foreground/70 hover:text-primary transition-colors"
                             >
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

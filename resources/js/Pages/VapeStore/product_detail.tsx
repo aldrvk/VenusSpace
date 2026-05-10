@@ -39,8 +39,8 @@ const productsData = [
         id: 1,
         name: 'Apex Titanium',
         price: 400000,
-        category: 'DEVICES',
-        tag: 'PREMIUM BUILD',
+        category: 'PERANGKAT',
+        tag: 'KONSTRUKSI PREMIUM',
         description: 'Sasis titanium kelas kedirgantaraan dengan Omni-Chip 4.0 revolusioner untuk presisi yang tak tertandingi.',
         images: [apexImg],
         options: {
@@ -52,8 +52,8 @@ const productsData = [
         id: 2,
         name: 'Nano Pod S II',
         price: 350000,
-        category: 'DEVICES',
-        tag: 'PORTABLE POWER',
+        category: 'PERANGKAT',
+        tag: 'DAYA PORTABEL',
         description: 'Puncak dari teknologi penguapan kompak, menawarkan daya tahan baterai 12 jam dalam bentuk yang seukuran saku dengan sistem pengisian atas yang anti bocor.',
         images: [nanoImg, goldNano, earthyNano],
         options: {
@@ -65,8 +65,8 @@ const productsData = [
         id: 3,
         name: 'Drag Q Pod Kit',
         price: 350000,
-        category: 'DEVICES',
-        tag: 'TECH SPECS',
+        category: 'PERANGKAT',
+        tag: 'SPESIFIKASI TEKNIS',
         description: 'Kit pemula serbaguna yang menyeimbangkan desain estetika dengan performa profesional. Termasuk cincin pengatur aliran udara dan pegangan kulit yang nyaman.',
         images: [dragImg],
         options: {
@@ -78,8 +78,8 @@ const productsData = [
         id: 4,
         name: 'VOOPOO Argus',
         price: 400000,
-        category: 'DEVICES',
-        tag: 'PREMIUM GRADE',
+        category: 'PERANGKAT',
+        tag: 'KELAS PREMIUM',
         description: 'Dilengkapi dengan kumparan jala sarang lebah inovatif yang memastikan permukaan pemanas lebih luas untuk produksi uap yang kaya dan padat.',
         images: [argusImg],
         options: {
@@ -90,8 +90,8 @@ const productsData = [
         id: 5,
         name: 'Thelema Aura S',
         price: 200000,
-        category: 'DEVICES',
-        tag: 'HIGH QUALITY',
+        category: 'PERANGKAT',
+        tag: 'KUALITAS TINGGI',
         description: 'Sistem pod berperforma tinggi ini dilengkapi dengan chipset canggih yang memastikan pengaktifan cepat dan profil rasa yang konsisten dan kaya di setiap hisapan.',
         images: [thelemaImg],
         options: {
@@ -102,8 +102,8 @@ const productsData = [
         id: 6,
         name: 'Oxva Xlim Go 2',
         price: 180000,
-        category: 'DEVICES',
-        tag: 'ADVANCED CHIP',
+        category: 'PERANGKAT',
+        tag: 'CHIPSET CANGGIH',
         description: 'Perangkat serbaguna ini mendukung berbagai tingkat resistansi, menjadikannya pilihan sempurna bagi pencari rasa maupun penggemar uap tebal.',
         images: [oxvaImg],
         options: {
@@ -114,8 +114,8 @@ const productsData = [
         id: 7,
         name: 'XMax V3 Pro',
         price: 260000,
-        category: 'DEVICES',
-        tag: 'HIGH QUALITY',
+        category: 'PERANGKAT',
+        tag: 'KUALITAS TINGGI',
         description: 'Vaporizer konveksi ini memiliki waktu pemanasan yang cepat dan layar OLED yang jernih yang menampilkan suhu dan pemantauan baterai.',
         images: [xmaxImg],
         options: {
@@ -126,9 +126,9 @@ const productsData = [
         id: 101,
         name: 'Blackcurrant Tea',
         price: 110000,
-        category: 'LIQUIDS',
-        tag: 'REFRESHING TASTE',
-        description: 'A smooth fusion of rich blackcurrant and subtle tea notes, delivering a refreshing yet slightly tangy inhale.',
+        category: 'CAIRAN',
+        tag: 'RASA MENYEGARKAN',
+        description: 'Perpaduan halus antara blackcurrant kaya dan sentuhan teh, memberikan sensasi menyegarkan namun sedikit asam.',
         images: [blackcurrantImg],
         options: {
             Nicotine: ['3MG', '6MG'],
@@ -139,9 +139,9 @@ const productsData = [
         id: 102,
         name: 'Bule Bolu',
         price: 120000,
-        category: 'LIQUIDS',
-        tag: 'CREAMY CLOUDS',
-        description: 'A delightful dessert-inspired flavor that captures the soft sweetness of classic sponge cake. Light, creamy, and satisfying.',
+        category: 'CAIRAN',
+        tag: 'AWAN CREAMY',
+        description: 'Rasa yang terinspirasi makanan penutup yang lezat, menangkap kemanisan lembut kue spons klasik. Ringan, creamy, dan memuaskan.',
         images: [buleboluImg],
         options: {
             Nicotine: ['3MG', '6MG'],
@@ -152,9 +152,9 @@ const productsData = [
         id: 103,
         name: 'King\'s Reserve',
         price: 145000,
-        category: 'LIQUIDS',
-        tag: 'PREMIUM BLEND',
-        description: 'Crafted for a premium experience, this blend offers a bold yet refined flavor profile with deep, layered notes.',
+        category: 'CAIRAN',
+        tag: 'CAMPURAN PREMIUM',
+        description: 'Dibuat untuk pengalaman premium, campuran ini menawarkan profil rasa yang berani namun halus dengan lapisan rasa yang mendalam.',
         images: [kingsImg],
         options: {
             Nicotine: ['3MG', '6MG'],
@@ -165,9 +165,9 @@ const productsData = [
         id: 104,
         name: 'Banana Licious',
         price: 162000,
-        category: 'LIQUIDS',
-        tag: 'RICH FLAVOR',
-        description: 'A creamy banana blend with a naturally sweet aroma and smooth texture on every puff. Delivers a mellow and flavorful experience.',
+        category: 'CAIRAN',
+        tag: 'RASA KAYA',
+        description: 'Campuran pisang creamy dengan aroma manis alami dan tekstur halus di setiap hisapan. Memberikan pengalaman yang lembut dan penuh rasa.',
         images: [bananaImg],
         options: {
             Nicotine: ['3MG', '6MG'],
@@ -178,9 +178,9 @@ const productsData = [
         id: 105,
         name: 'Good Sundae',
         price: 145000,
-        category: 'LIQUIDS',
-        tag: 'SWEET DESSERT',
-        description: 'This flavor combines every sweetness with a hint of fruity topping. A fun and indulgent vape that brings dessert vibes in every inhale.',
+        category: 'CAIRAN',
+        tag: 'DESSERT MANIS',
+        description: 'Rasa ini menggabungkan setiap kemanisan dengan sentuhan topping buah. Vape yang menyenangkan dan memanjakan yang membawa nuansa hidangan penutup di setiap hisapan.',
         images: [sundaeImg],
         options: {
             Nicotine: ['3MG', '6MG'],
@@ -191,9 +191,9 @@ const productsData = [
         id: 106,
         name: 'English Breakfast',
         price: 165000,
-        category: 'LIQUIDS',
-        tag: 'CLASSIC TASTE',
-        description: 'A unique take on traditional tea flavor, offering a warm, slightly bold taste with a smooth finish. Great for those who prefer more refined vaping.',
+        category: 'CAIRAN',
+        tag: 'RASA KLASIK',
+        description: 'Interpretasi unik dari rasa teh tradisional, menawarkan rasa yang hangat dan sedikit berani dengan akhir yang halus.',
         images: [englishImg],
         options: {
             Nicotine: ['3MG', '6MG'],
@@ -204,8 +204,8 @@ const productsData = [
         id: 107,
         name: 'Arctic Menthol',
         price: 100000,
-        category: 'LIQUIDS',
-        tag: 'REFRESHING TASTE',
+        category: 'CAIRAN',
+        tag: 'RASA MENYEGARKAN',
         description: 'Cairan vape yang menyegarkan, dirancang untuk menghasilkan uap yang halus dan konsisten, menghadirkan sensasi menthol yang segar dengan intensitas rasa yang seimbang.',
         images: [arcticImg],
         options: {
@@ -217,8 +217,8 @@ const productsData = [
         id: 108,
         name: 'Blueberry Ice',
         price: 100000,
-        category: 'LIQUIDS',
-        tag: 'SWEET FLAVOR',
+        category: 'CAIRAN',
+        tag: 'RASA MANIS',
         description: 'Perpaduan rasa yang lezat, menggabungkan aroma blueberry manis dengan sensasi dingin di akhir, dirancang untuk memberikan sensasi lembut di tenggorokan dengan uap yang memuaskan.',
         images: [blueberryImg],
         options: {
@@ -230,8 +230,8 @@ const productsData = [
         id: 201,
         name: 'Nitecore Battery',
         price: 136000,
-        category: 'ACCESSORIES',
-        tag: 'HIGH CAPACITY',
+        category: 'AKSESORIS',
+        tag: 'KAPASITAS TINGGI',
         description: 'Baterai andal berperforma tinggi yang dirancang untuk memberikan daya stabil dan penggunaan tahan lama. Dibuat dengan mengutamakan keamanan dan efisiensi.',
         images: [nitecoreImg],
         options: {
@@ -242,8 +242,8 @@ const productsData = [
         id: 202,
         name: 'Casan Type C',
         price: 40000,
-        category: 'ACCESSORIES',
-        tag: 'FAST CHARGING',
+        category: 'AKSESORIS',
+        tag: 'PENGISIAN CEPAT',
         description: 'Pengisi daya dua slot serbaguna yang dilengkapi dengan input Type-C untuk pengisian daya yang lebih cepat dan nyaman. Dilengkapi dengan manajemen daya cerdas.',
         images: [casanImg],
         options: {
@@ -254,8 +254,8 @@ const productsData = [
         id: 203,
         name: 'Cartridge',
         price: 40000,
-        category: 'ACCESSORIES',
-        tag: 'LEAK PROOF',
+        category: 'AKSESORIS',
+        tag: 'ANTI BOCOR',
         description: 'Pod yang ringkas dan mudah digunakan, dirancang untuk menghasilkan uap yang halus dan konsisten. Ideal untuk memberikan rasa yang bersih dan desain yang ramah pengguna.',
         images: [cartridgeImg],
         options: {
@@ -266,8 +266,8 @@ const productsData = [
         id: 204,
         name: 'Cotton Bacon',
         price: 50000,
-        category: 'ACCESSORIES',
-        tag: 'PURE TASTE',
+        category: 'AKSESORIS',
+        tag: 'RASA MURNI',
         description: 'Kapas berkualitas premium yang dibuat khusus untuk vaping, menawarkan daya serap yang sangat baik dan penyampaian rasa yang bersih.',
         images: [cottonImg],
         options: {
@@ -278,8 +278,8 @@ const productsData = [
         id: 205,
         name: 'Coil',
         price: 25000,
-        category: 'ACCESSORIES',
-        tag: 'OPTIMAL HEATING',
+        category: 'AKSESORIS',
+        tag: 'PEMANASAN OPTIMAL',
         description: 'Dirancang untuk pemanasan dan produksi rasa yang optimal, koil ini memberikan pengalaman vaping yang seimbang.',
         images: [coilImg],
         options: {
@@ -290,8 +290,8 @@ const productsData = [
         id: 206,
         name: 'Vapeband',
         price: 2500,
-        category: 'ACCESSORIES',
-        tag: 'PROTECTIVE GEAR',
+        category: 'AKSESORIS',
+        tag: 'PELINDUNG',
         description: 'Aksesori praktis yang melindungi tangki Anda dari benturan ringan dan menambahkan sentuhan gaya pribadi.',
         images: [vapebandImg],
         options: {
@@ -384,7 +384,7 @@ export default function ProductDetail({ id }: { id?: string | number }) {
                         <div className="bg-surface rounded-venus aspect-[4/5] relative flex items-center justify-center overflow-hidden border border-border shadow-2xl">
                             {product.id === 2 && (
                                 <div className="absolute top-6 left-6 bg-secondary text-secondary-foreground px-4 py-1.5 rounded-full text-label-sm z-10">
-                                    BEST SELLER
+                                    TERLARIS
                                 </div>
                             )}
                             <img 
@@ -423,7 +423,7 @@ export default function ProductDetail({ id }: { id?: string | number }) {
                             </p>
                             <div className="flex items-baseline gap-3 mb-10">
                                 <span className="text-h2 text-super-black">{formatPrice(product.price)}</span>
-                                <span className="text-label-sm text-foreground/60">/ SUSTAINABLY SOURCED</span>
+                                <span className="text-label-sm text-foreground/60">/ SUMBER TERPERCAYA</span>
                             </div>
                         </div>
 
@@ -432,7 +432,7 @@ export default function ProductDetail({ id }: { id?: string | number }) {
                             <div key={optionName} className="mb-8">
                                 <div className="flex justify-between items-center mb-4">
                                     <h4 className="text-label-sm text-super-black uppercase tracking-widest">{optionName}</h4>
-                                    <span className="text-label-sm text-foreground/40 italic">SELECT ONE</span>
+                                    <span className="text-label-sm text-foreground/40 italic">PILIH SATU</span>
                                 </div>
                                 <div className="flex flex-wrap gap-3">
                                     {(values as string[]).map(val => {
@@ -457,7 +457,7 @@ export default function ProductDetail({ id }: { id?: string | number }) {
 
                         {/* Quantity and Actions */}
                         <div className="mb-8">
-                            <h4 className="text-label-sm text-super-black uppercase tracking-widest mb-4">QUANTITY</h4>
+                            <h4 className="text-label-sm text-super-black uppercase tracking-widest mb-4">JUMLAH</h4>
                             <div className="flex items-center gap-6">
                                 <div className="flex items-center bg-surface rounded-full border border-border h-14">
                                     <button 
@@ -482,7 +482,7 @@ export default function ProductDetail({ id }: { id?: string | number }) {
                                 onClick={handleAddToCart}
                                 className="flex-1 bg-secondary hover:bg-secondary/90 text-secondary-foreground h-14 rounded-full flex items-center justify-center gap-3 transition-all shadow-lg text-label-sm tracking-widest font-bold group"
                             >
-                                ADD TO ORDER — {formatPrice(product.price * quantity)}
+                                TAMBAHKAN KE PESANAN — {formatPrice(product.price * quantity)}
                                 <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                             </button>
                             <button className="w-14 h-14 flex items-center justify-center border border-border rounded-full text-foreground hover:bg-surface hover:text-error transition-all">

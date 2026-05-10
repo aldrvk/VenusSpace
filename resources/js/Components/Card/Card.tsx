@@ -8,15 +8,18 @@ interface CardProps {
     price: string | number;
     description: string;
     image: string;
+    href?: string;
 }
 
-export default function Card({ id, name, price, description, image }: CardProps) {
+export default function Card({ id, name, price, description, image, href }: CardProps) {
     const formattedPrice = typeof price === 'number' 
         ? 'Rp' + price.toLocaleString('id-ID')
         : price;
+        
+    const linkHref = href || `/vape-store/product/${id}`;
 
     return (
-        <Link href={`/vape-store/product/${id}`} className="bg-card rounded-venus p-6 flex flex-col hover:shadow-xl transition-shadow border border-border group cursor-pointer">
+        <Link href={linkHref} className="bg-card rounded-venus p-6 flex flex-col hover:shadow-xl transition-shadow border border-border group cursor-pointer">
             <div className="bg-surface rounded-venus aspect-square mb-6 flex items-center justify-center overflow-hidden border border-border relative">
                 <div className="absolute inset-0 bg-gradient-to-t from-surface/40 to-transparent opacity-0 group-hover:opacity-30 transition-opacity z-10"></div>
                 <img
@@ -32,7 +35,7 @@ export default function Card({ id, name, price, description, image }: CardProps)
             <p className="text-body-reg text-foreground/80 line-clamp-3 mb-6 flex-grow">
                 {description}
             </p>
-            <ProductDetailButton href={`/vape-store/product/${id}`} />
+            <ProductDetailButton href={linkHref} />
         </Link>
     );
 }

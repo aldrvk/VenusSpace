@@ -28,6 +28,7 @@ export default function HomeMain() {
       id: 1,
       title: "Doorsmeer",
       description: "Cuci premium dengan presisi tinggi untuk performa kendaraan.",
+      href: "/doorsmeer",
       icon: (
         <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
@@ -39,6 +40,7 @@ export default function HomeMain() {
       id: 2,
       title: "Coffee Shop",
       description: "Nikmati kopi specialty sambil bersantai di lounge kami.",
+      href: "/coffee-shop",
       icon: (
         <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
@@ -62,6 +64,7 @@ export default function HomeMain() {
       id: 4,
       title: "Bengkel",
       description: "Layanan teknis terpercaya oleh mekanik bersertifikat.",
+      href: "/bengkel",
       icon: (
         <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -74,6 +77,7 @@ export default function HomeMain() {
       id: 5,
       title: "Rental PS",
       description: "Area entertainment eksklusif untuk bermain konsol terkini.",
+      href: "/rental-ps",
       icon: (
         <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
@@ -155,7 +159,7 @@ export default function HomeMain() {
         <div className="grid grid-cols-1 md:grid-cols-3 grid-rows-none md:grid-rows-2 gap-6 h-auto md:h-[600px]">
           
           {/* Left Column (Tall) */}
-          <Link href="#" className="dark group relative rounded-venus overflow-hidden md:col-span-1 md:row-span-2 min-h-[400px] md:min-h-full block">
+          <Link href="/doorsmeer" className="dark group relative rounded-venus overflow-hidden md:col-span-1 md:row-span-2 min-h-[400px] md:min-h-full block">
             <img 
               src="https://images.unsplash.com/photo-1605810230434-7631ac76ec81?q=80&w=800&auto=format&fit=crop" 
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
@@ -175,7 +179,7 @@ export default function HomeMain() {
           </Link>
 
           {/* Middle Top (Cafe Lounge) */}
-          <Link href="#" className="dark group relative rounded-venus overflow-hidden md:col-span-1 md:row-span-1 min-h-[250px] block">
+          <Link href="/coffee-shop" className="dark group relative rounded-venus overflow-hidden md:col-span-1 md:row-span-1 min-h-[250px] block">
             <img 
               src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=800&auto=format&fit=crop" 
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
@@ -192,7 +196,7 @@ export default function HomeMain() {
           </Link>
 
           {/* Right Top (PS Arena) */}
-          <Link href="#" className="dark group relative rounded-venus overflow-hidden md:col-span-1 md:row-span-1 min-h-[250px] block">
+          <Link href="/rental-ps" className="dark group relative rounded-venus overflow-hidden md:col-span-1 md:row-span-1 min-h-[250px] block">
             <img 
               src="https://images.unsplash.com/photo-1538481199705-c710c4e965fc?q=80&w=800&auto=format&fit=crop" 
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 

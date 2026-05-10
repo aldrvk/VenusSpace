@@ -89,6 +89,7 @@ const navItems = [
     { href: '/admin/booking-rental-ps', label: 'Booking Rental PS', icon: <IconPS /> },
     { href: '/admin/katalog-coffee', label: 'Katalog Coffee Shop', icon: <IconCoffee /> },
     { href: '/admin/katalog-vape', label: 'Katalog Vape Store', icon: <IconVape /> },
+    { href: '/admin/pesanan-store', label: 'Daftar Pesanan', icon: <IconLaporan /> },
     { href: '/admin/jadwal', label: 'Jadwal', icon: <IconJadwal /> },
     { href: '/admin/laporan', label: 'Laporan', icon: <IconLaporan /> },
 ];
@@ -106,6 +107,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     return (
         <div className="flex h-screen bg-background overflow-hidden font-sans">
             <Toaster position="top-center" />
+            <style>{`
+                .hide-scrollbar::-webkit-scrollbar {
+                    display: none;
+                }
+            `}</style>
 
             {/* ── Sidebar ─────────────────────────────────────────────────── */}
             <aside className="w-36 bg-secondary flex flex-col shrink-0 z-40">
@@ -116,7 +122,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 </div>
 
                 {/* Nav */}
-                <nav className="flex-1 py-3 overflow-y-auto">
+                <nav className="flex-1 py-3 overflow-y-auto hide-scrollbar" style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
                     {navItems.map((item) => {
                         const active = isActive(item.href);
                         return (

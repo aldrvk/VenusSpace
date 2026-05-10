@@ -40,45 +40,45 @@ export default function Liquids() {
             id: 101,
             name: 'Blackcurrant Tea',
             price: 'Rp110.000',
-            description: 'A smooth fusion of rich blackcurrant and subtle tea notes, delivering a refreshing yet slightly tangy inhale.',
+            description: 'Perpaduan halus antara blackcurrant kaya dan sentuhan teh, memberikan sensasi menyegarkan namun sedikit asam.',
             image: blackcurrantImg,
-            tag: 'REFRESHING TASTE',
+            tag: 'RASA MENYEGARKAN',
             tagIcon: <DropIcon />
         },
         {
             id: 102,
             name: 'Bule Bolu',
             price: 'Rp120.000',
-            description: 'A delightful dessert-inspired flavor that captures the soft sweetness of classic sponge cake. Light, creamy, and satisfying.',
+            description: 'Rasa yang terinspirasi makanan penutup yang lezat, menangkap kemanisan lembut kue spons klasik. Ringan, creamy, dan memuaskan.',
             image: buleboluImg,
-            tag: 'CREAMY CLOUDS',
+            tag: 'AWAN CREAMY',
             tagIcon: <CloudIcon />
         },
         {
             id: 103,
             name: 'King\'s Reserve',
             price: 'Rp145.000',
-            description: 'Crafted for a premium experience, this blend offers a bold yet refined flavor profile with deep, layered notes.',
+            description: 'Dibuat untuk pengalaman premium, campuran ini menawarkan profil rasa yang berani namun halus dengan lapisan rasa yang mendalam.',
             image: kingsImg,
-            tag: 'PREMIUM BLEND',
+            tag: 'CAMPURAN PREMIUM',
             tagIcon: <ShieldIcon />
         },
         {
             id: 104,
             name: 'Banana Licious',
             price: 'Rp162.000',
-            description: 'A creamy banana blend with a naturally sweet aroma and smooth texture on every puff. Delivers a mellow and flavorful experience.',
+            description: 'Campuran pisang creamy dengan aroma manis alami dan tekstur halus di setiap hisapan. Memberikan pengalaman yang lembut dan penuh rasa.',
             image: bananaImg,
-            tag: 'RICH FLAVOR',
+            tag: 'RASA KAYA',
             tagIcon: <StarIcon />
         },
         {
             id: 105,
             name: 'Good Sundae',
             price: 'Rp145.000',
-            description: 'This flavor combines every sweetness with a hint of fruity topping. A fun and indulgent vape that brings dessert vibes in every inhale.',
+            description: 'Rasa ini menggabungkan setiap kemanisan dengan sentuhan topping buah. Vape yang menyenangkan dan memanjakan yang membawa nuansa hidangan penutup di setiap hisapan.',
             image: sundaeImg,
-            tag: 'SWEET DESSERT',
+            tag: 'DESSERT MANIS',
             tagIcon: <StarIcon />
         },
         {
@@ -108,10 +108,10 @@ export default function Liquids() {
                     <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                         <div className="max-w-2xl">
                             <h1 className="text-h1 text-super-black mb-4">
-                                Redefining the Art of <span className="text-primary">Vapor</span>
+                                Mendefinisikan Ulang Seni <span className="text-primary">Vapor</span>
                             </h1>
                             <p className="text-body-l text-foreground">
-                                Discover a handpicked selection of premium devices and artisanal e-liquids designed for the discerning enthusiast.
+                                Temukan pilihan perangkat premium dan cairan buatan tangan yang dirancang khusus untuk para penggemar yang cerdas.
                             </p>
                         </div>
 
