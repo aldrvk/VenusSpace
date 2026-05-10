@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
+import { router } from '@inertiajs/react';
 
 interface SearchBarProps {
     value: string;
@@ -6,6 +7,25 @@ interface SearchBarProps {
 }
 
 export default function SearchBar({ value, onChange }: SearchBarProps) {
+    const isFirstRender = useRef(true);
+
+    useEffect(() => {
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+            return;
+        }
+
+        const timeout = setTimeout(() => {
+            router.get(
+                window.location.pathname, 
+                { search: value }, 
+                { preserveState: true, preserveScroll: true }
+            );
+        }, 400);
+
+        return () => clearTimeout(timeout);
+    }, [value]);
+
     return (
         <div className="w-full md:w-80 relative">
             <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">

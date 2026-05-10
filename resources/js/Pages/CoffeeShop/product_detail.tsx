@@ -59,7 +59,8 @@ export default function ProductDetail({ product, recommendations }: Props) {
         const existingItemIndex = cart.findIndex((item: any) => item.cartItemId === cartItemId);
         
         if (existingItemIndex >= 0) {
-            cart[existingItemIndex].quantity += quantity;
+            toast.error("Menu ini sudah ada di keranjang Anda!");
+            return;
         } else {
             cart.push({
                 cartItemId,
@@ -75,8 +76,9 @@ export default function ProductDetail({ product, recommendations }: Props) {
         localStorage.setItem('venus_cart_coffee', JSON.stringify(cart));
         window.dispatchEvent(new Event('cart_updated'));
         
-        toast.success("Menu berhasil masuk keranjang");
-        router.visit('/coffee-shop');
+        router.visit('/coffee-shop', {
+            onSuccess: () => toast.success("Menu berhasil masuk keranjang")
+        });
     };
 
     return (
