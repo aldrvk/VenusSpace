@@ -106,7 +106,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
     return (
         <div className="flex h-screen bg-background overflow-hidden font-sans">
-            <Toaster position="top-center" />
+            
             <style>{`
                 .hide-scrollbar::-webkit-scrollbar {
                     display: none;

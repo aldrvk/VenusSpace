@@ -257,14 +257,7 @@ export default function ForgotPassword({
     return (
         <>
             <Head title="Lupa Kata Sandi" />
-            <Toaster 
-                position="top-center" 
-                toastOptions={{
-                    style: { borderRadius: '16px', background: 'hsl(var(--surface))', color: 'hsl(var(--foreground))' },
-                    success: { iconTheme: { primary: 'hsl(var(--primary))', secondary: 'hsl(var(--primary-foreground))' } },
-                    error: { iconTheme: { primary: 'hsl(var(--error))', secondary: 'hsl(var(--error-foreground))' } }
-                }} 
-            />
+
 
             {/* Modal Overlay */}
             <div

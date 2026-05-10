@@ -44,6 +44,19 @@ class HandleInertiaRequests extends Middleware
                 'success' => fn () => $request->session()->get('success'),
                 'error'   => fn () => $request->session()->get('error'),
             ],
+            'settings' => fn () => $this->getOperationalSettings(),
         ];
+    }
+
+    /**
+     * Safely retrieve operational settings, returning empty array if table doesn't exist.
+     */
+    private function getOperationalSettings(): array
+    {
+        try {
+            return \App\Models\Setting::get('operational_settings', []) ?? [];
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 }

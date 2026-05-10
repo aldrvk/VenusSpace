@@ -39,7 +39,7 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps = {}) {
         { name: 'Vape Store', href: '/vape-store', active: isVapeStore },
         { name: 'Bengkel', href: '/bengkel', active: isBengkel },
         { name: 'Rental PS', href: '/rental-ps', active: isRentalPs },
-        { name: 'Contact', href: '#', active: false },
+        // { name: 'Contact', href: '#', active: false },
     ];
 
     return (

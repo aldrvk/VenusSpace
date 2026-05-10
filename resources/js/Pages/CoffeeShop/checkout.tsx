@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
+import axios from 'axios';
 import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
+import { useOperationalStatus } from '../../hooks/useOperationalStatus';
 
 interface CartItem {
     cartItemId: string;
@@ -17,6 +19,11 @@ export default function Checkout() {
     const [cartItems, setCartItems] = useState<CartItem[]>([]);
     const [paymentMethod, setPaymentMethod] = useState<'cash' | 'qris'>('qris');
     const [isLoaded, setIsLoaded] = useState(false);
+    const { isOpen, message } = useOperationalStatus('Coffee Shop');
+
+    const { auth } = usePage().props as any;
+    const customerName = auth?.user?.name || 'Walk-in Customer';
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         const cart = JSON.parse(localStorage.getItem('venus_cart_coffee') || '[]');
@@ -24,12 +31,32 @@ export default function Checkout() {
         setIsLoaded(true);
     }, []);
 
-    const OPEN_HOUR = 8;
-    const CLOSE_HOUR = 22;
-
-    const isWithinOperationalHours = () => {
-        const hour = new Date().getHours();
-        return hour >= OPEN_HOUR && hour < CLOSE_HOUR;
+    const handleCheckout = async () => {
+        if (!isOpen || cartItems.length === 0 || isSubmitting) return;
+        
+        setIsSubmitting(true);
+        try {
+            const res = await axios.post('/store/order', {
+                unit: 'COFFEE SHOP',
+                customer_name: customerName,
+                payment_method: paymentMethod,
+                items: cartItems.map(item => ({
+                    name: item.name,
+                    quantity: item.quantity,
+                    price: item.price,
+                })),
+            });
+            
+            // Clear cart
+            localStorage.removeItem('venus_cart_coffee');
+            window.dispatchEvent(new Event('cart_updated'));
+            
+            // Redirect
+            window.location.href = `/coffee-shop/receipt?order_code=${res.data.order_code}&method=${paymentMethod}`;
+        } catch (error) {
+            console.error("Failed to submit order", error);
+            setIsSubmitting(false);
+        }
     };
 
     const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
@@ -162,17 +189,18 @@ export default function Checkout() {
                                 </div>
                             </div>
 
-                            {isWithinOperationalHours() ? (
-                                <Link 
-                                    href={`/coffee-shop/receipt?method=${paymentMethod}`}
-                                    className="w-full bg-primary text-primary-foreground py-4 rounded-venus text-label-sm tracking-widest text-center hover:bg-primary/90 transition-all font-bold shadow-lg uppercase group inline-block"
+                            {isOpen ? (
+                                <button 
+                                    onClick={handleCheckout}
+                                    disabled={isSubmitting}
+                                    className="w-full bg-primary text-primary-foreground py-4 rounded-venus text-label-sm tracking-widest text-center hover:bg-primary/90 transition-all font-bold shadow-lg uppercase group inline-flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
                                 >
-                                    Konfirmasi Pesanan
-                                    <svg className="inline-block ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                                </Link>
+                                    {isSubmitting ? 'Memproses...' : 'Konfirmasi Pesanan'}
+                                    {!isSubmitting && <svg className="inline-block ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>}
+                                </button>
                             ) : (
                                 <div className="w-full bg-surface border border-border text-foreground/40 py-4 rounded-venus text-label-sm tracking-widest text-center font-bold shadow-none uppercase cursor-not-allowed">
-                                    Toko Tutup (08:00 - 23:00 WIB)
+                                    Toko Tutup ({message})
                                 </div>
                             )}
                             

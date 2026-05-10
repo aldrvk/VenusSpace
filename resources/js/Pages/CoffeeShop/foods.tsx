@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
 import CoffeeCategoryTabs from '../../Components/CoffeeCategoryTabs';
 import SearchBar from '../../Components/SearchBar';
 import ProductNotFound from '../../Components/ProductNotFound';
 import Card from '../../Components/Card/Card';
+import Pagination from '../../Components/Pagination';
+import StoreClosedBanner from '../../Components/StoreClosedBanner';
+import { useOperationalStatus } from '../../hooks/useOperationalStatus';
 
 const StarIcon = () => (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
@@ -27,21 +30,31 @@ interface Product {
     tag_icon: string;
 }
 
-interface Props {
-    products: Product[];
+interface PaginatedData {
+    data: Product[];
+    links: { url: string | null; label: string; active: boolean }[];
 }
 
-export default function Foods({ products }: Props) {
-    const [searchTerm, setSearchTerm] = useState('');
+interface Props {
+    products: PaginatedData;
+    filters?: { search?: string };
+}
 
-    const filteredProducts = products.filter(product =>
-        product.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+export default function Foods({ products, filters }: Props) {
+    const [searchTerm, setSearchTerm] = useState(filters?.search || '');
+    const { isOpen, message } = useOperationalStatus('Coffee Shop');
+
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        router.get('/coffee-shop/foods', { search: searchTerm }, { preserveState: true });
+    };
 
     return (
         <div className="min-h-screen bg-background">
             <Head title="Coffee Shop - Makanan" />
             <Navbar />
+            
+            {!isOpen && <StoreClosedBanner message={message} />}
 
             <main className="max-w-7xl mx-auto px-6 py-12">
                 {/* Header Section */}
@@ -57,10 +70,12 @@ export default function Foods({ products }: Props) {
                             </p>
                         </div>
 
-                        <SearchBar 
-                            value={searchTerm} 
-                            onChange={(e) => setSearchTerm(e.target.value)} 
-                        />
+                        <form onSubmit={handleSearch}>
+                            <SearchBar 
+                                value={searchTerm} 
+                                onChange={(e) => setSearchTerm(e.target.value)} 
+                            />
+                        </form>
                     </div>
                 </div>
 
@@ -68,22 +83,28 @@ export default function Foods({ products }: Props) {
                 <CoffeeCategoryTabs activeCategory="foods" />
 
                 {/* Product Grid */}
-                {filteredProducts.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-24">
-                        {filteredProducts.map((product) => (
-                            <Card 
-                                key={product.id}
-                                id={product.id}
-                                name={product.name}
-                                price={`Rp${product.price.toLocaleString('id-ID')}`}
-                                description={product.description}
-                                image={product.image}
-                                href={`/coffee-shop/product/${product.id}`}
-                            />
-                        ))}
-                    </div>
+                {products.data.length > 0 ? (
+                    <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+                            {products.data.map((product) => (
+                                <Card 
+                                    key={product.id}
+                                    id={product.id}
+                                    name={product.name}
+                                    price={`Rp${product.price.toLocaleString('id-ID')}`}
+                                    description={product.description}
+                                    image={product.image}
+                                    href={`/coffee-shop/product/${product.id}`}
+                                />
+                            ))}
+                        </div>
+                        <Pagination links={products.links} />
+                    </>
                 ) : (
-                    <ProductNotFound searchTerm={searchTerm} onClear={() => setSearchTerm('')} />
+                    <ProductNotFound searchTerm={searchTerm} onClear={() => {
+                        setSearchTerm('');
+                        router.get('/coffee-shop/foods');
+                    }} />
                 )}
 
             </main>

@@ -20,7 +20,7 @@ export default function AuthenticatedLayout({
 
     return (
         <div className="min-h-screen bg-background font-sans text-foreground">
-            <Toaster position="top-center" />
+            
 
             {/* Tempat Komponen NavBar buatanmu nanti */}
             <nav className="bg-card border-b border-border h-16 flex items-center justify-between px-6 sticky top-0 z-50">
