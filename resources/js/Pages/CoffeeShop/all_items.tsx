@@ -77,11 +77,11 @@ export default function AllItems({ products }: Props) {
                             onChange={(e) => setSearchTerm(e.target.value)} 
                         />
                     </div>
-                    {new Date().getHours() < 8 || new Date().getHours() >= 22 ? (
+                    {new Date().getHours() < 8 || new Date().getHours() >= 23 ? (
                         <div className="mt-6 flex items-center gap-2 bg-surface border border-border rounded-venus px-4 py-3">
                             <svg className="w-5 h-5 text-foreground/40 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                             <p className="text-body-reg text-foreground/60">
-                                <strong className="text-super-black">Coffee Shop saat ini tutup.</strong> Jam operasional: 08:00 - 22:00 WIB. Anda masih bisa melihat menu, tapi tidak dapat melakukan pemesanan.
+                                <strong className="text-super-black">Coffee Shop saat ini tutup.</strong> Jam operasional: 08:00 - 23:00 WIB. Anda masih bisa melihat menu, tapi tidak dapat melakukan pemesanan.
                             </p>
                         </div>
                     ) : null}

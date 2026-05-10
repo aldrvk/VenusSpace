@@ -161,9 +161,15 @@ export default function Cart() {
                                     <span className="text-h2 text-secondary">{formatPrice(total)}</span>
                                 </div>
 
-                                <Link href="/vape-store/checkout" className="w-full bg-primary text-primary-foreground py-4 rounded-venus text-label-sm tracking-widest text-center hover:bg-primary/90 transition-all font-bold shadow-lg mt-8 inline-block uppercase">
-                                    LANJUT KE PEMBAYARAN
-                                </Link>
+                                {new Date().getHours() >= 8 && new Date().getHours() < 23 ? (
+                                    <Link href="/vape-store/checkout" className="w-full bg-primary text-primary-foreground py-4 rounded-venus text-label-sm tracking-widest text-center hover:bg-primary/90 transition-all font-bold shadow-lg mt-8 inline-block uppercase">
+                                        LANJUT KE PEMBAYARAN
+                                    </Link>
+                                ) : (
+                                    <div className="w-full bg-surface border border-border text-foreground/40 py-4 rounded-venus text-label-sm tracking-widest text-center font-bold mt-8 shadow-none uppercase cursor-not-allowed">
+                                        Toko Tutup (Buka 08:00 - 23:00)
+                                    </div>
+                                )}
                                 
                                 {/* <div className="flex items-center justify-center gap-2 mt-6 text-label-sm text-foreground/50">
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
