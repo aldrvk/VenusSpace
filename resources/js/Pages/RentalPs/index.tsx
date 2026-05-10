@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
 import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
+import { useOperationalStatus } from '../../hooks/useOperationalStatus';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -130,8 +131,8 @@ export default function RentalPsIndex() {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const service = services.find(s => s.id === selectedService)!;
-    const operational = useMemo(() => getOperationalStatus(), []);
-    const isOpen = operational.open;
+    const { isOpen, message: operationalMessage } = useOperationalStatus('Rental PS');
+    const operational = { open: isOpen, message: operationalMessage };
 
     // Estimated wait time based on queue + playing
     const estimatedWait = useMemo(() => {

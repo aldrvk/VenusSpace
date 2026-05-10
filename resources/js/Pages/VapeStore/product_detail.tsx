@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
+import toast from 'react-hot-toast';
 import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
 import ProductDetailButton from '../../Components/ProductDetailButton';
@@ -74,8 +75,8 @@ export default function ProductDetail({ product, recommendations }: Props) {
         localStorage.setItem('venus_cart', JSON.stringify(cart));
         window.dispatchEvent(new Event('cart_updated'));
         
-        // Navigate to cart
-        router.visit('/vape-store/cart');
+        toast.success("Produk berhasil masuk keranjang");
+        router.visit('/vape-store');
     };
 
     return (

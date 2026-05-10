@@ -450,7 +450,7 @@ export default function TrackingPage({ booking: initialBooking, showAd: shouldSh
     return (
         <div className="min-h-screen bg-background flex flex-col">
             <Head title={`Tracking ${booking.booking_code} – RentalPs`} />
-            <Toaster position="top-right" />
+            
             <Navbar />
 
             <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow w-full">

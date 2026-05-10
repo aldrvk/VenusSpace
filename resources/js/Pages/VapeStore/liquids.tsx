@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
 import CategoryTabs from '../../Components/CategoryTabs';
@@ -7,6 +7,9 @@ import SearchBar from '../../Components/SearchBar';
 import ProductDetailButton from '../../Components/ProductDetailButton';
 import ProductNotFound from '../../Components/ProductNotFound';
 import Card from '../../Components/Card/Card';
+import Pagination from '../../Components/Pagination';
+import StoreClosedBanner from '../../Components/StoreClosedBanner';
+import { useOperationalStatus } from '../../hooks/useOperationalStatus';
 
 const ShieldIcon = () => (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></svg>
@@ -24,21 +27,31 @@ interface Product {
     tag_icon: string;
 }
 
-interface Props {
-    products: Product[];
+interface PaginatedData {
+    data: Product[];
+    links: { url: string | null; label: string; active: boolean }[];
 }
 
-export default function Liquids({ products }: Props) {
-    const [searchTerm, setSearchTerm] = useState('');
+interface Props {
+    products: PaginatedData;
+    filters?: { search?: string };
+}
 
-    const filteredProducts = products.filter(product =>
-        product.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+export default function Liquids({ products, filters }: Props) {
+    const [searchTerm, setSearchTerm] = useState(filters?.search || '');
+    const { isOpen, message } = useOperationalStatus('Vape Store');
+
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        router.get('/vape-store/liquids', { search: searchTerm }, { preserveState: true });
+    };
 
     return (
         <div className="min-h-screen bg-background">
             <Head title="Vape Store - Liquids" />
             <Navbar />
+            
+            {!isOpen && <StoreClosedBanner message={message} />}
 
             <main className="max-w-7xl mx-auto px-6 py-12">
                 {/* Header Section */}
@@ -54,10 +67,12 @@ export default function Liquids({ products }: Props) {
                             </p>
                         </div>
 
-                        <SearchBar 
-                            value={searchTerm} 
-                            onChange={(e) => setSearchTerm(e.target.value)} 
-                        />
+                        <form onSubmit={handleSearch}>
+                            <SearchBar 
+                                value={searchTerm} 
+                                onChange={(e) => setSearchTerm(e.target.value)} 
+                            />
+                        </form>
                     </div>
                 </div>
 
@@ -65,21 +80,28 @@ export default function Liquids({ products }: Props) {
                 <CategoryTabs activeCategory="liquids" />
 
                 {/* Product Grid */}
-                {filteredProducts.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-24">
-                        {filteredProducts.map((product) => (
-                            <Card 
-                                key={product.id}
-                                id={product.id}
-                                name={product.name}
-                                price={`Rp${product.price.toLocaleString('id-ID')}`}
-                                description={product.description}
-                                image={product.image}
-                            />
-                        ))}
-                    </div>
+                {products.data.length > 0 ? (
+                    <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+                            {products.data.map((product) => (
+                                <Card 
+                                    key={product.id}
+                                    id={product.id}
+                                    name={product.name}
+                                    price={`Rp${product.price.toLocaleString('id-ID')}`}
+                                    description={product.description}
+                                    image={product.image}
+                                    href={`/vape-store/product/${product.id}`}
+                                />
+                            ))}
+                        </div>
+                        <Pagination links={products.links} />
+                    </>
                 ) : (
-                    <ProductNotFound searchTerm={searchTerm} onClear={() => setSearchTerm('')} />
+                    <ProductNotFound searchTerm={searchTerm} onClear={() => {
+                        setSearchTerm('');
+                        router.get('/vape-store/liquids');
+                    }} />
                 )}
 
             </main>

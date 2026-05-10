@@ -158,14 +158,7 @@ export default function Register({ isOpen = true, onClose, onSwitch }: AuthModal
     return (
         <>
             <Head title="Daftar" />
-            <Toaster 
-                position="top-center" 
-                toastOptions={{
-                    style: { borderRadius: '16px', background: 'hsl(var(--surface))', color: 'hsl(var(--foreground))' },
-                    success: { iconTheme: { primary: 'hsl(var(--primary))', secondary: 'hsl(var(--primary-foreground))' } },
-                    error: { iconTheme: { primary: 'hsl(var(--error))', secondary: 'hsl(var(--error-foreground))' } }
-                }} 
-            />
+
 
             {/* Modal Overlay */}
             <div className={`fixed inset-0 z-[100] flex items-center justify-center overflow-hidden bg-super-black/20 backdrop-blur-3xl p-3 sm:p-6 lg:p-8 transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} onClick={onClose}>

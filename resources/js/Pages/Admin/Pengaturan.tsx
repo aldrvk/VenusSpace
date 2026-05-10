@@ -1,21 +1,138 @@
 import React, { useState } from "react";
-import { Head } from "@inertiajs/react";
+import { Head, usePage } from "@inertiajs/react";
+import axios from "axios";
 import AdminLayout from "../../Layouts/AdminLayout";
 import { PageHeader } from "../../Components/AdminUI";
 
 type SettingTab = "Profil" | "Operasional" | "Notifikasi" | "Keamanan";
 
+interface DaySchedule {
+    open: string;
+    close: string;
+    is_open: boolean;
+}
+
+interface UnitSettings {
+    is_active: boolean;
+    schedule: Record<string, DaySchedule>;
+}
+
+type OperationalSettings = Record<string, UnitSettings>;
+
+const UNIT_NAMES = ["Doorsmeer", "Bengkel", "Rental PS", "Coffee Shop", "Vape Store"];
+const DAY_NAMES = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
+
+const UNIT_DESCRIPTIONS: Record<string, string> = {
+    "Doorsmeer": "Layanan cuci kendaraan",
+    "Bengkel": "Layanan service kendaraan",
+    "Rental PS": "Rental PlayStation & Gaming",
+    "Coffee Shop": "Minuman & makanan ringan",
+    "Vape Store": "Penjualan produk vape",
+};
+
+function getDefaultSchedule(unit: string): Record<string, DaySchedule> {
+    const closeTime = (unit === "Doorsmeer" || unit === "Bengkel") ? "17:00" : "23:00";
+    const schedule: Record<string, DaySchedule> = {};
+    DAY_NAMES.forEach((day) => {
+        schedule[day] = { open: "08:00", close: closeTime, is_open: true };
+    });
+    return schedule;
+}
+
+function getDefaultSettings(): OperationalSettings {
+    const settings: OperationalSettings = {};
+    UNIT_NAMES.forEach((unit) => {
+        settings[unit] = {
+            is_active: true,
+            schedule: getDefaultSchedule(unit),
+        };
+    });
+    return settings;
+}
+
 export default function Pengaturan() {
+    const { settings: sharedSettings } = usePage().props as any;
     const [activeTab, setActiveTab] = useState<SettingTab>("Profil");
     const [saved, setSaved] = useState(false);
-    const tabs: SettingTab[] = [
-        "Profil",
-        "Operasional",
-        "Notifikasi",
-        "Keamanan",
-    ];
+    const [saving, setSaving] = useState(false);
+    const [selectedUnit, setSelectedUnit] = useState<string>("Doorsmeer");
+
+    // Initialize operational settings from shared props or defaults
+    const [operationalSettings, setOperationalSettings] = useState<OperationalSettings>(() => {
+        if (sharedSettings && typeof sharedSettings === 'object' && Object.keys(sharedSettings).length > 0) {
+            return sharedSettings as OperationalSettings;
+        }
+        return getDefaultSettings();
+    });
+
+    const tabs: SettingTab[] = ["Profil", "Operasional", "Notifikasi", "Keamanan"];
+
+    const currentUnit = operationalSettings[selectedUnit];
+
+    // Toggle the master is_active for the selected unit
+    const toggleUnitActive = () => {
+        setOperationalSettings((prev) => ({
+            ...prev,
+            [selectedUnit]: {
+                ...prev[selectedUnit],
+                is_active: !prev[selectedUnit].is_active,
+            },
+        }));
+    };
+
+    // Toggle a specific day's is_open
+    const toggleDayOpen = (day: string) => {
+        setOperationalSettings((prev) => ({
+            ...prev,
+            [selectedUnit]: {
+                ...prev[selectedUnit],
+                schedule: {
+                    ...prev[selectedUnit].schedule,
+                    [day]: {
+                        ...prev[selectedUnit].schedule[day],
+                        is_open: !prev[selectedUnit].schedule[day].is_open,
+                    },
+                },
+            },
+        }));
+    };
+
+    // Update a specific day's open or close time
+    const updateDayTime = (day: string, field: "open" | "close", value: string) => {
+        setOperationalSettings((prev) => ({
+            ...prev,
+            [selectedUnit]: {
+                ...prev[selectedUnit],
+                schedule: {
+                    ...prev[selectedUnit].schedule,
+                    [day]: {
+                        ...prev[selectedUnit].schedule[day],
+                        [field]: value,
+                    },
+                },
+            },
+        }));
+    };
+
+    const handleSaveOperational = () => {
+        setSaving(true);
+        axios.post("/admin/settings/operational", {
+            operational_settings: operationalSettings,
+        }).then(() => {
+            setSaved(true);
+            setTimeout(() => setSaved(false), 2500);
+        }).catch((err) => {
+            console.error('Failed to save settings:', err);
+        }).finally(() => {
+            setSaving(false);
+        });
+    };
 
     const handleSave = () => {
+        if (activeTab === "Operasional") {
+            handleSaveOperational();
+            return;
+        }
         setSaved(true);
         setTimeout(() => setSaved(false), 2500);
     };
@@ -52,174 +169,190 @@ export default function Pengaturan() {
                 {/* Content */}
                 <div className="col-span-3 space-y-5">
                     {activeTab === "Profil" && (
-                        <>
-                            <div className="bg-card border border-border rounded-venus p-6">
-                                <h2 className="text-h4 text-super-black mb-5">
-                                    Informasi Bisnis
-                                </h2>
-                                <div className="flex items-center gap-5 mb-6">
-                                    <div className="w-20 h-20 rounded-full bg-secondary flex items-center justify-center text-white font-heading font-bold text-2xl">
-                                        V
-                                    </div>
-                                    <div>
-                                        <p className="text-h4 text-super-black">
-                                            Venus Hub
-                                        </p>
-                                        <p className="text-body-reg text-foreground/50 mt-0.5">
-                                            Multi-unit business admin
-                                        </p>
-                                        <button className="mt-2 text-label-sm text-primary hover:underline">
-                                            Ganti Logo
-                                        </button>
-                                    </div>
+                        <div className="bg-card border border-border rounded-venus p-6">
+                            <h2 className="text-h4 text-super-black mb-5">
+                                Informasi Bisnis
+                            </h2>
+                            <div className="flex items-center gap-5 mb-6">
+                                <div className="w-20 h-20 rounded-full bg-secondary flex items-center justify-center text-white font-heading font-bold text-2xl">
+                                    V
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    {[
-                                        {
-                                            label: "Nama Bisnis",
-                                            value: "Venus Hub",
-                                            type: "text",
-                                        },
-                                        {
-                                            label: "Email Admin",
-                                            value: "admin@venushub.id",
-                                            type: "email",
-                                        },
-                                        {
-                                            label: "Nomor WhatsApp",
-                                            value: "+62 812-3456-7890",
-                                            type: "tel",
-                                        },
-                                        {
-                                            label: "Alamat",
-                                            value: "Jl. Venus No. 12, Medan",
-                                            type: "text",
-                                        },
-                                    ].map((f) => (
-                                        <div
-                                            key={f.label}
-                                            className="space-y-1.5"
-                                        >
-                                            <label className="text-label-sm text-foreground/50">
-                                                {f.label.toUpperCase()}
-                                            </label>
-                                            <input
-                                                type={f.type}
-                                                defaultValue={f.value}
-                                                className="w-full bg-background border border-border rounded-venus px-4 py-3 text-body-m text-foreground focus:outline-none focus:border-primary transition-colors"
-                                            />
-                                        </div>
-                                    ))}
+                                <div>
+                                    <p className="text-h4 text-super-black">
+                                        Venus Hub
+                                    </p>
+                                    <p className="text-body-reg text-foreground/50 mt-0.5">
+                                        Multi-unit business admin
+                                    </p>
+                                    <button className="mt-2 text-label-sm text-primary hover:underline">
+                                        Ganti Logo
+                                    </button>
                                 </div>
                             </div>
-                            <div className="bg-card border border-border rounded-venus p-6">
-                                <h2 className="text-h4 text-super-black mb-5">
-                                    Unit Usaha Aktif
-                                </h2>
-                                <div className="space-y-3">
-                                    {[
-                                        {
-                                            name: "Doorsmeer",
-                                            desc: "Layanan cuci kendaraan",
-                                            active: true,
-                                        },
-                                        {
-                                            name: "Bengkel",
-                                            desc: "Layanan service kendaraan",
-                                            active: true,
-                                        },
-                                        {
-                                            name: "Rental PS",
-                                            desc: "Rental PlayStation & Gaming",
-                                            active: true,
-                                        },
-                                        {
-                                            name: "Coffee Shop",
-                                            desc: "Minuman & makanan ringan",
-                                            active: true,
-                                        },
-                                        {
-                                            name: "Vape Store",
-                                            desc: "Penjualan produk vape",
-                                            active: false,
-                                        },
-                                    ].map((u) => (
-                                        <div
-                                            key={u.name}
-                                            className="flex items-center justify-between p-4 border border-border rounded-venus"
-                                        >
-                                            <div>
-                                                <p className="text-body-m text-super-black font-semibold">
-                                                    {u.name}
-                                                </p>
-                                                <p className="text-body-reg text-foreground/50">
-                                                    {u.desc}
-                                                </p>
-                                            </div>
-                                            <div
-                                                className={`w-12 h-6 rounded-full relative cursor-pointer transition-all ${u.active ? "bg-secondary" : "bg-surface border border-border"}`}
-                                            >
-                                                <div
-                                                    className={`w-5 h-5 rounded-full bg-white absolute top-0.5 transition-all shadow ${u.active ? "right-0.5" : "left-0.5"}`}
-                                                />
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                {[
+                                    { label: "Nama Bisnis", value: "Venus Hub", type: "text" },
+                                    { label: "Email Admin", value: "admin@venushub.id", type: "email" },
+                                    { label: "Nomor WhatsApp", value: "+62 812-3456-7890", type: "tel" },
+                                    { label: "Alamat", value: "Jl. Venus No. 12, Medan", type: "text" },
+                                ].map((f) => (
+                                    <div key={f.label} className="space-y-1.5">
+                                        <label className="text-label-sm text-foreground/50">
+                                            {f.label.toUpperCase()}
+                                        </label>
+                                        <input
+                                            type={f.type}
+                                            defaultValue={f.value}
+                                            className="w-full bg-background border border-border rounded-venus px-4 py-3 text-body-m text-foreground focus:outline-none focus:border-primary transition-colors"
+                                        />
+                                    </div>
+                                ))}
                             </div>
-                        </>
+                        </div>
                     )}
 
                     {activeTab === "Operasional" && (
-                        <div className="bg-card border border-border rounded-venus p-6">
-                            <h2 className="text-h4 text-super-black mb-5">
-                                Jam Operasional
-                            </h2>
-                            <div className="space-y-3">
-                                {[
-                                    "Senin",
-                                    "Selasa",
-                                    "Rabu",
-                                    "Kamis",
-                                    "Jumat",
-                                    "Sabtu",
-                                    "Minggu",
-                                ].map((day, i) => (
-                                    <div
-                                        key={day}
-                                        className="flex items-center justify-between p-4 border border-border rounded-venus"
-                                    >
-                                        <div className="flex items-center gap-4">
-                                            <div
-                                                className={`w-10 h-6 rounded-full relative cursor-pointer transition-all ${i < 6 ? "bg-secondary" : "bg-surface border border-border"}`}
+                        <div className="space-y-5">
+                            {/* Unit Selector */}
+                            <div className="bg-card border border-border rounded-venus p-4">
+                                <p className="text-label-sm text-foreground/50 uppercase tracking-widest mb-3">Pilih Unit Usaha</p>
+                                <div className="flex flex-wrap gap-2">
+                                    {UNIT_NAMES.map((unit) => {
+                                        const isSelected = selectedUnit === unit;
+                                        const unitData = operationalSettings[unit];
+                                        const isActive = unitData?.is_active ?? true;
+                                        return (
+                                            <button
+                                                key={unit}
+                                                onClick={() => setSelectedUnit(unit)}
+                                                className={`px-4 py-2.5 rounded-venus text-body-m font-semibold transition-all relative ${
+                                                    isSelected
+                                                        ? "bg-secondary text-white shadow-lg"
+                                                        : "bg-surface text-foreground hover:bg-border"
+                                                }`}
                                             >
-                                                <div
-                                                    className={`w-5 h-5 rounded-full bg-white absolute top-0.5 transition-all shadow ${i < 6 ? "right-0.5" : "left-0.5"}`}
+                                                {unit}
+                                                {/* Active indicator dot */}
+                                                <span
+                                                    className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-card ${
+                                                        isActive ? "bg-primary" : "bg-foreground/30"
+                                                    }`}
                                                 />
-                                            </div>
-                                            <p className="text-body-m text-foreground font-semibold w-20">
-                                                {day}
-                                            </p>
-                                        </div>
-                                        <div className="flex items-center gap-3">
-                                            <input
-                                                type="time"
-                                                defaultValue="08:00"
-                                                className="bg-background border border-border rounded-venus px-3 py-2 text-body-m text-foreground focus:outline-none focus:border-primary transition-colors"
-                                            />
-                                            <span className="text-body-reg text-foreground/40">
-                                                –
-                                            </span>
-                                            <input
-                                                type="time"
-                                                defaultValue={
-                                                    i === 5 || i === 6 ? "23:00" : "20:00"
-                                                }
-                                                className="bg-background border border-border rounded-venus px-3 py-2 text-body-m text-foreground focus:outline-none focus:border-primary transition-colors"
-                                            />
-                                        </div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* Master Toggle + Unit Info */}
+                            <div className="bg-card border border-border rounded-venus p-6">
+                                <div className="flex items-center justify-between mb-6">
+                                    <div>
+                                        <h2 className="text-h4 text-super-black">{selectedUnit}</h2>
+                                        <p className="text-body-reg text-foreground/50 mt-0.5">
+                                            {UNIT_DESCRIPTIONS[selectedUnit]}
+                                        </p>
                                     </div>
-                                ))}
+
+                                    {/* Master Toggle */}
+                                    <button
+                                        onClick={toggleUnitActive}
+                                        className={`flex items-center gap-3 px-6 py-3 rounded-venus font-bold text-label-sm tracking-widest transition-all shadow-lg ${
+                                            currentUnit?.is_active
+                                                ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                                                : "bg-red-100 text-red-800 hover:bg-red-200"
+                                        }`}
+                                    >
+                                        {/* Toggle knob icon */}
+                                        <div className={`w-10 h-5 rounded-full relative transition-all ${
+                                            currentUnit?.is_active ? "bg-white/30" : "bg-red-300"
+                                        }`}>
+                                            <div className={`w-4 h-4 rounded-full bg-white absolute top-0.5 transition-all shadow ${
+                                                currentUnit?.is_active ? "right-0.5" : "left-0.5"
+                                            }`} />
+                                        </div>
+                                        {currentUnit?.is_active ? "UNIT AKTIF" : "UNIT NONAKTIF"}
+                                    </button>
+                                </div>
+
+                                {/* Status info */}
+                                {!currentUnit?.is_active && (
+                                    <div className="flex items-center gap-3 bg-red-100 border border-red-200 rounded-venus px-5 py-4 mb-6">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-red-800 shrink-0">
+                                            <circle cx="12" cy="12" r="10" />
+                                            <line x1="12" y1="8" x2="12" y2="12" />
+                                            <line x1="12" y1="16" x2="12.01" y2="16" />
+                                        </svg>
+                                        <p className="text-body-reg text-red-800">
+                                            Unit {selectedUnit} sedang dinonaktifkan. Pelanggan tidak bisa melakukan pemesanan namun tetap bisa melihat katalog.
+                                        </p>
+                                    </div>
+                                )}
+
+                                {/* Daily Schedule */}
+                                <div>
+                                    <p className="text-label-sm text-foreground/50 uppercase tracking-widest mb-3">Jadwal Harian</p>
+                                    <div className="space-y-3">
+                                        {DAY_NAMES.map((day) => {
+                                            const daySchedule = currentUnit?.schedule?.[day];
+                                            const isDayOpen = daySchedule?.is_open ?? true;
+                                            return (
+                                                <div
+                                                    key={day}
+                                                    className={`flex items-center justify-between p-4 border rounded-venus transition-all ${
+                                                        isDayOpen 
+                                                            ? "border-border bg-background" 
+                                                            : "border-border/50 bg-surface/50"
+                                                    }`}
+                                                >
+                                                    <div className="flex items-center gap-4">
+                                                        {/* Day toggle */}
+                                                        <button
+                                                            onClick={() => toggleDayOpen(day)}
+                                                            className={`w-10 h-6 rounded-full relative cursor-pointer transition-all ${
+                                                                isDayOpen ? "bg-secondary" : "bg-surface border border-border"
+                                                            }`}
+                                                        >
+                                                            <div
+                                                                className={`w-5 h-5 rounded-full bg-white absolute top-0.5 transition-all shadow ${
+                                                                    isDayOpen ? "right-0.5" : "left-0.5"
+                                                                }`}
+                                                            />
+                                                        </button>
+                                                        <p className={`text-body-m font-semibold w-20 ${
+                                                            isDayOpen ? "text-foreground" : "text-foreground/30"
+                                                        }`}>
+                                                            {day}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-3">
+                                                        <input
+                                                            type="time"
+                                                            value={daySchedule?.open ?? "08:00"}
+                                                            onChange={(e) => updateDayTime(day, "open", e.target.value)}
+                                                            disabled={!isDayOpen}
+                                                            className={`bg-background border border-border rounded-venus px-3 py-2 text-body-m focus:outline-none focus:border-primary transition-colors ${
+                                                                !isDayOpen ? "text-foreground/30 cursor-not-allowed" : "text-foreground"
+                                                            }`}
+                                                        />
+                                                        <span className={`text-body-reg ${isDayOpen ? "text-foreground/40" : "text-foreground/20"}`}>
+                                                            –
+                                                        </span>
+                                                        <input
+                                                            type="time"
+                                                            value={daySchedule?.close ?? "23:00"}
+                                                            onChange={(e) => updateDayTime(day, "close", e.target.value)}
+                                                            disabled={!isDayOpen}
+                                                            className={`bg-background border border-border rounded-venus px-3 py-2 text-body-m focus:outline-none focus:border-primary transition-colors ${
+                                                                !isDayOpen ? "text-foreground/30 cursor-not-allowed" : "text-foreground"
+                                                            }`}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     )}
@@ -231,36 +364,12 @@ export default function Pengaturan() {
                             </h2>
                             <div className="space-y-3">
                                 {[
-                                    {
-                                        label: "Booking baru masuk",
-                                        desc: "Notifikasi saat ada booking baru dari pelanggan",
-                                        on: true,
-                                    },
-                                    {
-                                        label: "Pembayaran diterima",
-                                        desc: "Notifikasi konfirmasi pembayaran",
-                                        on: true,
-                                    },
-                                    {
-                                        label: "Antrean menumpuk",
-                                        desc: "Peringatan saat antrean > 5 orang",
-                                        on: true,
-                                    },
-                                    {
-                                        label: "Stok produk hampir habis",
-                                        desc: "Peringatan stok di bawah 5 unit",
-                                        on: false,
-                                    },
-                                    {
-                                        label: "Laporan harian otomatis",
-                                        desc: "Kirim ringkasan pendapatan setiap pukul 21:00",
-                                        on: true,
-                                    },
-                                    {
-                                        label: "WhatsApp Notifikasi",
-                                        desc: "Kirim notifikasi via WhatsApp ke admin",
-                                        on: false,
-                                    },
+                                    { label: "Booking baru masuk", desc: "Notifikasi saat ada booking baru dari pelanggan", on: true },
+                                    { label: "Pembayaran diterima", desc: "Notifikasi konfirmasi pembayaran", on: true },
+                                    { label: "Antrean menumpuk", desc: "Peringatan saat antrean > 5 orang", on: true },
+                                    { label: "Stok produk hampir habis", desc: "Peringatan stok di bawah 5 unit", on: false },
+                                    { label: "Laporan harian otomatis", desc: "Kirim ringkasan pendapatan setiap pukul 21:00", on: true },
+                                    { label: "WhatsApp Notifikasi", desc: "Kirim notifikasi via WhatsApp ke admin", on: false },
                                 ].map((n) => (
                                     <div
                                         key={n.label}
@@ -320,23 +429,12 @@ export default function Pengaturan() {
                                     Sesi Login Aktif
                                 </h2>
                                 <p className="text-body-reg text-foreground/50 mb-5">
-                                    Berikut adalah perangkat yang sedang login
-                                    ke akun admin.
+                                    Berikut adalah perangkat yang sedang login ke akun admin.
                                 </p>
                                 <div className="space-y-3">
                                     {[
-                                        {
-                                            device: "Chrome – Windows 11",
-                                            ip: "192.168.1.5",
-                                            time: "Aktif sekarang",
-                                            current: true,
-                                        },
-                                        {
-                                            device: "Safari – iPhone 14",
-                                            ip: "192.168.1.12",
-                                            time: "2 jam yang lalu",
-                                            current: false,
-                                        },
+                                        { device: "Chrome – Windows 11", ip: "192.168.1.5", time: "Aktif sekarang", current: true },
+                                        { device: "Safari – iPhone 14", ip: "192.168.1.12", time: "2 jam yang lalu", current: false },
                                     ].map((s, i) => (
                                         <div
                                             key={i}
@@ -382,9 +480,10 @@ export default function Pengaturan() {
                             )}
                             <button
                                 onClick={handleSave}
-                                className="bg-secondary text-white px-8 py-3 rounded-venus text-label-sm font-semibold hover:bg-secondary/90 transition-all shadow-lg"
+                                disabled={saving}
+                                className="bg-secondary text-white px-8 py-3 rounded-venus text-label-sm font-semibold hover:bg-secondary/90 transition-all shadow-lg disabled:opacity-70"
                             >
-                                Simpan Perubahan
+                                {saving ? "Menyimpan..." : "Simpan Perubahan"}
                             </button>
                         </div>
                     )}

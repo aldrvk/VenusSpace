@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
 import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
+import { useOperationalStatus } from '../../hooks/useOperationalStatus';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -133,8 +134,8 @@ export default function DoorsmeerIndex() {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const service = services.find(s => s.id === selectedService)!;
-    const operational = useMemo(() => getOperationalStatus(), []);
-    const isOpen = operational.open;
+    const { isOpen, message: operationalMessage } = useOperationalStatus('Doorsmeer');
+    const operational = { open: isOpen, message: operationalMessage };
 
     // Estimated wait time based on queue + washing
     const estimatedWait = useMemo(() => {
@@ -156,8 +157,8 @@ export default function DoorsmeerIndex() {
             return;
         }
 
-        if (!isWithinOperationalHours()) {
-            setPlateError('Booking hanya tersedia saat jam operasional (08:00 – 17:00).');
+        if (!isOpen) {
+            setPlateError('Booking hanya tersedia saat jam operasional.');
             return;
         }
 

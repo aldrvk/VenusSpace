@@ -37,8 +37,7 @@ export default function PesananStore({ orders = [] }: Props) {
 
     const handleConfirmPayment = (orderId: number | string) => {
         router.post(`/admin/pesanan-store/${orderId}/confirm`, {}, {
-            preserveScroll: true,
-            onSuccess: () => toast.success('Pembayaran berhasil dikonfirmasi!')
+            preserveScroll: true
         });
     };
 

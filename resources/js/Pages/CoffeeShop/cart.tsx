@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
+import { useOperationalStatus } from '../../hooks/useOperationalStatus';
 
 interface CartItem {
     cartItemId: string;
@@ -16,6 +17,7 @@ interface CartItem {
 export default function Cart() {
     const [cartItems, setCartItems] = useState<CartItem[]>([]);
     const [isLoaded, setIsLoaded] = useState(false);
+    const { isOpen, message } = useOperationalStatus('Coffee Shop');
 
     useEffect(() => {
         const cart = JSON.parse(localStorage.getItem('venus_cart_coffee') || '[]');
@@ -160,13 +162,13 @@ export default function Cart() {
                                     <span className="text-h2 text-secondary">{formatPrice(total)}</span>
                                 </div>
 
-                                {new Date().getHours() >= 8 && new Date().getHours() < 22 ? (
+                                {isOpen ? (
                                     <Link href="/coffee-shop/checkout" className="w-full bg-primary text-primary-foreground py-4 rounded-venus text-label-sm tracking-widest text-center hover:bg-primary/90 transition-all font-bold shadow-lg mt-8 uppercase inline-block">
                                         Lanjut ke Pembayaran
                                     </Link>
                                 ) : (
                                     <div className="w-full bg-surface border border-border text-foreground/40 py-4 rounded-venus text-label-sm tracking-widest text-center font-bold mt-8 shadow-none uppercase cursor-not-allowed">
-                                        Toko Tutup (Buka 08:00 - 23:00)
+                                        Toko Tutup ({message})
                                     </div>
                                 )}
                             </div>
