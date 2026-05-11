@@ -90,7 +90,7 @@ const navItems = [
     { href: '/admin/katalog-coffee', label: 'Katalog Coffee Shop', icon: <IconCoffee /> },
     { href: '/admin/katalog-vape', label: 'Katalog Vape Store', icon: <IconVape /> },
     { href: '/admin/pesanan-store', label: 'Daftar Pesanan', icon: <IconLaporan /> },
-    { href: '/admin/jadwal', label: 'Jadwal', icon: <IconJadwal /> },
+    // { href: '/admin/jadwal', label: 'Jadwal', icon: <IconJadwal /> },
     { href: '/admin/laporan', label: 'Laporan', icon: <IconLaporan /> },
 ];
 

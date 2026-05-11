@@ -59,6 +59,8 @@ class RentalPsBookingController extends Controller
             ->where('user_id', auth()->id())
             ->firstOrFail();
 
+        $booking->autoFinish();
+
         return Inertia::render('RentalPs/tracking', [
             'booking' => $this->formatBooking($booking),
             'showAd'  => request()->query('new') == 1,
@@ -79,6 +81,9 @@ class RentalPsBookingController extends Controller
 
     public function adminIndex()
     {
+        // Auto-finish expired sessions before showing
+        RentalPsBooking::where('status', 'playing')->get()->each->autoFinish();
+
         $bookings = RentalPsBooking::with('user')
             ->orderByRaw("FIELD(status, 'pending', 'verified', 'in_queue', 'playing', 'done', 'cancelled')")
             ->orderBy('created_at', 'desc')
@@ -207,6 +212,8 @@ class RentalPsBookingController extends Controller
         $booking = RentalPsBooking::where('booking_code', $code)
             ->where('user_id', auth()->id())
             ->firstOrFail();
+
+        $booking->autoFinish();
 
         return response()->json([
             'status'         => $booking->status,

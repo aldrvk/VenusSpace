@@ -25,7 +25,7 @@ const services = [
         name: 'Servis Berat',
         subtitle: 'Turun Mesin / Overhaul',
         price: 500000,
-        duration: '120 menit',
+        duration: '2 Jam',
     },
 ];
 

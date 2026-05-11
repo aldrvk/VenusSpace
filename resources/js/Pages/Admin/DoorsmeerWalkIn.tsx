@@ -25,7 +25,7 @@ const services = [
         name: 'Full Detailing',
         subtitle: 'Engine & Coating',
         price: 150000,
-        duration: '120 menit',
+        duration: '2 Jam',
     },
 ];
 

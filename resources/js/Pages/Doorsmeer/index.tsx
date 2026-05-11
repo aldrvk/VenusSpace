@@ -50,7 +50,7 @@ const services = [
         subtitle: 'Engine & Coating',
         price: 150000,
         priceLabel: '150k',
-        duration: '120 menit',
+        duration: '2 Jam',
         features: ['Clay bar treatment', 'Wax finish'],
     },
 ];
