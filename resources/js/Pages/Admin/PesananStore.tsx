@@ -85,40 +85,63 @@ function ActionButton({
                 </button>
             )}
 
-            {order.progress_status === 'pending' && (
-                <button 
-                    onClick={onProcess}
-                    className="flex items-center gap-1.5 bg-blue-600 text-white px-3 py-1.5 rounded-venus text-xs font-semibold hover:bg-blue-700 active:scale-95 transition-all"
-                >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M17 8h1a4 4 0 1 1 0 8h-1" /><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z" /><line x1="6" y1="2" x2="6" y2="4" /><line x1="10" y1="2" x2="10" y2="4" /><line x1="14" y1="2" x2="14" y2="4" />
-                    </svg>
-                    Siapkan
-                </button>
+            {/* ── COFFEE SHOP FLOW ── */}
+            {order.unit === 'COFFEE SHOP' && (
+                <>
+                    {order.progress_status === 'pending' && (
+                        <button 
+                            onClick={onProcess}
+                            className="flex items-center gap-1.5 bg-blue-600 text-white px-3 py-1.5 rounded-venus text-xs font-semibold hover:bg-blue-700 active:scale-95 transition-all"
+                        >
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M17 8h1a4 4 0 1 1 0 8h-1" /><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z" /><line x1="6" y1="2" x2="6" y2="4" /><line x1="10" y1="2" x2="10" y2="4" /><line x1="14" y1="2" x2="14" y2="4" />
+                            </svg>
+                            Siapkan Minuman
+                        </button>
+                    )}
+
+                    {order.progress_status === 'processing' && (
+                        <button 
+                            onClick={onReady}
+                            className="flex items-center gap-1.5 bg-amber-500 text-white px-3 py-1.5 rounded-venus text-xs font-semibold hover:bg-amber-600 active:scale-95 transition-all"
+                        >
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" />
+                            </svg>
+                            Panggil / Siap
+                        </button>
+                    )}
+
+                    {order.progress_status === 'ready' && (
+                        <button 
+                            onClick={onDone}
+                            className="flex items-center gap-1.5 bg-emerald-600 text-white px-3 py-1.5 rounded-venus text-xs font-semibold hover:bg-emerald-700 active:scale-95 transition-all"
+                        >
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                            Selesai
+                        </button>
+                    )}
+                </>
             )}
 
-            {order.progress_status === 'processing' && (
-                <button 
-                    onClick={onReady}
-                    className="flex items-center gap-1.5 bg-amber-500 text-white px-3 py-1.5 rounded-venus text-xs font-semibold hover:bg-amber-600 active:scale-95 transition-all"
-                >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" />
-                    </svg>
-                    Siap Diambil
-                </button>
-            )}
-
-            {order.progress_status === 'ready' && (
-                <button 
-                    onClick={onDone}
-                    className="flex items-center gap-1.5 bg-emerald-600 text-white px-3 py-1.5 rounded-venus text-xs font-semibold hover:bg-emerald-700 active:scale-95 transition-all"
-                >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                    Selesai
-                </button>
+            {/* ── VAPE STORE FLOW ── */}
+            {order.unit === 'VAPE STORE' && (
+                <>
+                    {/* For Vape Store, once paid (pending), it is ready to be handed over. */}
+                    {['pending', 'processing', 'ready'].includes(order.progress_status) && (
+                        <button 
+                            onClick={onDone}
+                            className="flex items-center gap-1.5 bg-blue-600 text-white px-3 py-1.5 rounded-venus text-xs font-semibold hover:bg-blue-700 active:scale-95 transition-all"
+                        >
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M21 8v13H3V8" /><path d="M1 3h22v5H1z" /><path d="M10 12h4" />
+                            </svg>
+                            Serahkan Barang
+                        </button>
+                    )}
+                </>
             )}
 
             <button
