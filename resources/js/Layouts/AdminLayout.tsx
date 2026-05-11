@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useState, useEffect } from 'react';
 import { Link, router, usePage } from '@inertiajs/react';
 import { Toaster } from 'react-hot-toast';
 import { useFlashToast } from '../hooks/useFlashToast';
@@ -101,8 +101,27 @@ interface AdminLayoutProps {
 export default function AdminLayout({ children }: AdminLayoutProps) {
     useFlashToast();
     const { url } = usePage();
+    const currentPath = url.split('?')[0];
+    
+    // Controlled search input
+    const initialSearch = new URLSearchParams(url.split('?')[1] || '').get('search') || '';
+    const [searchTerm, setSearchTerm] = useState(initialSearch);
+
+    useEffect(() => {
+        setSearchTerm(new URLSearchParams(url.split('?')[1] || '').get('search') || '');
+    }, [url]);
 
     const isActive = (href: string) => url.startsWith(href);
+
+    // Contextual placeholders
+    let searchPlaceholder = "Ketik untuk mencari (tekan Enter)...";
+    if (currentPath === '/admin/pesanan-store') {
+        searchPlaceholder = "Cari ID Pesanan / Nama Pelanggan...";
+    } else if (currentPath.startsWith('/admin/booking')) {
+        searchPlaceholder = "Cari ID Booking / Nama / Nopol...";
+    } else if (currentPath.startsWith('/admin/katalog')) {
+        searchPlaceholder = "Cari Nama Produk / Kategori...";
+    }
 
     return (
         <div className="flex h-screen bg-background overflow-hidden font-sans">
@@ -176,13 +195,13 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                         </span>
                         <input
                             type="text"
-                            placeholder="Cari berdasarkan nama/ID (tekan Enter)..."
+                            placeholder={searchPlaceholder}
                             className="w-full bg-card border border-border rounded-venus pl-9 pr-4 py-2 text-body-reg text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-primary transition-colors"
-                            defaultValue={new URLSearchParams(usePage().url.split('?')[1]).get('search') || ''}
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter') {
-                                    const path = usePage().url.split('?')[0];
-                                    router.get(path, { search: e.currentTarget.value }, { preserveState: true, preserveScroll: true });
+                                    router.get(currentPath, { search: searchTerm }, { preserveState: true, preserveScroll: true });
                                 }
                             }}
                         />

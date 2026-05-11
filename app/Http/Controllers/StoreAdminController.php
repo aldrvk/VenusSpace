@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\StoreOrder;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
@@ -14,16 +15,22 @@ class StoreAdminController extends Controller
     public function katalogCoffee()
     {
         $products = Product::where('unit', 'COFFEE SHOP')->get();
+        $categories = Setting::get('coffee_categories', ['Kopi', 'Non-Kopi', 'Makanan', 'Cemilan']);
+        
         return Inertia::render('Admin/KatalogCoffeeShop', [
-            'products' => $products
+            'products' => $products,
+            'categories' => $categories
         ]);
     }
 
     public function katalogVape()
     {
         $products = Product::where('unit', 'VAPE STORE')->get();
+        $categories = Setting::get('vape_categories', ['Device', 'Liquid', 'Accessories']);
+        
         return Inertia::render('Admin/KatalogVapeStore', [
-            'products' => $products
+            'products' => $products,
+            'categories' => $categories
         ]);
     }
 
@@ -162,5 +169,19 @@ class StoreAdminController extends Controller
         ]);
 
         return back()->with('success', 'Pesanan berhasil dibatalkan.');
+    }
+
+    public function updateCategories(Request $request)
+    {
+        $request->validate([
+            'unit' => 'required|in:VAPE STORE,COFFEE SHOP',
+            'categories' => 'required|array',
+            'categories.*' => 'string|max:255'
+        ]);
+
+        $key = $request->unit === 'VAPE STORE' ? 'vape_categories' : 'coffee_categories';
+        Setting::set($key, $request->categories);
+
+        return back()->with('success', 'Kategori berhasil diperbarui.');
     }
 }

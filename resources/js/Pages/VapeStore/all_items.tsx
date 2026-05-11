@@ -61,16 +61,17 @@ interface PaginatedData {
 
 interface Props {
     products: PaginatedData;
-    filters?: { search?: string };
+    categories: string[];
+    filters?: { search?: string, category?: string };
 }
 
-export default function AllItems({ products, filters }: Props) {
+export default function AllItems({ products, categories, filters }: Props) {
     const [searchTerm, setSearchTerm] = useState(filters?.search || '');
     const { isOpen, message } = useOperationalStatus('Vape Store');
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
-        router.get('/vape-store', { search: searchTerm }, { preserveState: true });
+        router.get('/vape-store', { search: searchTerm, category: filters?.category || 'all' }, { preserveState: true });
     };
 
     return (
@@ -104,7 +105,7 @@ export default function AllItems({ products, filters }: Props) {
                 </div>
 
                 {/* Categories */}
-                <CategoryTabs activeCategory="all" />
+                <CategoryTabs activeCategory={filters?.category || 'all'} categories={categories} />
 
                 {/* Product Grid */}
                 {products.data.length > 0 ? (
