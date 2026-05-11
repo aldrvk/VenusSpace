@@ -29,38 +29,27 @@ const services = [
     {
         id: 'ps3',
         name: 'Sewa PS3',
-        subtitle: '1 Jam Main PS3',
+        subtitle: 'PlayStation 3 Console',
         price: 15000,
-        priceLabel: '15k',
-        duration: '60 menit',
+        priceLabel: '15k / jam',
         features: ['2 Stick', 'Bebas ganti game'],
     },
     {
         id: 'ps4',
         name: 'Sewa PS4',
-        subtitle: '1 Jam Main PS4',
+        subtitle: 'PlayStation 4 Console',
         price: 30000,
-        priceLabel: '30k',
-        duration: '60 menit',
+        priceLabel: '30k / jam',
         features: ['2 Stick', 'Game terbaru'],
     },
     {
         id: 'ps5',
         name: 'Sewa PS5',
-        subtitle: '1 Jam Main PS5',
+        subtitle: 'PlayStation 5 Console',
         price: 50000,
-        priceLabel: '50k',
-        duration: '60 menit',
+        priceLabel: '50k / jam',
         features: ['DualSense', '4K Gaming'],
     },
-];
-
-const vehicleClasses = [
-    'City Car / Sedan',
-    'SUV / MPV',
-    'Pickup / Double Cabin',
-    'Motor',
-    'Minibus',
 ];
 
 // ── Icons ────────────────────────────────────────────────────────────────────
@@ -128,6 +117,7 @@ export default function RentalPsIndex() {
     }>().props;
 
     const [selectedService, setSelectedService] = useState('ps4');
+    const [duration, setDuration] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const service = services.find(s => s.id === selectedService)!;
@@ -139,8 +129,14 @@ export default function RentalPsIndex() {
         if (availableTVs > 0 && queueCount === 0) return 'Langsung dilayani';
         const activeTVs = Math.max(playingCount, 1);
         const waitMinutes = Math.ceil((queueCount / activeTVs) * 30);
-        if (waitMinutes <= 0) return '~5 menit';
-        return `~${waitMinutes} menit`;
+        
+        if (waitMinutes < 60) {
+            if (waitMinutes <= 0) return '~5 Menit';
+            return `~${waitMinutes} Menit`;
+        }
+        
+        const hours = (waitMinutes / 60).toFixed(1);
+        return `~${hours.replace('.0', '')} Jam`;
     }, [queueCount, availableTVs, playingCount]);
 
     const handleConfirm = () => {
@@ -157,8 +153,8 @@ export default function RentalPsIndex() {
                 service_id:       service.id,
                 service_name:     service.name,
                 service_subtitle: service.subtitle,
-                service_price:    service.price,
-                service_duration: service.duration,
+                service_price:    service.price * duration,
+                service_duration: `${duration} Jam`,
             },
             {
                 onError: () => setIsSubmitting(false),
@@ -220,10 +216,6 @@ export default function RentalPsIndex() {
                                         </p>
 
                                         <ul className="space-y-1.5">
-                                            <li className="flex items-center gap-2 text-label-sm text-foreground/80">
-                                                <span className="text-primary"><CheckIcon /></span>
-                                                {svc.duration} durasi
-                                            </li>
                                             {svc.features.map(f => (
                                                 <li key={f} className="flex items-center gap-2 text-label-sm text-foreground/80">
                                                     <span className="text-primary"><CheckIcon /></span>
@@ -316,6 +308,26 @@ export default function RentalPsIndex() {
                                 </div>
                             )}
 
+                            {/* Duration Selector */}
+                            <div className="bg-surface border border-border rounded-venus px-5 py-4">
+                                <label className="block text-label-sm text-foreground/60 uppercase mb-2">Pilih Durasi Bermain</label>
+                                <div className="flex items-center justify-between gap-4">
+                                    <select
+                                        value={duration}
+                                        onChange={(e) => setDuration(Number(e.target.value))}
+                                        className="w-full bg-background border border-border rounded-venus px-4 py-3 text-body-m text-super-black focus:outline-none focus:border-primary transition-colors"
+                                    >
+                                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(num => (
+                                            <option key={num} value={num}>{num} Jam</option>
+                                        ))}
+                                    </select>
+                                    <div className="text-right shrink-0">
+                                        <p className="text-label-sm text-foreground/50">Total Harga</p>
+                                        <p className="text-h3 text-primary font-bold">Rp{(service.price * duration).toLocaleString('id-ID')}</p>
+                                    </div>
+                                </div>
+                            </div>
+
                             {/* CTA */}
                             <button
                                 onClick={handleConfirm}
@@ -338,7 +350,7 @@ export default function RentalPsIndex() {
                                     </>
                                 ) : (
                                     <>
-                                        {!auth?.user ? 'Login untuk Booking' : 'Booking Sekarang'}
+                                        {!auth?.user ? 'Login untuk Booking' : `Booking ${duration} Jam`}
                                         <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                                         </svg>
@@ -441,7 +453,7 @@ export default function RentalPsIndex() {
                                 </span>
                             </div>
                             <div className="mt-3 pt-3 border-t border-border">
-                                <p className="text-body-reg text-foreground/60">Durasi: <span className="text-foreground font-semibold">{service.duration}</span></p>
+                                <p className="text-body-reg text-foreground/60">Durasi: <span className="text-foreground font-semibold">{duration} Jam</span></p>
                             </div>
                         </div>
                     </div>

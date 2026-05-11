@@ -71,12 +71,49 @@ class RentalPsBooking extends Model
 
         return match ($this->status) {
             'pending'  => ['verified', 'cancelled'],
-            'verified' => ['in_queue', 'playing', 'cancelled'],
-            'in_queue' => ['playing', 'cancelled'],
-            'playing'  => ['done', 'cancelled'],
+            'verified' => ['in_queue', 'playing'], // Removed 'cancelled'
+            'in_queue' => ['playing'],            // Removed 'cancelled'
+            'playing'  => ['done'],               // Removed 'cancelled'
             'done'     => [],
             default    => [],
         };
+    }
+
+    /**
+     * Check if the playing session has expired.
+     */
+    public function isExpired(): bool
+    {
+        if ($this->status !== self::STATUS_PLAYING || !$this->bay_assigned_at) {
+            return false;
+        }
+
+        // Parse duration (e.g., "2 Jam" -> 2)
+        $hours = (int) filter_var($this->service_duration, FILTER_SANITIZE_NUMBER_INT);
+        if (!$hours) $hours = 1;
+
+        $endTime = $this->bay_assigned_at->addHours($hours);
+        return now()->greaterThanOrEqualTo($endTime);
+    }
+
+    /**
+     * Automatically mark as done if expired.
+     */
+    public function autoFinish(): bool
+    {
+        if ($this->isExpired()) {
+            $this->update([
+                'status'  => self::STATUS_DONE,
+                'done_at' => now(),
+                'stall'   => null,
+            ]);
+
+            // Assign next in queue if available
+            self::assignNextInQueue();
+            
+            return true;
+        }
+        return false;
     }
 
     public function canTransitionTo(string $status): bool

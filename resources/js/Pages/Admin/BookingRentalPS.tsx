@@ -25,8 +25,6 @@ interface Booking {
     service_subtitle: string;
     service_price: number;
     service_duration: string;
-    vehicle_class: string;
-    license_plate: string;
     status: BookingStatus;
     progress_label: string;
     progress_step: number;
@@ -45,8 +43,6 @@ interface Stall {
     id: string;
     label: string;
     status: "terisi" | "tersedia";
-    plate?: string;
-    vehicle?: string;
     progress?: string;
 }
 
@@ -75,18 +71,16 @@ const STATUS_LABEL: Record<BookingStatus, string> = {
     cancelled: "❌ Batal",
 };
 
-// ── Car Silhouette ────────────────────────────────────────────────────────────
-const CarSilhouette = () => (
+// ── Gamepad Icon ──────────────────────────────────────────────────────────────
+const GamepadIcon = () => (
     <svg
         style={{ opacity: 0.07 }}
         width="100"
         height="50"
-        viewBox="0 0 100 50"
+        viewBox="0 0 24 24"
         fill="currentColor"
     >
-        <path d="M10 35 L15 20 Q20 12 30 12 L70 12 Q80 12 85 20 L90 35 Q92 38 90 40 L10 40 Q8 38 10 35Z" />
-        <rect x="20" y="38" width="15" height="5" rx="2.5" />
-        <rect x="65" y="38" width="15" height="5" rx="2.5" />
+        <path d="M6 9h2v2H6V9zm4 0h2v2h-2V9zm8 0h-2v2h2V9zM7.5 15.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm9 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM2 12c0-3.87 3.13-7 7-7h6c3.87 0 7 3.13 7 7s-3.13 7-7 7H9c-3.87 0-7-3.13-7-7z" />
     </svg>
 );
 
@@ -119,7 +113,7 @@ function ConfirmArrivalModal({
                 <h3 className="text-h4 text-super-black mb-1">Konfirmasi Kedatangan</h3>
                 <p className="text-body-reg text-foreground/60 mb-5">
                     <span className="font-semibold text-foreground">{booking.booking_code}</span> –{" "}
-                    {booking.customer_name} · {booking.license_plate}
+                    {booking.customer_name} · {booking.service_name}
                 </p>
 
                 <div className="bg-background border border-border rounded-venus p-4 mb-6">
@@ -129,7 +123,7 @@ function ConfirmArrivalModal({
                     <ul className="mt-2 space-y-1.5 text-body-reg text-foreground/70">
                         <li className="flex items-center gap-2">
                             <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
-                            TV kosong → langsung masuk pencucian
+                            TV kosong → langsung mulai bermain
                         </li>
                         <li className="flex items-center gap-2">
                             <span className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0" />
@@ -187,7 +181,7 @@ function MarkDoneModal({
                 <h3 className="text-h4 text-super-black mb-1">Tandai Selesai</h3>
                 <p className="text-body-reg text-foreground/60 mb-5">
                     <span className="font-semibold text-foreground">{booking.booking_code}</span> –{" "}
-                    {booking.customer_name} · {booking.license_plate}
+                    {booking.customer_name} · {booking.service_name}
                     {booking.stall && <span className="text-primary font-semibold"> · {booking.stall}</span>}
                 </p>
 
@@ -250,7 +244,7 @@ function CancelBookingModal({
                 <h3 className="text-h4 text-super-black mb-1">Batalkan Booking</h3>
                 <p className="text-body-reg text-foreground/60 mb-5">
                     <span className="font-semibold text-foreground">{booking.booking_code}</span> –{" "}
-                    {booking.customer_name} · {booking.license_plate}
+                    {booking.customer_name} · {booking.service_name}
                 </p>
 
                 <form onSubmit={handle}>
@@ -340,15 +334,17 @@ function ActionButton({
                 </button>
             )}
 
-            <button
-                onClick={onCancel}
-                title="Batalkan Booking"
-                className="w-8 h-8 flex items-center justify-center rounded-venus border border-red-200 text-red-500 hover:bg-red-50 active:scale-90 transition-all"
-            >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-            </button>
+            {booking.status === 'pending' && (
+                <button
+                    onClick={onCancel}
+                    title="Batalkan Booking"
+                    className="w-8 h-8 flex items-center justify-center rounded-venus border border-red-200 text-red-500 hover:bg-red-50 active:scale-90 transition-all"
+                >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+            )}
         </div>
     );
 }
@@ -384,7 +380,7 @@ export default function BookingRentalPs({ bookings, stalls, queueCount }: Props)
                 subtitle={
                     pendingCount > 0
                         ? `⚠ ${pendingCount} booking menunggu konfirmasi kedatangan.`
-                        : "Kelola antrean dan TV pencucian sesi."
+                        : "Kelola antrian dan sesi bermain PlayStation."
                 }
                 action={
                     <div className="flex items-center gap-3">
@@ -415,7 +411,7 @@ export default function BookingRentalPs({ bookings, stalls, queueCount }: Props)
                             className="bg-secondary rounded-venus p-4 md:p-5 relative overflow-hidden text-white"
                         >
                             <div className="absolute bottom-0 right-0 text-white">
-                                <CarSilhouette />
+                                <GamepadIcon />
                             </div>
                             <div className="flex items-center justify-between mb-3">
                                 <span className="text-xs text-white/60">{stall.label}</span>
@@ -424,9 +420,8 @@ export default function BookingRentalPs({ bookings, stalls, queueCount }: Props)
                                 </span>
                             </div>
                             <p className="text-xl md:text-h3 text-white font-extrabold mb-0.5 uppercase">
-                                {stall.plate}
+                                {stall.progress ?? 'Sedang Bermain'}
                             </p>
-                            <p className="text-xs text-white/70 mb-2">{stall.vehicle}</p>
                             <span className="inline-block bg-white/15 text-white/90 text-[10px] px-2.5 py-1 rounded-full font-semibold">
                                 {stall.progress}
                             </span>
@@ -488,7 +483,7 @@ export default function BookingRentalPs({ bookings, stalls, queueCount }: Props)
                         <table className="w-full text-xs md:text-body-reg">
                             <thead className="hidden md:table-header-group">
                                 <tr className="border-b border-border">
-                                    {["KODE", "PELANGGAN", "KENDARAAN", "LAYANAN", "BAY", "STATUS", "AKSI"].map((h) => (
+                                    {["KODE", "PELANGGAN", "LAYANAN", "DURASI", "TV", "STATUS", "AKSI"].map((h) => (
                                         <th
                                             key={h}
                                             className="text-left px-4 md:px-5 py-3 text-[10px] text-foreground/40 font-bold"
@@ -516,12 +511,11 @@ export default function BookingRentalPs({ bookings, stalls, queueCount }: Props)
                                             <p className="text-foreground/50 text-[10px] truncate max-w-[150px]">{b.customer_email}</p>
                                         </td>
                                         <td className="px-4 md:px-5 py-3 md:py-4">
-                                            <p className="text-super-black font-semibold uppercase">{b.license_plate}</p>
-                                            <p className="text-foreground/50 text-[10px]">{b.vehicle_class}</p>
+                                            <p className="text-foreground">{b.service_name}</p>
+                                            <p className="text-foreground/40 text-[10px]">Rp{b.service_price.toLocaleString('id-ID')}</p>
                                         </td>
                                         <td className="px-4 md:px-5 py-3 md:py-4">
-                                            <p className="text-foreground">{b.service_name}</p>
-                                            <p className="text-foreground/40 text-[10px]">{b.service_duration}</p>
+                                            <p className="text-foreground font-semibold">{b.service_duration}</p>
                                         </td>
                                         <td className="px-4 md:px-5 py-3 md:py-4">
                                             {b.stall ? (

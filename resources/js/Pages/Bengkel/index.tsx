@@ -50,7 +50,7 @@ const services = [
         subtitle: 'Turun Mesin / Overhaul',
         price: 500000,
         priceLabel: '500k+',
-        duration: '120+ menit',
+        duration: '2+ Jam',
         features: ['Cek kompresi', 'Penggantian part dalam'],
     },
 ];

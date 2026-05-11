@@ -13,8 +13,6 @@ interface Booking {
     service_subtitle: string;
     service_price: number;
     service_duration: string;
-    vehicle_class: string;
-    license_plate: string;
     status: string;
     progress_label: string;
     progress_step: number;
@@ -56,7 +54,7 @@ const VENUS_ADS: PromoAd[] = [
         badgeColor: 'bg-violet-500/20 text-violet-300 border-violet-400/30',
         title: 'Koleksi Premium',
         highlight: 'Vape & Liquid',
-        description: 'Sambil nunggu mobil bermain, cek koleksi pod system & liquid terbaru di Venus Vape Store.',
+        description: 'Sambil nunggu giliran, cek koleksi pod system & liquid terbaru di Venus Vape Store.',
         cta: 'Kunjungi Vape Store',
         href: '/vape-store',
         bgGradient: 'from-violet-600 via-purple-700 to-indigo-800',
@@ -69,7 +67,7 @@ const VENUS_ADS: PromoAd[] = [
         badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-400/30',
         title: 'Ngopi Dulu?',
         highlight: 'Venus Coffee',
-        description: 'Nikmati segelas espresso artisan sambil menunggu sesi Anda selesai bermain.',
+        description: 'Nikmati segelas espresso artisan sambil menunggu giliran bermain.',
         cta: 'Lihat Menu Coffee',
         href: '#',
         bgGradient: 'from-amber-700 via-orange-800 to-red-900',
@@ -82,7 +80,7 @@ const VENUS_ADS: PromoAd[] = [
         badgeColor: 'bg-sky-500/20 text-sky-300 border-sky-400/30',
         title: 'Service Berkala',
         highlight: 'Venus Bengkel',
-        description: 'Mobil sudah bersih? Yuk lanjut cek kondisi mesin & ganti oli di bengkel kami.',
+        description: 'Kendaraan perlu perawatan? Yuk lanjut cek kondisi mesin & ganti oli di bengkel kami.',
         cta: 'Booking Service',
         href: '#',
         bgGradient: 'from-sky-600 via-blue-700 to-indigo-800',
@@ -95,7 +93,7 @@ const VENUS_ADS: PromoAd[] = [
         badgeColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30',
         title: 'Main PS5 Yuk!',
         highlight: 'Venus Gaming',
-        description: 'Ajak teman main PS5 sambil nunggu mobil bermain. Tersedia ruangan privat ber-AC.',
+        description: 'Ajak teman main PS5 di sesi berikutnya! Tersedia ruangan privat ber-AC.',
         cta: 'Booking PS Sekarang',
         href: '#',
         bgGradient: 'from-emerald-600 via-teal-700 to-cyan-800',
@@ -108,7 +106,7 @@ const VENUS_ADS: PromoAd[] = [
         badgeColor: 'bg-primary/20 text-primary border-primary/30',
         title: 'Cuci ke-5',
         highlight: 'GRATIS!',
-        description: 'Daftar Venus Membership & dapatkan setiap cuci ke-5 gratis + diskon 15% semua layanan.',
+        description: 'Daftar Venus Membership & dapatkan bonus spesial + diskon 15% semua layanan.',
         cta: 'Daftar Membership',
         href: '#',
         bgGradient: 'from-secondary via-teal-800 to-emerald-900',
@@ -233,8 +231,8 @@ const STEPS = [
     },
     {
         key: 'playing',
-        label: 'Sedang Dicuci',
-        desc: 'Sesi sedang bermain oleh tim kami.',
+        label: 'Sedang Bermain',
+        desc: 'Sesi bermain Anda sedang berlangsung.',
         icon: (
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" />
@@ -245,7 +243,7 @@ const STEPS = [
     {
         key: 'done',
         label: 'Selesai!',
-        desc: 'Sesi Anda sudah bersih dan siap diambil.',
+        desc: 'Sesi bermain Anda telah selesai.',
         icon: (
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
@@ -397,10 +395,10 @@ export default function TrackingPage({ booking: initialBooking, showAd: shouldSh
     }, [adOpen]);
 
     const STATUS_TOAST: Partial<Record<string, { msg: string; type: 'success' | 'error' | 'loading' | 'default' }>> = {
-        verified:  { msg: '✅ Kedatangan Anda dikonfirmasi! Menunggu TV...', type: 'success' },
-        in_queue:  { msg: '📋 Sesi Anda masuk ke antrian.', type: 'default' },
-        playing:   { msg: '🚿 Proses pencucian sesi Anda dimulai!', type: 'default' },
-        done:      { msg: '🎉 Sesi Anda sudah selesai! Silakan ambil.', type: 'success' },
+        verified:  { msg: '✅ Booking Anda dikonfirmasi! Menunggu TV tersedia...', type: 'success' },
+        in_queue:  { msg: '📋 Anda masuk ke antrian bermain.', type: 'default' },
+        playing:   { msg: '🎮 Waktu bermain Anda sudah dimulai!', type: 'default' },
+        done:      { msg: '🎉 Sesi bermain selesai! Terima kasih.', type: 'success' },
         cancelled: { msg: '❌ Booking Anda dibatalkan.', type: 'error' },
     };
 
@@ -472,7 +470,7 @@ export default function TrackingPage({ booking: initialBooking, showAd: shouldSh
                         <div>
                             <p className="text-label-sm text-foreground/50 uppercase mb-1">ID Booking</p>
                             <h1 className="text-h2 text-super-black">{booking.booking_code}</h1>
-                            <p className="text-body-reg text-foreground/60 mt-1">{booking.service_name} · {booking.license_plate}</p>
+                            <p className="text-body-reg text-foreground/60 mt-1">{booking.service_name} · {booking.service_duration}</p>
                         </div>
                         <div className="flex flex-col items-start sm:items-end gap-2">
                             <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border text-label-sm font-bold ${statusColor(booking.status)}`}>
@@ -572,8 +570,8 @@ export default function TrackingPage({ booking: initialBooking, showAd: shouldSh
                                             </svg>
                                         </div>
                                         <div>
-                                            <p className="text-h4 text-emerald-700 font-bold">Sesi Siap Diambil! 🎉</p>
-                                            <p className="text-body-reg text-emerald-600 mt-1">Proses pencucian telah selesai. Silakan ambil sesi Anda di area rental-ps.</p>
+                                            <p className="text-h4 text-emerald-700 font-bold">Sesi Bermain Selesai! 🎉</p>
+                                            <p className="text-body-reg text-emerald-600 mt-1">Terima kasih telah bermain di Venus Rental PS. Sampai jumpa lagi!</p>
                                         </div>
                                     </div>
                                 )}
@@ -603,9 +601,9 @@ export default function TrackingPage({ booking: initialBooking, showAd: shouldSh
                         </div>
 
                         <div className="bg-card border border-border rounded-venus p-5">
-                            <p className="text-label-sm text-foreground/50 uppercase mb-3">Sesi</p>
-                            <p className="text-h3 text-super-black">{booking.license_plate}</p>
-                            <p className="text-body-reg text-foreground/60">{booking.vehicle_class}</p>
+                            <p className="text-label-sm text-foreground/50 uppercase mb-3">Durasi</p>
+                            <p className="text-h3 text-super-black">{booking.service_duration}</p>
+                            <p className="text-body-reg text-foreground/60">{booking.service_subtitle}</p>
                         </div>
 
                         <div className="bg-card border border-border rounded-venus p-5">
