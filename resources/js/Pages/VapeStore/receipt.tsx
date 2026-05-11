@@ -127,8 +127,9 @@ export default function Receipt({ order }: Props) {
                                     ? 'Tunjukkan bukti pesanan ini kepada petugas kami di toko saat pengambilan.' 
                                     : 'Tunjukkan nomor pesanan ini kepada kasir untuk memproses pesanan dan melakukan pembayaran.'}
                             </p>
-                            <div className="pt-4 flex justify-center gap-4">
-                                <button onClick={() => window.print()} className="px-6 py-2 border border-border rounded-full text-label-sm hover:bg-white transition-colors uppercase font-bold">Cetak</button>
+                            <div className="pt-4 flex flex-wrap justify-center gap-4">
+                                <button onClick={() => window.print()} className="px-6 py-2 border border-border rounded-full text-label-sm hover:bg-white transition-colors uppercase font-bold text-super-black">Cetak</button>
+                                <Link href={`/vape-store/tracking/${order.order_code}`} className="px-6 py-2 bg-secondary text-white rounded-full text-label-sm hover:bg-secondary/90 transition-colors uppercase font-bold">Lacak Pesanan</Link>
                                 <Link href="/vape-store" className="px-6 py-2 bg-super-black text-white rounded-full text-label-sm hover:bg-super-black/80 transition-colors uppercase font-bold">Kembali Belanja</Link>
                             </div>
                         </div>

@@ -36,9 +36,10 @@ const statusBadge: Record<Product["stock"], string> = {
 
 interface Props {
     products: Product[];
+    categories: string[];
 }
 
-export default function KatalogVapeStore({ products = [] }: Props) {
+export default function KatalogVapeStore({ products = [], categories = [] }: Props) {
     const [activeFilter, setActiveFilter] = useState<FilterTab>("Semua");
     const [search, setSearch] = useState("");
     const [isProductModalOpen, setIsProductModalOpen] = useState(false);
@@ -46,12 +47,21 @@ export default function KatalogVapeStore({ products = [] }: Props) {
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
 
+    const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+    
+    // Form for product
     const [optionsList, setOptionsList] = useState<ProductOption[]>([]);
+    
+    // Form for categories
+    const { data: catData, setData: setCatData, post: postCat, processing: processingCat } = useForm({
+        unit: 'VAPE STORE',
+        categories: categories
+    });
 
     const { data, setData, post, put, reset, processing, errors } = useForm({
         unit: "VAPE STORE",
         name: "",
-        category: "Device",
+        category: categories.length > 0 ? categories[0] : "",
         price: 0 as number | string,
         stock: "Tersedia",
         description: "",
@@ -139,7 +149,14 @@ export default function KatalogVapeStore({ products = [] }: Props) {
         }
     };
 
-    const filters: FilterTab[] = ["Semua", "Device", "Liquid", "Accessories"];
+    const saveCategories = (e: React.FormEvent) => {
+        e.preventDefault();
+        postCat('/admin/store/categories', {
+            onSuccess: () => setIsCategoryModalOpen(false)
+        });
+    };
+
+    const filters = ["Semua", ...categories];
 
     const filtered = products.filter((p) => {
         const matchCat =
@@ -157,12 +174,24 @@ export default function KatalogVapeStore({ products = [] }: Props) {
                 title="Katalog Vape Store"
                 subtitle="Kelola produk, stok, dan harga item di Vape Store."
                 action={
-                    <PrimaryButton onClick={openAddModal}>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
-                        </svg>
-                        Tambah Produk
-                    </PrimaryButton>
+                    <div className="flex items-center gap-3">
+                        <button 
+                            onClick={() => {
+                                setCatData('categories', categories);
+                                setIsCategoryModalOpen(true);
+                            }}
+                            className="bg-surface border border-border text-foreground hover:bg-card px-4 py-2 rounded-venus text-label-sm font-semibold transition-all flex items-center gap-2"
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                            Kelola Kategori
+                        </button>
+                        <PrimaryButton onClick={openAddModal}>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+                            </svg>
+                            Tambah Produk
+                        </PrimaryButton>
+                    </div>
                 }
             />
 
@@ -372,9 +401,10 @@ export default function KatalogVapeStore({ products = [] }: Props) {
                                     onChange={e => setData('category', e.target.value)}
                                     className="w-full bg-background border border-border rounded-venus px-4 py-2 mt-1 text-body-m text-foreground focus:outline-none focus:border-primary transition-colors"
                                 >
-                                    <option value="Device">Device</option>
-                                    <option value="Liquid">Liquid</option>
-                                    <option value="Accessories">Accessories</option>
+                                    <option value="" disabled>Pilih Kategori...</option>
+                                    {categories.map(cat => (
+                                        <option key={cat} value={cat}>{cat}</option>
+                                    ))}
                                 </select>
                             </div>
                             <div>
@@ -521,6 +551,75 @@ export default function KatalogVapeStore({ products = [] }: Props) {
                                 Ya, Hapus
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Category Modal */}
+            {isCategoryModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsCategoryModalOpen(false)} />
+                    <div className="relative bg-card border border-border rounded-venus p-6 w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
+                        <h3 className="text-h4 text-super-black mb-5">Kelola Kategori</h3>
+                        <form onSubmit={saveCategories} className="space-y-4">
+                            <div>
+                                <div className="flex items-center justify-between mb-2">
+                                    <label className="text-label-sm text-foreground/60 uppercase">Daftar Kategori</label>
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setCatData('categories', [...catData.categories, ''])}
+                                        className="text-xs text-primary font-semibold hover:underline"
+                                    >
+                                        + Tambah Kategori
+                                    </button>
+                                </div>
+                                {catData.categories.map((cat, idx) => (
+                                    <div key={idx} className="flex gap-2 mt-2 items-center">
+                                        <input 
+                                            type="text" 
+                                            required
+                                            value={cat}
+                                            onChange={e => {
+                                                const newCats = [...catData.categories];
+                                                newCats[idx] = e.target.value;
+                                                setCatData('categories', newCats);
+                                            }}
+                                            className="flex-1 bg-background border border-border rounded-venus px-3 py-2 text-body-m text-foreground focus:outline-none focus:border-primary transition-colors"
+                                            placeholder="Nama Kategori"
+                                        />
+                                        <button 
+                                            type="button"
+                                            onClick={() => {
+                                                const newCats = catData.categories.filter((_, i) => i !== idx);
+                                                setCatData('categories', newCats);
+                                            }}
+                                            className="w-10 h-10 flex-shrink-0 bg-red-100 text-red-500 rounded-venus flex items-center justify-center hover:bg-red-200 transition-colors"
+                                        >
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                                        </button>
+                                    </div>
+                                ))}
+                                {catData.categories.length === 0 && (
+                                    <p className="text-sm text-foreground/40 text-center py-4">Belum ada kategori.</p>
+                                )}
+                            </div>
+                            <div className="flex gap-3 pt-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsCategoryModalOpen(false)}
+                                    className="flex-1 border border-border rounded-venus py-2.5 text-label-sm font-semibold text-foreground/70 hover:bg-surface transition-all"
+                                >
+                                    Batal
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={processingCat || catData.categories.some(c => !c.trim())}
+                                    className="flex-1 bg-primary text-white rounded-venus py-2.5 text-label-sm font-semibold hover:bg-primary/90 disabled:opacity-70 transition-all"
+                                >
+                                    {processingCat ? "Menyimpan..." : "Simpan Kategori"}
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}

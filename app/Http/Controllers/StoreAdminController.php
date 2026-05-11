@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\StoreOrder;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
@@ -14,16 +15,22 @@ class StoreAdminController extends Controller
     public function katalogCoffee()
     {
         $products = Product::where('unit', 'COFFEE SHOP')->get();
+        $categories = Setting::get('coffee_categories', ['Kopi', 'Non-Kopi', 'Makanan', 'Cemilan']);
+        
         return Inertia::render('Admin/KatalogCoffeeShop', [
-            'products' => $products
+            'products' => $products,
+            'categories' => $categories
         ]);
     }
 
     public function katalogVape()
     {
         $products = Product::where('unit', 'VAPE STORE')->get();
+        $categories = Setting::get('vape_categories', ['Device', 'Liquid', 'Accessories']);
+        
         return Inertia::render('Admin/KatalogVapeStore', [
-            'products' => $products
+            'products' => $products,
+            'categories' => $categories
         ]);
     }
 
@@ -104,17 +111,77 @@ class StoreAdminController extends Controller
         return back()->with('success', 'Produk berhasil dihapus.');
     }
 
-    public function pesananStore()
+    public function pesananStore(Request $request)
     {
-        $orders = StoreOrder::with('items')->orderBy('created_at', 'desc')->get();
+        $query = StoreOrder::with('items')->orderBy('created_at', 'desc');
+
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('order_code', 'like', "%{$search}%")
+                  ->orWhere('customer_name', 'like', "%{$search}%");
+            });
+        }
+
+        $orders = $query->paginate(10)->withQueryString();
+
         return Inertia::render('Admin/PesananStore', [
-            'orders' => $orders
+            'orders' => $orders,
+            'filters' => $request->only('search')
         ]);
     }
 
     public function confirmPayment(StoreOrder $order)
     {
-        $order->update(['status' => 'BERHASIL']);
+        $order->update([
+            'status' => 'BERHASIL',
+            'progress_status' => 'pending'
+        ]);
         return back()->with('success', 'Pembayaran berhasil dikonfirmasi.');
+    }
+
+    public function updateProgress(Request $request, StoreOrder $order)
+    {
+        $request->validate([
+            'progress_status' => 'required|in:pending,processing,ready,completed',
+        ]);
+
+        $updateData = ['progress_status' => $request->progress_status];
+        if ($request->progress_status === 'completed') {
+            $updateData['done_at'] = now();
+        }
+
+        $order->update($updateData);
+
+        return back()->with('success', 'Status pesanan berhasil diperbarui.');
+    }
+
+    public function cancelOrder(Request $request, StoreOrder $order)
+    {
+        $request->validate([
+            'reason' => 'required|string|max:255',
+        ]);
+
+        $order->update([
+            'progress_status' => 'cancelled',
+            'admin_notes' => $request->reason,
+            'done_at' => now(),
+        ]);
+
+        return back()->with('success', 'Pesanan berhasil dibatalkan.');
+    }
+
+    public function updateCategories(Request $request)
+    {
+        $request->validate([
+            'unit' => 'required|in:VAPE STORE,COFFEE SHOP',
+            'categories' => 'required|array',
+            'categories.*' => 'string|max:255'
+        ]);
+
+        $key = $request->unit === 'VAPE STORE' ? 'vape_categories' : 'coffee_categories';
+        Setting::set($key, $request->categories);
+
+        return back()->with('success', 'Kategori berhasil diperbarui.');
     }
 }

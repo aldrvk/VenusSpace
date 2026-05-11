@@ -51,27 +51,22 @@ Route::middleware('redirectAdmin')->group(function () {
 
     Route::get('/vape-store', function () {
         $query = \App\Models\Product::where('unit', 'VAPE STORE');
+        
+        $categories = \App\Models\Setting::get('vape_categories', ['Device', 'Liquid', 'Accessories']);
+        
         if (request('search')) $query->where('name', 'like', '%' . request('search') . '%');
-        return Inertia::render('VapeStore/all_items', ['products' => $query->paginate(8)->withQueryString(), 'filters' => request()->only('search')]);
+        
+        $categoryFilter = request('category');
+        if ($categoryFilter && $categoryFilter !== 'all') {
+            $query->where('category', $categoryFilter);
+        }
+        
+        return Inertia::render('VapeStore/all_items', [
+            'products' => $query->paginate(8)->withQueryString(), 
+            'filters' => request()->only(['search', 'category']),
+            'categories' => $categories
+        ]);
     })->name('vape.all');
-
-    Route::get('/vape-store/devices', function () {
-        $query = \App\Models\Product::where('unit', 'VAPE STORE')->where('category', 'Device');
-        if (request('search')) $query->where('name', 'like', '%' . request('search') . '%');
-        return Inertia::render('VapeStore/devices', ['products' => $query->paginate(8)->withQueryString(), 'filters' => request()->only('search')]);
-    })->name('vape.devices');
-
-    Route::get('/vape-store/liquids', function () {
-        $query = \App\Models\Product::where('unit', 'VAPE STORE')->where('category', 'Liquid');
-        if (request('search')) $query->where('name', 'like', '%' . request('search') . '%');
-        return Inertia::render('VapeStore/liquids', ['products' => $query->paginate(8)->withQueryString(), 'filters' => request()->only('search')]);
-    })->name('vape.liquids');
-
-    Route::get('/vape-store/accessories', function () {
-        $query = \App\Models\Product::where('unit', 'VAPE STORE')->where('category', 'Accessories');
-        if (request('search')) $query->where('name', 'like', '%' . request('search') . '%');
-        return Inertia::render('VapeStore/accessories', ['products' => $query->paginate(8)->withQueryString(), 'filters' => request()->only('search')]);
-    })->name('vape.accessories');
 
     Route::get('/vape-store/product/{id}', function ($id) {
         $product = \App\Models\Product::findOrFail($id);
@@ -101,33 +96,30 @@ Route::middleware('redirectAdmin')->group(function () {
         ]);
     })->name('vape.receipt');
 
+    Route::get('/vape-store/tracking/{code}', [\App\Http\Controllers\StoreOrderController::class, 'tracking'])->name('vape.tracking');
+
     // ── Store Order Submission ───────────────────────────────────────────────────
     Route::post('/store/order', [\App\Http\Controllers\StoreOrderController::class, 'store'])->name('store.order.create');
 
     // ── Coffee Shop ───────────────────────────────────────────────────────────────
     Route::get('/coffee-shop', function () {
         $query = \App\Models\Product::where('unit', 'COFFEE SHOP');
+        
+        $categories = \App\Models\Setting::get('coffee_categories', ['Kopi', 'Non-Kopi', 'Makanan', 'Cemilan']);
+        
         if (request('search')) $query->where('name', 'like', '%' . request('search') . '%');
-        return Inertia::render('CoffeeShop/all_items', ['products' => $query->paginate(8)->withQueryString(), 'filters' => request()->only('search')]);
+        
+        $categoryFilter = request('category');
+        if ($categoryFilter && $categoryFilter !== 'all') {
+            $query->where('category', $categoryFilter);
+        }
+        
+        return Inertia::render('CoffeeShop/all_items', [
+            'products' => $query->paginate(8)->withQueryString(), 
+            'filters' => request()->only(['search', 'category']),
+            'categories' => $categories
+        ]);
     })->name('coffee.all');
-
-    Route::get('/coffee-shop/drinks', function () {
-        $query = \App\Models\Product::where('unit', 'COFFEE SHOP')->whereIn('category', ['Kopi', 'Non-Kopi']);
-        if (request('search')) $query->where('name', 'like', '%' . request('search') . '%');
-        return Inertia::render('CoffeeShop/drinks', ['products' => $query->paginate(8)->withQueryString(), 'filters' => request()->only('search')]);
-    })->name('coffee.drinks');
-
-    Route::get('/coffee-shop/foods', function () {
-        $query = \App\Models\Product::where('unit', 'COFFEE SHOP')->where('category', 'Makanan');
-        if (request('search')) $query->where('name', 'like', '%' . request('search') . '%');
-        return Inertia::render('CoffeeShop/foods', ['products' => $query->paginate(8)->withQueryString(), 'filters' => request()->only('search')]);
-    })->name('coffee.foods');
-
-    Route::get('/coffee-shop/snacks', function () {
-        $query = \App\Models\Product::where('unit', 'COFFEE SHOP')->where('category', 'Cemilan');
-        if (request('search')) $query->where('name', 'like', '%' . request('search') . '%');
-        return Inertia::render('CoffeeShop/snacks', ['products' => $query->paginate(8)->withQueryString(), 'filters' => request()->only('search')]);
-    })->name('coffee.snacks');
 
     Route::get('/coffee-shop/product/{id}', function ($id) {
         $product = \App\Models\Product::findOrFail($id);
@@ -156,6 +148,9 @@ Route::middleware('redirectAdmin')->group(function () {
             'order' => $order
         ]);
     })->name('coffee.receipt');
+
+    Route::get('/coffee-shop/tracking/{code}', [\App\Http\Controllers\StoreOrderController::class, 'tracking'])->name('coffee.tracking');
+    Route::get('/api/store/status/{code}', [\App\Http\Controllers\StoreOrderController::class, 'statusPoll'])->name('store.status_poll');
 });
 
 // ── Auth: Guest only (belum login) ────────────────────────────────────────────
@@ -208,6 +203,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/rental-ps/tracking/{code}', [RentalPsBookingController::class, 'tracking'])->name('rental-ps.tracking');
         Route::get('/rental-ps/my-bookings', [RentalPsBookingController::class, 'myBookings'])->name('rental-ps.my_bookings');
         Route::get('/api/rental-ps/status/{code}', [RentalPsBookingController::class, 'statusPoll'])->name('rental-ps.status_poll');
+
+        // ── Store Tracking & History (Coffee Shop & Vape Store) ─────────────────────
+        Route::get('/coffee-shop/my-orders', [\App\Http\Controllers\StoreOrderController::class, 'coffeeMyOrders'])->name('coffee.my_orders');
+        Route::get('/vape-store/my-orders', [\App\Http\Controllers\StoreOrderController::class, 'vapeMyOrders'])->name('vape.my_orders');
     });
 
     // ── Admin Routes ──────────────────────────────────────────────────────────
@@ -247,7 +246,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/store/product', [StoreAdminController::class, 'storeProduct'])->name('store.product.store');
         Route::put('/store/product/{product}', [StoreAdminController::class, 'updateProduct'])->name('store.product.update');
         Route::delete('/store/product/{product}', [StoreAdminController::class, 'destroyProduct'])->name('store.product.destroy');
+        Route::post('/store/categories', [StoreAdminController::class, 'updateCategories'])->name('store.categories.update');
         Route::post('/pesanan-store/{order}/confirm', [StoreAdminController::class, 'confirmPayment'])->name('store.order.confirm');
+        Route::post('/pesanan-store/{order}/progress', [StoreAdminController::class, 'updateProgress'])->name('store.order.progress');
+        Route::post('/pesanan-store/{order}/cancel', [StoreAdminController::class, 'cancelOrder'])->name('store.order.cancel');
         Route::get('/jadwal', fn () => Inertia::render('Admin/Jadwal'))->name('jadwal');
         Route::get('/laporan', fn () => Inertia::render('Admin/Laporan'))->name('laporan');
         Route::get('/pengaturan', fn () => Inertia::render('Admin/Pengaturan'))->name('pengaturan');
