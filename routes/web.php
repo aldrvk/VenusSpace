@@ -101,6 +101,8 @@ Route::middleware('redirectAdmin')->group(function () {
         ]);
     })->name('vape.receipt');
 
+    Route::get('/vape-store/tracking/{code}', [\App\Http\Controllers\StoreOrderController::class, 'tracking'])->name('vape.tracking');
+
     // ── Store Order Submission ───────────────────────────────────────────────────
     Route::post('/store/order', [\App\Http\Controllers\StoreOrderController::class, 'store'])->name('store.order.create');
 
@@ -156,6 +158,9 @@ Route::middleware('redirectAdmin')->group(function () {
             'order' => $order
         ]);
     })->name('coffee.receipt');
+
+    Route::get('/coffee-shop/tracking/{code}', [\App\Http\Controllers\StoreOrderController::class, 'tracking'])->name('coffee.tracking');
+    Route::get('/api/store/status/{code}', [\App\Http\Controllers\StoreOrderController::class, 'statusPoll'])->name('store.status_poll');
 });
 
 // ── Auth: Guest only (belum login) ────────────────────────────────────────────
@@ -208,6 +213,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/rental-ps/tracking/{code}', [RentalPsBookingController::class, 'tracking'])->name('rental-ps.tracking');
         Route::get('/rental-ps/my-bookings', [RentalPsBookingController::class, 'myBookings'])->name('rental-ps.my_bookings');
         Route::get('/api/rental-ps/status/{code}', [RentalPsBookingController::class, 'statusPoll'])->name('rental-ps.status_poll');
+
+        // ── Store Tracking & History (Coffee Shop & Vape Store) ─────────────────────
+        Route::get('/coffee-shop/my-orders', [\App\Http\Controllers\StoreOrderController::class, 'coffeeMyOrders'])->name('coffee.my_orders');
+        Route::get('/vape-store/my-orders', [\App\Http\Controllers\StoreOrderController::class, 'vapeMyOrders'])->name('vape.my_orders');
     });
 
     // ── Admin Routes ──────────────────────────────────────────────────────────
@@ -248,6 +257,8 @@ Route::middleware('auth')->group(function () {
         Route::put('/store/product/{product}', [StoreAdminController::class, 'updateProduct'])->name('store.product.update');
         Route::delete('/store/product/{product}', [StoreAdminController::class, 'destroyProduct'])->name('store.product.destroy');
         Route::post('/pesanan-store/{order}/confirm', [StoreAdminController::class, 'confirmPayment'])->name('store.order.confirm');
+        Route::post('/pesanan-store/{order}/progress', [StoreAdminController::class, 'updateProgress'])->name('store.order.progress');
+        Route::post('/pesanan-store/{order}/cancel', [StoreAdminController::class, 'cancelOrder'])->name('store.order.cancel');
         Route::get('/jadwal', fn () => Inertia::render('Admin/Jadwal'))->name('jadwal');
         Route::get('/laporan', fn () => Inertia::render('Admin/Laporan'))->name('laporan');
         Route::get('/pengaturan', fn () => Inertia::render('Admin/Pengaturan'))->name('pengaturan');

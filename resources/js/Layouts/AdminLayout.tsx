@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react';
-import { Link, usePage } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import { Toaster } from 'react-hot-toast';
 import { useFlashToast } from '../hooks/useFlashToast';
 
@@ -176,8 +176,15 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                         </span>
                         <input
                             type="text"
-                            placeholder="Search analytics or units..."
-                            className="w-full bg-card border border-border rounded-venus pl-9 pr-4 py-2 text-body-reg text-foreground placeholder:text-foreground/30 focus:outline-none focus:border-primary transition-colors"
+                            placeholder="Cari berdasarkan nama/ID (tekan Enter)..."
+                            className="w-full bg-card border border-border rounded-venus pl-9 pr-4 py-2 text-body-reg text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-primary transition-colors"
+                            defaultValue={new URLSearchParams(usePage().url.split('?')[1]).get('search') || ''}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    const path = usePage().url.split('?')[0];
+                                    router.get(path, { search: e.currentTarget.value }, { preserveState: true, preserveScroll: true });
+                                }
+                            }}
                         />
                     </div>
 

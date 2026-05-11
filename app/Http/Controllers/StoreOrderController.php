@@ -30,12 +30,14 @@ class StoreOrderController extends Controller
         $total = collect($validated['items'])->sum(fn ($item) => $item['price'] * $item['quantity']);
 
         $order = StoreOrder::create([
+            'user_id'        => auth()->id(),
             'order_code'     => $orderCode,
             'customer_name'  => $validated['customer_name'],
             'unit'           => $validated['unit'],
             'payment_method' => $validated['payment_method'],
             'total'          => $total,
             'status'         => $validated['payment_method'] === 'qris' ? 'BERHASIL' : 'MENUNGGU PEMBAYARAN',
+            'progress_status'=> $validated['payment_method'] === 'qris' ? 'pending' : 'menunggu_pembayaran',
         ]);
 
         foreach ($validated['items'] as $item) {
@@ -50,6 +52,54 @@ class StoreOrderController extends Controller
         return response()->json([
             'order_code' => $orderCode,
             'order_id'   => $order->id,
+            'unit'       => $order->unit,
+        ]);
+    }
+
+    public function tracking(string $code)
+    {
+        $order = StoreOrder::with('items')->where('order_code', $code)->firstOrFail();
+
+        $view = $order->unit === 'COFFEE SHOP' ? 'CoffeeShop/tracking' : 'VapeStore/tracking';
+
+        return \Inertia\Inertia::render($view, [
+            'order' => $order
+        ]);
+    }
+
+    public function coffeeMyOrders()
+    {
+        $orders = StoreOrder::with('items')
+            ->where('user_id', auth()->id())
+            ->where('unit', 'COFFEE SHOP')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return \Inertia\Inertia::render('CoffeeShop/my_orders', [
+            'orders' => $orders
+        ]);
+    }
+
+    public function vapeMyOrders()
+    {
+        $orders = StoreOrder::with('items')
+            ->where('user_id', auth()->id())
+            ->where('unit', 'VAPE STORE')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return \Inertia\Inertia::render('VapeStore/my_orders', [
+            'orders' => $orders
+        ]);
+    }
+
+    public function statusPoll(string $code)
+    {
+        $order = StoreOrder::where('order_code', $code)->firstOrFail();
+
+        return response()->json([
+            'progress_status' => $order->progress_status,
+            'admin_notes'     => $order->admin_notes,
         ]);
     }
 }

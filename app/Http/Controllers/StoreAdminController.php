@@ -104,17 +104,63 @@ class StoreAdminController extends Controller
         return back()->with('success', 'Produk berhasil dihapus.');
     }
 
-    public function pesananStore()
+    public function pesananStore(Request $request)
     {
-        $orders = StoreOrder::with('items')->orderBy('created_at', 'desc')->get();
+        $query = StoreOrder::with('items')->orderBy('created_at', 'desc');
+
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('order_code', 'like', "%{$search}%")
+                  ->orWhere('customer_name', 'like', "%{$search}%");
+            });
+        }
+
+        $orders = $query->paginate(10)->withQueryString();
+
         return Inertia::render('Admin/PesananStore', [
-            'orders' => $orders
+            'orders' => $orders,
+            'filters' => $request->only('search')
         ]);
     }
 
     public function confirmPayment(StoreOrder $order)
     {
-        $order->update(['status' => 'BERHASIL']);
+        $order->update([
+            'status' => 'BERHASIL',
+            'progress_status' => 'pending'
+        ]);
         return back()->with('success', 'Pembayaran berhasil dikonfirmasi.');
+    }
+
+    public function updateProgress(Request $request, StoreOrder $order)
+    {
+        $request->validate([
+            'progress_status' => 'required|in:pending,processing,ready,completed',
+        ]);
+
+        $updateData = ['progress_status' => $request->progress_status];
+        if ($request->progress_status === 'completed') {
+            $updateData['done_at'] = now();
+        }
+
+        $order->update($updateData);
+
+        return back()->with('success', 'Status pesanan berhasil diperbarui.');
+    }
+
+    public function cancelOrder(Request $request, StoreOrder $order)
+    {
+        $request->validate([
+            'reason' => 'required|string|max:255',
+        ]);
+
+        $order->update([
+            'progress_status' => 'cancelled',
+            'admin_notes' => $request->reason,
+            'done_at' => now(),
+        ]);
+
+        return back()->with('success', 'Pesanan berhasil dibatalkan.');
     }
 }
