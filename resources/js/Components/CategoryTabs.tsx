@@ -9,7 +9,7 @@ interface CategoryTabsProps {
 export default function CategoryTabs({ activeCategory, categories }: CategoryTabsProps) {
     const tabs = [
         { id: 'all', name: 'Semua Produk', href: '/vape-store' },
-        ...categories.map(cat => ({
+        ...(categories || []).map(cat => ({
             id: cat,
             name: cat,
             href: `/vape-store?category=${encodeURIComponent(cat)}`

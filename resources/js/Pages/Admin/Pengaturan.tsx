@@ -1,10 +1,9 @@
 import React, { useState } from "react";
-import { Head, usePage } from "@inertiajs/react";
-import axios from "axios";
+import { Head, usePage, router } from "@inertiajs/react";
 import AdminLayout from "../../Layouts/AdminLayout";
 import { PageHeader } from "../../Components/AdminUI";
 
-type SettingTab = "Profil" | "Operasional" | "Notifikasi" | "Keamanan";
+type SettingTab = "Profil" | "Operasional" | "Pembayaran" | "Notifikasi" | "Keamanan";
 
 interface DaySchedule {
     open: string;
@@ -51,11 +50,24 @@ function getDefaultSettings(): OperationalSettings {
 }
 
 export default function Pengaturan() {
-    const { settings: sharedSettings } = usePage().props as any;
+    const { settings: sharedSettings, payment_settings: sharedPayment } = usePage().props as any;
     const [activeTab, setActiveTab] = useState<SettingTab>("Profil");
     const [saved, setSaved] = useState(false);
     const [saving, setSaving] = useState(false);
     const [selectedUnit, setSelectedUnit] = useState<string>("Doorsmeer");
+
+    // Initialize payment settings
+    const [paymentSettings, setPaymentSettings] = useState(() => ({
+        qris_merchant_name: sharedPayment?.qris_merchant_name || "Venus Hub Store",
+        qris_payload: sharedPayment?.qris_payload || "00020101021226660011ID.CO.GPN.WWW011893600522000001234502150001020345678900303ID51440014ID1234567890123520459995303360540505802ID5916VenusHub6006Jakarta6304ABCD",
+        bank_name: sharedPayment?.bank_name || "Bank Mandiri",
+        bank_account_name: sharedPayment?.bank_account_name || "Venus Hub",
+        bank_account_number: sharedPayment?.bank_account_number || "123-00-1234567-8",
+        // Midtrans Keys
+        midtrans_client_key: sharedPayment?.midtrans_client_key || "",
+        midtrans_server_key: sharedPayment?.midtrans_server_key || "",
+        midtrans_is_sandbox: sharedPayment?.midtrans_is_sandbox ?? true,
+    }));
 
     // Initialize operational settings from shared props or defaults
     const [operationalSettings, setOperationalSettings] = useState<OperationalSettings>(() => {
@@ -65,7 +77,7 @@ export default function Pengaturan() {
         return getDefaultSettings();
     });
 
-    const tabs: SettingTab[] = ["Profil", "Operasional", "Notifikasi", "Keamanan"];
+    const tabs: SettingTab[] = ["Profil", "Operasional", "Pembayaran", "Notifikasi", "Keamanan"];
 
     const currentUnit = operationalSettings[selectedUnit];
 
@@ -82,55 +94,77 @@ export default function Pengaturan() {
 
     // Toggle a specific day's is_open
     const toggleDayOpen = (day: string) => {
-        setOperationalSettings((prev) => ({
-            ...prev,
-            [selectedUnit]: {
-                ...prev[selectedUnit],
-                schedule: {
-                    ...prev[selectedUnit].schedule,
-                    [day]: {
-                        ...prev[selectedUnit].schedule[day],
-                        is_open: !prev[selectedUnit].schedule[day].is_open,
+        setOperationalSettings((prev) => {
+            if (!prev[selectedUnit] || !prev[selectedUnit].schedule[day]) return prev;
+            return {
+                ...prev,
+                [selectedUnit]: {
+                    ...prev[selectedUnit],
+                    schedule: {
+                        ...prev[selectedUnit].schedule,
+                        [day]: {
+                            ...prev[selectedUnit].schedule[day],
+                            is_open: !prev[selectedUnit].schedule[day].is_open,
+                        },
                     },
                 },
-            },
-        }));
+            };
+        });
     };
 
     // Update a specific day's open or close time
     const updateDayTime = (day: string, field: "open" | "close", value: string) => {
-        setOperationalSettings((prev) => ({
-            ...prev,
-            [selectedUnit]: {
-                ...prev[selectedUnit],
-                schedule: {
-                    ...prev[selectedUnit].schedule,
-                    [day]: {
-                        ...prev[selectedUnit].schedule[day],
-                        [field]: value,
+        setOperationalSettings((prev) => {
+            if (!prev[selectedUnit] || !prev[selectedUnit].schedule[day]) return prev;
+            return {
+                ...prev,
+                [selectedUnit]: {
+                    ...prev[selectedUnit],
+                    schedule: {
+                        ...prev[selectedUnit].schedule,
+                        [day]: {
+                            ...prev[selectedUnit].schedule[day],
+                            [field]: value,
+                        },
                     },
                 },
-            },
-        }));
+            };
+        });
     };
 
     const handleSaveOperational = () => {
         setSaving(true);
-        axios.post("/admin/settings/operational", {
-            operational_settings: operationalSettings,
-        }).then(() => {
-            setSaved(true);
-            setTimeout(() => setSaved(false), 2500);
-        }).catch((err) => {
-            console.error('Failed to save settings:', err);
-        }).finally(() => {
-            setSaving(false);
+        router.post("/admin/settings/operational", {
+            operational_settings: operationalSettings as any,
+        }, {
+            onSuccess: () => {
+                setSaved(true);
+                setTimeout(() => setSaved(false), 2500);
+            },
+            onFinish: () => setSaving(false)
+        });
+    };
+
+    const handleSavePayment = () => {
+        setSaving(true);
+        router.post("/admin/settings/payment", {
+            payment_settings: paymentSettings as any,
+        }, {
+            onSuccess: () => {
+                setSaved(true);
+                setTimeout(() => setSaved(false), 2500);
+            },
+            onFinish: () => setSaving(false)
         });
     };
 
     const handleSave = () => {
         if (activeTab === "Operasional") {
             handleSaveOperational();
+            return;
+        }
+        if (activeTab === "Pembayaran") {
+            handleSavePayment();
             return;
         }
         setSaved(true);
@@ -351,6 +385,102 @@ export default function Pengaturan() {
                                                 </div>
                                             );
                                         })}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === "Pembayaran" && (
+                        <div className="bg-card border border-border rounded-venus p-6">
+                            <h2 className="text-h4 text-super-black mb-5">
+                                Pengaturan Pembayaran (QRIS & Bank)
+                            </h2>
+                            <div className="space-y-6">
+                                <div className="p-4 bg-secondary/5 border border-secondary/20 rounded-venus">
+                                    <p className="text-body-m text-secondary font-semibold mb-1">Integrasi Midtrans (Otomatis)</p>
+                                    <p className="text-body-reg text-foreground/60 text-xs">
+                                        Gunakan Midtrans untuk menerima pembayaran dari semua Bank & E-Wallet (QRIS) secara otomatis. Status pesanan akan berubah menjadi 'Berhasil' secara real-time.
+                                    </p>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <label className="text-label-sm text-foreground/50 uppercase">Midtrans Client Key</label>
+                                        <input 
+                                            type="text"
+                                            value={paymentSettings.midtrans_client_key}
+                                            onChange={(e) => setPaymentSettings({...paymentSettings, midtrans_client_key: e.target.value})}
+                                            className="w-full bg-background border border-border rounded-venus px-4 py-3 text-body-m"
+                                            placeholder="SB-Mid-client-..."
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-label-sm text-foreground/50 uppercase">Midtrans Server Key</label>
+                                        <input 
+                                            type="password"
+                                            value={paymentSettings.midtrans_server_key}
+                                            onChange={(e) => setPaymentSettings({...paymentSettings, midtrans_server_key: e.target.value})}
+                                            className="w-full bg-background border border-border rounded-venus px-4 py-3 text-body-m"
+                                            placeholder="SB-Mid-server-..."
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-4 p-4 bg-surface rounded-venus border border-border">
+                                    <div className="flex-1">
+                                        <p className="text-body-m font-bold text-super-black">Mode Sandbox (Testing)</p>
+                                        <p className="text-body-reg text-foreground/50 text-xs">Aktifkan untuk mencoba pembayaran tanpa uang sungguhan.</p>
+                                    </div>
+                                    <button
+                                        onClick={() => setPaymentSettings({...paymentSettings, midtrans_is_sandbox: !paymentSettings.midtrans_is_sandbox})}
+                                        className={`w-12 h-6 rounded-full relative transition-all ${paymentSettings.midtrans_is_sandbox ? "bg-primary" : "bg-foreground/20"}`}
+                                    >
+                                        <div className={`w-5 h-5 rounded-full bg-white absolute top-0.5 transition-all shadow ${paymentSettings.midtrans_is_sandbox ? "right-0.5" : "left-0.5"}`} />
+                                    </button>
+                                </div>
+
+                                <div className="pt-4 border-t border-border">
+                                    <h3 className="text-body-m font-bold text-super-black mb-4">Metode QRIS Manual (Cadangan)</h3>
+                                    <div className="p-4 bg-primary/5 border border-primary/20 rounded-venus mb-6">
+                                        <p className="text-body-reg text-foreground/60 text-xs">
+                                            Jika Midtrans tidak aktif, sistem akan menggunakan kode QRIS manual ini.
+                                        </p>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-label-sm text-foreground/50 uppercase">Payload QRIS String (EMVCo)</label>
+                                        <textarea 
+                                            value={paymentSettings.qris_payload}
+                                            onChange={(e) => setPaymentSettings({...paymentSettings, qris_payload: e.target.value})}
+                                            className="w-full bg-background border border-border rounded-venus px-4 py-3 text-body-m font-mono text-xs h-32"
+                                            placeholder="00020101021226660011ID.CO.GPN.WWW0118..."
+                                        />
+                                        <p className="text-[10px] text-foreground/40 italic">*Dapatkan string ini dari dashboard merchant bank atau gateway Anda.</p>
+                                    </div>
+                                </div>
+
+                                <div className="pt-4 border-t border-border">
+                                    <h3 className="text-body-m font-bold text-super-black mb-4">Informasi Rekening Bank (Manual)</h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <label className="text-label-sm text-foreground/50 uppercase">Nama Pemilik Rekening</label>
+                                            <input 
+                                                type="text"
+                                                value={paymentSettings.bank_account_name}
+                                                onChange={(e) => setPaymentSettings({...paymentSettings, bank_account_name: e.target.value})}
+                                                className="w-full bg-background border border-border rounded-venus px-4 py-3 text-body-m"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-label-sm text-foreground/50 uppercase">Nomor Rekening</label>
+                                            <input 
+                                                type="text"
+                                                value={paymentSettings.bank_account_number}
+                                                onChange={(e) => setPaymentSettings({...paymentSettings, bank_account_number: e.target.value})}
+                                                className="w-full bg-background border border-border rounded-venus px-4 py-3 text-body-m"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             </div>

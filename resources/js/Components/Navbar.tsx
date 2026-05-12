@@ -2,14 +2,16 @@ import { Link, usePage } from "@inertiajs/react";
 import { useState, useEffect } from "react";
 import ButtonInitiate from "./Buttons/ButtonInitiate";
 import UserProfileDropdown from "./UserProfileDropdown";
+import { useFlashToast } from "../hooks/useFlashToast";
 
 interface NavbarProps {
     onOpenAuthModal?: (type: "login" | "register") => void;
 }
 
 export default function Navbar({ onOpenAuthModal }: NavbarProps = {}) {
+    useFlashToast();
     const { auth } = usePage<any>().props;
-    const { url } = usePage();
+    const { url = '' } = usePage();
     const isVapeStore = url.startsWith('/vape-store');
     const isDoorsmeer = url.startsWith('/doorsmeer');
     const isBengkel = url.startsWith('/bengkel');
@@ -22,9 +24,13 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps = {}) {
         if (!isVapeStore && !isCoffeeShop) return;
         
         const updateCartCount = () => {
-            const storageKey = isVapeStore ? 'venus_cart' : 'venus_cart_coffee';
-            const cart = JSON.parse(localStorage.getItem(storageKey) || '[]');
-            setCartCount(cart.length);
+            try {
+                const storageKey = isVapeStore ? 'venus_cart' : 'venus_cart_coffee';
+                const cart = JSON.parse(localStorage.getItem(storageKey) || '[]');
+                setCartCount(Array.isArray(cart) ? cart.length : 0);
+            } catch (e) {
+                setCartCount(0);
+            }
         };
         
         updateCartCount();

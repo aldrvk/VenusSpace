@@ -17,6 +17,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             HandleInertiaRequests::class,
         ]);
+        $middleware->validateCsrfTokens(except: [
+            '/payment/notification',
+        ]);
         $middleware->alias([
             'admin' => AdminMiddleware::class,
             'redirectAdmin' => RedirectAdmin::class,
