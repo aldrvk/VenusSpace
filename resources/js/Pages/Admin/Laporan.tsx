@@ -1,115 +1,40 @@
 import React, { useState } from "react";
-import { Head } from "@inertiajs/react";
+import { Head, router } from "@inertiajs/react";
 import AdminLayout from "../../Layouts/AdminLayout";
 import {
     PageHeader,
-    PrimaryButton,
-    FilterTabs,
 } from "../../Components/AdminUI";
 
 type PeriodTab = "Hari Ini" | "Minggu Ini" | "Bulan Ini";
 
-const revenueByUnit = [
-    {
-        unit: "Doorsmeer",
-        amount: 850000,
-        bookings: 12,
-        pct: 35,
-        color: "bg-primary",
-    },
-    {
-        unit: "Bengkel",
-        amount: 620000,
-        bookings: 8,
-        pct: 25,
-        color: "bg-orange-400",
-    },
-    {
-        unit: "Coffee Shop",
-        amount: 480000,
-        bookings: 34,
-        pct: 20,
-        color: "bg-amber-400",
-    },
-    {
-        unit: "Rental PS",
-        amount: 500000,
-        bookings: 18,
-        pct: 20,
-        color: "bg-purple-400",
-    },
-];
 
-const transactionList = [
-    {
-        id: "#TRX-001",
-        time: "10:00",
-        customer: "Budi Kusuma",
-        unit: "Doorsmeer",
-        service: "Cuci Salju",
-        amount: 45000,
-        status: "Lunas",
-    },
-    {
-        id: "#TRX-002",
-        time: "10:30",
-        customer: "Lina Marlina",
-        unit: "Bengkel",
-        service: "Ganti Oli",
-        amount: 120000,
-        status: "Lunas",
-    },
-    {
-        id: "#TRX-003",
-        time: "11:00",
-        customer: "Walk-in",
-        unit: "Coffee Shop",
-        service: "Americano × 2",
-        amount: 36000,
-        status: "Lunas",
-    },
-    {
-        id: "#TRX-004",
-        time: "14:00",
-        customer: "Raka Wijaya",
-        unit: "Rental PS",
-        service: "PS5 2 Jam",
-        amount: 40000,
-        status: "Lunas",
-    },
-    {
-        id: "#TRX-005",
-        time: "14:30",
-        customer: "Andi Siregar",
-        unit: "Bengkel",
-        service: "Servis Berkala",
-        amount: 250000,
-        status: "Pending",
-    },
-    {
-        id: "#TRX-006",
-        time: "15:10",
-        customer: "Alex Ferguson",
-        unit: "Rental PS",
-        service: "PS5 1 Jam",
-        amount: 25000,
-        status: "Lunas",
-    },
-];
 
 const unitBadgeColor: Record<string, string> = {
     Doorsmeer: "bg-primary/15 text-secondary border border-primary/30",
     Bengkel: "bg-orange-100 text-orange-700 border border-orange-200",
     "Coffee Shop": "bg-amber-100 text-amber-700 border border-amber-200",
     "Rental PS": "bg-purple-100 text-purple-700 border border-purple-200",
+    "Vape Store": "bg-indigo-100 text-indigo-700 border border-indigo-200",
 };
 
-export default function Laporan() {
-    const [activePeriod, setActivePeriod] = useState<PeriodTab>("Hari Ini");
+export default function Laporan({ 
+    initialTransactions = [], 
+    initialRevenueByUnit = [], 
+    initialPeriod = "Hari Ini",
+    kpi = { totalRevenue: 0, totalBookings: 0, pendingAmount: 0, pendingCount: 0 },
+    chartData = []
+}: any) {
+    const [activePeriod, setActivePeriod] = useState<PeriodTab>(initialPeriod as PeriodTab);
     const periods: PeriodTab[] = ["Hari Ini", "Minggu Ini", "Bulan Ini"];
 
-    const totalRevenue = revenueByUnit.reduce((s, u) => s + u.amount, 0);
-    const totalBookings = revenueByUnit.reduce((s, u) => s + u.bookings, 0);
+    const totalRevenue = kpi?.totalRevenue || 0;
+    const totalBookings = kpi?.totalBookings || 0;
+    const maxChartValue = Math.max(...(chartData || []).map((d: any) => d.value || 0), 1);
+
+    const handlePeriodChange = (p: PeriodTab) => {
+        setActivePeriod(p);
+        router.get('/admin/laporan', { period: p }, { preserveState: true, preserveScroll: true });
+    };
 
     return (
         <AdminLayout>
@@ -124,14 +49,17 @@ export default function Laporan() {
                             {periods.map((p) => (
                                 <button
                                     key={p}
-                                    onClick={() => setActivePeriod(p)}
+                                    onClick={() => handlePeriodChange(p)}
                                     className={`px-3 md:px-4 py-1.5 rounded-full transition-all ${activePeriod === p ? "bg-secondary text-white shadow" : "text-foreground/60 hover:text-foreground"}`}
                                 >
                                     {p}
                                 </button>
                             ))}
                         </div>
-                        <button className="flex items-center gap-2 border border-border text-foreground/70 px-3 md:px-4 py-2 md:py-2.5 rounded-full hover:bg-surface transition-all text-xs md:text-label-sm font-semibold whitespace-nowrap">
+                        <button 
+                            onClick={() => window.location.href = `/admin/laporan/export?period=${activePeriod}`}
+                            className="flex items-center gap-2 border border-border text-foreground/70 px-3 md:px-4 py-2 md:py-2.5 rounded-full hover:bg-surface transition-all text-xs md:text-label-sm font-semibold whitespace-nowrap"
+                        >
                             <svg
                                 width="14"
                                 height="14"
@@ -158,28 +86,28 @@ export default function Laporan() {
                     {
                         label: "Total Pendapatan",
                         value: `Rp ${(totalRevenue / 1000).toFixed(0)}k`,
-                        sub: "+12% dari kemarin",
+                        sub: "Dari status Lunas",
                         icon: "💰",
                         positive: true,
                     },
                     {
                         label: "Total Transaksi",
                         value: totalBookings,
-                        sub: `${transactionList.length} tercatat hari ini`,
+                        sub: `${initialTransactions.length} tercatat`,
                         icon: "🧾",
                         positive: true,
                     },
                     {
                         label: "Rata-rata Transaksi",
-                        value: `Rp ${Math.round(totalRevenue / totalBookings / 1000)}k`,
+                        value: totalBookings > 0 ? `Rp ${Math.round(totalRevenue / totalBookings / 1000)}k` : 'Rp 0',
                         sub: "Per booking",
                         icon: "📊",
                         positive: true,
                     },
                     {
                         label: "Pending Pembayaran",
-                        value: "Rp 250k",
-                        sub: "1 transaksi menunggu",
+                        value: `Rp ${((kpi?.pendingAmount || 0) / 1000).toFixed(0)}k`,
+                        sub: `${kpi?.pendingCount || 0} transaksi menunggu`,
                         icon: "⏱",
                         positive: false,
                     },
@@ -215,7 +143,7 @@ export default function Laporan() {
                         Pendapatan per Unit
                     </h3>
                     <div className="space-y-4">
-                        {revenueByUnit.map((u) => (
+                        {initialRevenueByUnit.map((u: any) => (
                             <div key={u.unit}>
                                 <div className="flex items-center justify-between mb-1.5">
                                     <span className="text-body-m text-foreground font-semibold">
@@ -254,26 +182,8 @@ export default function Laporan() {
                         Grafik Transaksi Harian
                     </h3>
                     <div className="flex items-end justify-between gap-2 h-44">
-                        {[
-                            "08",
-                            "09",
-                            "10",
-                            "11",
-                            "12",
-                            "13",
-                            "14",
-                            "15",
-                            "16",
-                            "17",
-                            "18",
-                            "19",
-                            "20",
-                            "21",
-                            "22",
-                        ].map((h, i) => {
-                            const heights = [
-                                20, 35, 65, 80, 45, 30, 90, 75, 55, 40, 25, 15, 30, 45, 20,
-                            ];
+                        {chartData.map((d: any, i: number) => {
+                            const heightPct = (d.value / maxChartValue) * 100;
                             const colors = [
                                 "bg-primary",
                                 "bg-orange-400",
@@ -282,7 +192,7 @@ export default function Laporan() {
                             ];
                             return (
                                 <div
-                                    key={h}
+                                    key={d.label}
                                     className="flex-1 flex flex-col items-center gap-1 group"
                                 >
                                     <div
@@ -291,12 +201,12 @@ export default function Laporan() {
                                     >
                                         <div
                                             className={`w-full rounded-t-venus ${colors[i % colors.length]} opacity-80 group-hover:opacity-100 transition-all cursor-pointer`}
-                                            style={{ height: `${heights[i]}%` }}
-                                            title={`${h}:00 – ${heights[i]}k`}
+                                            style={{ height: `${heightPct || 5}%` }}
+                                            title={`${d.label}: ${d.value} transaksi`}
                                         />
                                     </div>
                                     <span className="text-[9px] text-foreground/30 font-medium">
-                                        {h}
+                                        {d.label}
                                     </span>
                                 </div>
                             );
@@ -304,10 +214,10 @@ export default function Laporan() {
                     </div>
                     <div className="mt-3 flex items-center justify-between">
                         <p className="text-body-reg text-foreground/40">
-                            Jam operasional (08:00 – 23:00)
+                            Data berdasarkan transaksi masuk
                         </p>
                         <p className="text-body-reg text-foreground/40">
-                            Puncak: 14:00
+                            Periode: {activePeriod}
                         </p>
                     </div>
                 </div>
@@ -320,7 +230,7 @@ export default function Laporan() {
                         Daftar Transaksi
                     </h2>
                     <span className="text-label-sm text-foreground/40">
-                        {transactionList.length} transaksi hari ini
+                        {initialTransactions.length} transaksi
                     </span>
                 </div>
                 <div className="overflow-x-auto">
@@ -346,7 +256,7 @@ export default function Laporan() {
                             </tr>
                         </thead>
                         <tbody>
-                            {transactionList.map((t, i) => (
+                            {initialTransactions.map((t: any, i: number) => (
                                 <tr
                                     key={i}
                                     className="border-b border-border/50 hover:bg-background/60 transition-colors"
@@ -371,7 +281,7 @@ export default function Laporan() {
                                         {t.service}
                                     </td>
                                     <td className="px-6 py-4 text-body-m text-super-black font-bold">
-                                        Rp {t.amount.toLocaleString("id-ID")}
+                                        Rp {(t.amount || 0).toLocaleString("id-ID")}
                                     </td>
                                     <td className="px-6 py-4">
                                         <span

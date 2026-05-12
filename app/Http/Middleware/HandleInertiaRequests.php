@@ -44,8 +44,32 @@ class HandleInertiaRequests extends Middleware
                 'success' => fn () => $request->session()->get('success'),
                 'error'   => fn () => $request->session()->get('error'),
             ],
+            'notifications' => [
+                'pendingCount' => fn () => $this->getPendingCount(),
+            ],
             'settings' => fn () => $this->getOperationalSettings(),
+            'payment_settings' => function () use ($request) {
+                $settings = \App\Models\Setting::get('payment_settings', []);
+                if ($request->user() && $request->user()->role === 'admin') {
+                    return $settings;
+                }
+                // Exclude sensitive keys for public/customers
+                return collect($settings)->except(['midtrans_server_key'])->toArray();
+            },
         ];
+    }
+
+    private function getPendingCount(): int
+    {
+        try {
+            $doorsmeer = \App\Models\DoorsmeerBooking::whereNotIn('status', ['done', 'cancelled'])->count();
+            $bengkel = \App\Models\BengkelBooking::whereNotIn('status', ['done', 'cancelled'])->count();
+            $rental = \App\Models\RentalPsBooking::whereNotIn('status', ['done', 'cancelled'])->count();
+            $store = \App\Models\StoreOrder::whereNotIn('status', ['BERHASIL', 'BATAL'])->count();
+            return $doorsmeer + $bengkel + $rental + $store;
+        } catch (\Exception $e) {
+            return 0;
+        }
     }
 
     /**

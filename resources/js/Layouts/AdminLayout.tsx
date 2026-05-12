@@ -208,13 +208,17 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     </div>
 
                     <div className="flex items-center gap-3 ml-auto">
-                        <button className="w-9 h-9 flex items-center justify-center rounded-venus text-foreground/60 hover:bg-card hover:text-foreground transition-all border border-border">
-                            <IconCalendar />
-                        </button>
-                        <button className="w-9 h-9 flex items-center justify-center rounded-venus text-foreground/60 hover:bg-card hover:text-foreground transition-all border border-border relative">
+                        <Link 
+                            href="/admin/dashboard" 
+                            className="w-9 h-9 flex items-center justify-center rounded-venus text-foreground/60 hover:bg-card hover:text-foreground transition-all border border-border relative"
+                        >
                             <IconBell />
-                            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500" />
-                        </button>
+                            {((usePage().props.notifications as any)?.pendingCount > 0) && (
+                                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center border-2 border-background">
+                                    {(usePage().props.notifications as any).pendingCount}
+                                </span>
+                            )}
+                        </Link>
                         <div className="flex items-center gap-2.5 pl-3 border-l border-border">
                             <span className="text-body-m text-foreground font-semibold">Venus Hub</span>
                             <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-white font-bold text-xs">V</div>

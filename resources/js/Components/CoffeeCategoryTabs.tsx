@@ -9,7 +9,7 @@ interface CoffeeCategoryTabsProps {
 export default function CoffeeCategoryTabs({ activeCategory, categories }: CoffeeCategoryTabsProps) {
     const tabs = [
         { id: 'all', name: 'Semua Menu', href: '/coffee-shop' },
-        ...categories.map(cat => ({
+        ...(categories || []).map(cat => ({
             id: cat,
             name: cat,
             href: `/coffee-shop?category=${encodeURIComponent(cat)}`

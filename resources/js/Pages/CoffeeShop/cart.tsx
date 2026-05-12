@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
 import { useOperationalStatus } from '../../hooks/useOperationalStatus';
@@ -17,6 +17,7 @@ interface CartItem {
 export default function Cart() {
     const [cartItems, setCartItems] = useState<CartItem[]>([]);
     const [isLoaded, setIsLoaded] = useState(false);
+    const { auth } = usePage().props as any;
     const { isOpen, message } = useOperationalStatus('Coffee Shop');
 
     useEffect(() => {
@@ -163,8 +164,11 @@ export default function Cart() {
                                 </div>
 
                                 {isOpen ? (
-                                    <Link href="/coffee-shop/checkout" className="w-full bg-primary text-primary-foreground py-4 rounded-venus text-label-sm tracking-widest text-center hover:bg-primary/90 transition-all font-bold shadow-lg mt-8 uppercase inline-block">
-                                        Lanjut ke Pembayaran
+                                    <Link 
+                                        href={auth?.user ? "/coffee-shop/checkout" : "/login"} 
+                                        className="w-full bg-primary text-primary-foreground py-4 rounded-venus text-label-sm tracking-widest text-center hover:bg-primary/90 transition-all font-bold shadow-lg mt-8 uppercase inline-block"
+                                    >
+                                        {auth?.user ? "Lanjut ke Pembayaran" : "Login untuk Memesan"}
                                     </Link>
                                 ) : (
                                     <div className="w-full bg-surface border border-border text-foreground/40 py-4 rounded-venus text-label-sm tracking-widest text-center font-bold mt-8 shadow-none uppercase cursor-not-allowed">

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
 
@@ -217,7 +217,6 @@ export default function TrackingPage({ order: initialOrder }: Props) {
     return (
         <div className="min-h-screen bg-background flex flex-col">
             <Head title={`Tracking ${order.order_code} – Vape Store`} />
-            <Toaster position="top-center" />
             <Navbar />
 
             <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow w-full">

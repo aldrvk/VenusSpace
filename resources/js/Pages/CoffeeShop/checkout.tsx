@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+declare global { interface Window { snap: any; } }
 import { Head, Link, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import Navbar from '../../Components/Navbar';
@@ -21,9 +22,12 @@ export default function Checkout() {
     const [isLoaded, setIsLoaded] = useState(false);
     const { isOpen, message } = useOperationalStatus('Coffee Shop');
 
-    const { auth } = usePage().props as any;
+    const { auth, payment_settings } = usePage().props as any;
     const customerName = auth?.user?.name || 'Walk-in Customer';
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const qrisPayload = payment_settings?.qris_payload || "00020101021226660011ID.CO.GPN.WWW011893600522000001234502150001020345678900303ID51440014ID1234567890123520459995303360540505802ID5916VenusHub6006Jakarta6304ABCD";
+    const merchantName = payment_settings?.qris_merchant_name || "Venus Hub Store";
 
     useEffect(() => {
         const cart = JSON.parse(localStorage.getItem('venus_cart_coffee') || '[]');
@@ -47,12 +51,46 @@ export default function Checkout() {
                 })),
             });
             
-            // Clear cart
+            const orderCode = res.data.order_code;
+            const orderId = res.data.order_id;
+
+            // If Midtrans is configured and method is QRIS
+            if (paymentMethod === 'qris' && payment_settings?.midtrans_client_key) {
+                try {
+                    const snapRes = await axios.post(`/payment/snap-token/${orderId}`);
+                    const snapToken = snapRes.data.snap_token;
+
+                    if (window.snap) {
+                        window.snap.pay(snapToken, {
+                            onSuccess: function(result: any) {
+                                localStorage.removeItem('venus_cart_coffee');
+                                window.dispatchEvent(new Event('cart_updated'));
+                                window.location.href = `/coffee-shop/receipt?order_code=${orderCode}&method=${paymentMethod}`;
+                            },
+                            onPending: function(result: any) {
+                                localStorage.removeItem('venus_cart_coffee');
+                                window.dispatchEvent(new Event('cart_updated'));
+                                window.location.href = `/coffee-shop/receipt?order_code=${orderCode}&method=${paymentMethod}`;
+                            },
+                            onError: function(result: any) {
+                                console.error("Midtrans error", result);
+                                setIsSubmitting(false);
+                            },
+                            onClose: function() {
+                                setIsSubmitting(false);
+                            }
+                        });
+                        return;
+                    }
+                } catch (snapErr) {
+                    console.error("Failed to get snap token", snapErr);
+                }
+            }
+
+            // Fallback for Cash or if Midtrans fails
             localStorage.removeItem('venus_cart_coffee');
             window.dispatchEvent(new Event('cart_updated'));
-            
-            // Redirect
-            window.location.href = `/coffee-shop/receipt?order_code=${res.data.order_code}&method=${paymentMethod}`;
+            window.location.href = `/coffee-shop/receipt?order_code=${orderCode}&method=${paymentMethod}`;
         } catch (error) {
             console.error("Failed to submit order", error);
             setIsSubmitting(false);
@@ -71,7 +109,14 @@ export default function Checkout() {
 
     return (
         <div className="min-h-screen bg-background flex flex-col">
-            <Head title="Coffee Shop - Checkout" />
+            <Head title="Coffee Shop - Checkout">
+                {payment_settings?.midtrans_client_key && (
+                    <script 
+                        src={payment_settings?.midtrans_is_sandbox ? "https://app.sandbox.midtrans.com/snap/snap.js" : "https://app.midtrans.com/snap/snap.js"} 
+                        data-client-key={payment_settings?.midtrans_client_key}
+                    ></script>
+                )}
+            </Head>
             <Navbar />
 
             <main className="flex-grow max-w-7xl mx-auto px-6 py-12 w-full">
@@ -140,13 +185,22 @@ export default function Checkout() {
 
                             {paymentMethod === 'qris' && (
                                 <div className="mt-8 p-6 bg-surface rounded-2xl border border-dashed border-primary/30 flex flex-col items-center animate-in fade-in slide-in-from-top-4 duration-500">
-                                    <div className="w-48 h-48 bg-white p-4 rounded-xl shadow-inner mb-4">
-                                        {/* Mock QR Code */}
-                                        <div className="w-full h-full bg-neutral-100 flex items-center justify-center border border-neutral-200">
-                                            <svg className="w-32 h-32 text-neutral-300" fill="currentColor" viewBox="0 0 24 24"><path d="M3 3h4v4H3V3zm14 0h4v4h-4V3zM3 17h4v4H3v-4zm14 0h4v4h-4v-4zM8 8H4v2h2v2h2V8zm10 0h-4v2h2v2h2V8zM8 18H4v2h2v2h2v-4zm10 0h-4v2h2v2h2v-4zM10 10h4v4h-4v-4zm0 11h4v-2h-2v-2h-2v4zM2 2h6v6H2V2zm14 0h6v6h-6V2zM2 16h6v6H2v-6zm14 0h6v6h-6v-6zm-7-7h6v6H9V9z"></path></svg>
-                                        </div>
-                                    </div>
-                                    <p className="text-body-reg text-foreground/60 text-center">Scan kode QR di atas dengan aplikasi pembayaran Anda.</p>
+                                     <div className="w-48 h-48 bg-white p-2 rounded-xl shadow-inner mb-6 relative overflow-hidden flex flex-col items-center justify-center border-4 border-primary/20">
+                                         <div className="absolute top-0 left-0 right-0 bg-primary/10 py-1 text-[8px] font-bold text-primary text-center uppercase tracking-widest px-2 truncate">
+                                             {merchantName}
+                                         </div>
+                                         <img 
+                                             src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${qrisPayload.replace('05802ID', `05${Math.round(total).toString().length}${Math.round(total)}5802ID`)}`} 
+                                             alt="QRIS Code"
+                                             className="w-36 h-36 object-contain mt-2"
+                                         />
+                                     </div>
+                                     <div className="flex items-center gap-3 mb-4">
+                                         <img src="https://upload.wikimedia.org/wikipedia/commons/a/a2/Logo_QRIS.svg" alt="QRIS Logo" className="h-6" />
+                                         <div className="h-4 w-[1px] bg-border"></div>
+                                         <p className="text-label-sm font-bold text-super-black">GPN / QRIS Nasional</p>
+                                     </div>
+                                     <p className="text-body-reg text-foreground/60 text-center text-xs">Scan kode QR di atas dengan aplikasi pembayaran Anda (Gopay, OVO, Dana, LinkAja, atau Mobile Banking).</p>
                                 </div>
                             )}
 

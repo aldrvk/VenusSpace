@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
 import StoreClosedBanner from '../../Components/StoreClosedBanner';
@@ -18,6 +18,7 @@ interface CartItem {
 export default function Cart() {
     const [cartItems, setCartItems] = useState<CartItem[]>([]);
     const [isLoaded, setIsLoaded] = useState(false);
+    const { auth } = usePage().props as any;
     const { isOpen, message } = useOperationalStatus('Vape Store');
 
     useEffect(() => {
@@ -165,8 +166,11 @@ export default function Cart() {
                                 </div>
 
                                 {isOpen ? (
-                                    <Link href="/vape-store/checkout" className="w-full bg-primary text-primary-foreground py-4 rounded-venus text-label-sm tracking-widest text-center hover:bg-primary/90 transition-all font-bold shadow-lg mt-8 inline-block uppercase">
-                                        LANJUT KE PEMBAYARAN
+                                    <Link 
+                                        href={auth?.user ? "/vape-store/checkout" : "/login"} 
+                                        className="w-full bg-primary text-primary-foreground py-4 rounded-venus text-label-sm tracking-widest text-center hover:bg-primary/90 transition-all font-bold shadow-lg mt-8 inline-block uppercase"
+                                    >
+                                        {auth?.user ? "LANJUT KE PEMBAYARAN" : "LOGIN UNTUK MEMESAN"}
                                     </Link>
                                 ) : (
                                     <div className="w-full bg-surface border border-border text-foreground/40 py-4 rounded-venus text-label-sm tracking-widest text-center font-bold mt-8 shadow-none uppercase cursor-not-allowed">

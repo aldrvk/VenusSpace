@@ -15,10 +15,17 @@ class SettingsController extends Controller
 
         Setting::set('operational_settings', $validated['operational_settings']);
 
-        if ($request->wantsJson()) {
-            return response()->json(['success' => true, 'message' => 'Pengaturan operasional berhasil disimpan.']);
-        }
-
         return redirect()->back()->with('success', 'Pengaturan operasional berhasil disimpan.');
+    }
+
+    public function updatePayment(Request $request)
+    {
+        $validated = $request->validate([
+            'payment_settings' => 'required|array',
+        ]);
+
+        Setting::set('payment_settings', $validated['payment_settings']);
+
+        return redirect()->back()->with('success', 'Pengaturan pembayaran berhasil disimpan.');
     }
 }

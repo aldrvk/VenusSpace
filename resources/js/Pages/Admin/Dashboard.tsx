@@ -15,122 +15,12 @@ interface Booking {
     id: number;
     customer: string;
     service: string;
-    unit: "DOORSMEER" | "BENGKEL" | "COFFEE SHOP" | "RENTAL PS";
+    unit: "DOORSMEER" | "BENGKEL" | "COFFEE SHOP" | "RENTAL PS" | "VAPE STORE";
     time: string;
-    status: "PENDING" | "SELESAI" | "IN PROGRESS";
+    status: "PENDING" | "SELESAI" | "IN PROGRESS" | "BATAL";
 }
 
-// ── Mock Data ────────────────────────────────────────────────────────────────
-const stats = [
-    {
-        label: "HARI INI",
-        title: "Total Booking",
-        value: "12",
-        icon: (
-            <svg
-                width="22"
-                height="22"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-            >
-                <rect x="3" y="4" width="18" height="18" rx="2" />
-                <line x1="16" y1="2" x2="16" y2="6" />
-                <line x1="8" y1="2" x2="8" y2="6" />
-                <line x1="3" y1="10" x2="21" y2="10" />
-            </svg>
-        ),
-        iconBg: "bg-primary/10 text-primary",
-    },
-    {
-        label: "PENDING",
-        title: "Booking Pending",
-        value: "5",
-        icon: (
-            <svg
-                width="22"
-                height="22"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-            >
-                <circle cx="12" cy="12" r="10" />
-                <polyline points="12 6 12 12 16 14" />
-            </svg>
-        ),
-        iconBg: "bg-orange-100 text-orange-500",
-    },
-    {
-        label: "SELESAI",
-        title: "Booking Selesai",
-        value: "7",
-        icon: (
-            <svg
-                width="22"
-                height="22"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-            >
-                <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
-                <polyline points="22 4 12 14.01 9 11.01" />
-            </svg>
-        ),
-        iconBg: "bg-emerald-100 text-emerald-600",
-    },
-];
-
-const recentBookings: Booking[] = [
-    {
-        id: 1,
-        customer: "Budi Kusuma",
-        service: "Cuci Salju",
-        unit: "DOORSMEER",
-        time: "14:00",
-        status: "PENDING",
-    },
-    {
-        id: 2,
-        customer: "Andi Siregar",
-        service: "Servis Ringan",
-        unit: "BENGKEL",
-        time: "14:30",
-        status: "PENDING",
-    },
-    {
-        id: 3,
-        customer: "Citra Lestari",
-        service: "Americano",
-        unit: "COFFEE SHOP",
-        time: "14:45",
-        status: "SELESAI",
-    },
-    {
-        id: 4,
-        customer: "Doni Pratama",
-        service: "Rental PS5 (2 Jam)",
-        unit: "RENTAL PS",
-        time: "15:00",
-        status: "SELESAI",
-    },
-    {
-        id: 5,
-        customer: "Alex Ferguson",
-        service: "Rental PS5 (1 Jam)",
-        unit: "RENTAL PS",
-        time: "15:10",
-        status: "SELESAI",
-    },
-];
+// Mock data sudah dihapus karena menggunakan data dari database (dbStats & dbRecentBookings)
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 const unitBadgeVariant: Record<
@@ -141,6 +31,7 @@ const unitBadgeVariant: Record<
     BENGKEL: "warning",
     "COFFEE SHOP": "default",
     "RENTAL PS": "warning",
+    "VAPE STORE": "success",
 };
 
 const StatusBadge = ({ status }: { status: Booking["status"] }) => {
@@ -151,8 +42,9 @@ const StatusBadge = ({ status }: { status: Booking["status"] }) => {
         PENDING: "warning",
         SELESAI: "success",
         "IN PROGRESS": "default",
+        BATAL: "danger",
     };
-    return <Badge text={status} variant={variants[status]} />;
+    return <Badge text={status} variant={variants[status] || "default"} />;
 };
 
 const IconEdit = () => (
@@ -220,7 +112,75 @@ const IconPlus = () => (
 );
 
 // ── Page ─────────────────────────────────────────────────────────────────────
-export default function Dashboard() {
+export default function Dashboard({ stats: dbStats, recentBookings: dbRecentBookings }: any) {
+    const displayStats = [
+        {
+            label: "TOTAL BOOKING",
+            title: "Semua Transaksi",
+            value: dbStats?.totalAllTime || "0",
+            icon: (
+                <svg
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                >
+                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+                    <rect x="8" y="2" width="8" height="4" rx="1" />
+                </svg>
+            ),
+            iconBg: "bg-primary/10 text-primary",
+        },
+        {
+            label: "PENDING",
+            title: "Booking Pending",
+            value: dbStats?.pendingToday || "0",
+            icon: (
+                <svg
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                >
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                </svg>
+            ),
+            iconBg: "bg-orange-100 text-orange-500",
+        },
+        {
+            label: "SELESAI",
+            title: "Booking Selesai",
+            value: dbStats?.completedToday || "0",
+            icon: (
+                <svg
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                >
+                    <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
+                </svg>
+            ),
+            iconBg: "bg-emerald-100 text-emerald-600",
+        },
+    ];
+
+    const bookingsToDisplay: Booking[] = dbRecentBookings || [];
+
     return (
         <AdminLayout>
             <Head title="Dashboard – Venus Hub Admin" />
@@ -234,7 +194,7 @@ export default function Dashboard() {
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 mb-6 md:mb-8">
                 {/* Regular stats */}
-                {stats.map((s, i) => (
+                {displayStats.map((s, i) => (
                     <StatCard
                         key={i}
                         label={s.label}
@@ -259,10 +219,10 @@ export default function Dashboard() {
                     </div>
                     <div className="relative">
                         <p className="text-xs md:text-body-reg text-white/60">
-                            Revenue Hari Ini
+                            Total Pendapatan (Selesai)
                         </p>
                         <p className="text-lg md:text-card-title text-white font-bold mt-1">
-                            Rp 2.450.000
+                            Rp {(dbStats?.revenueAllTime || 0).toLocaleString("id-ID")}
                         </p>
                     </div>
                 </div>
@@ -312,85 +272,86 @@ export default function Dashboard() {
                             </tr>
                         </thead>
                         <tbody>
-                            {recentBookings.map((b) => (
-                                <tr
-                                    key={b.id}
-                                    className="border-b border-border/50 hover:bg-background/40 transition-colors flex md:table-row flex-col md:flex-row gap-2 md:gap-0 p-4 md:p-0"
-                                >
-                                    <td
-                                        className="md:px-6 md:py-4 text-foreground/60 before:content-attr(data-label) before:font-bold before:text-foreground/40 before:mr-2 md:before:content-none"
-                                        data-label="NO"
+                            {bookingsToDisplay.length > 0 ? (
+                                bookingsToDisplay.map((b) => (
+                                    <tr
+                                        key={`${b.unit}-${b.id}`}
+                                        className="border-b border-border/50 hover:bg-background/40 transition-colors flex md:table-row flex-col md:flex-row gap-2 md:gap-0 p-4 md:p-0"
                                     >
-                                        {b.id}
-                                    </td>
-                                    <td
-                                        className="md:px-6 md:py-4 text-super-black font-semibold before:content-attr(data-label) before:font-bold before:text-foreground/40 before:mr-2 md:before:content-none"
-                                        data-label="NAMA"
-                                    >
-                                        {b.customer}
-                                    </td>
-                                    <td
-                                        className="md:px-6 md:py-4 text-foreground/70 before:content-attr(data-label) before:font-bold before:text-foreground/40 before:mr-2 md:before:content-none"
-                                        data-label="LAYANAN"
-                                    >
-                                        {b.service}
-                                    </td>
-                                    <td
-                                        className="md:px-6 md:py-4 before:content-attr(data-label) before:font-bold before:text-foreground/40 before:mr-2 md:before:content-none"
-                                        data-label="UNIT"
-                                    >
-                                        <Badge
-                                            text={b.unit}
-                                            variant={unitBadgeVariant[b.unit]}
-                                        />
-                                    </td>
-                                    <td
-                                        className="md:px-6 md:py-4 text-foreground/70 before:content-attr(data-label) before:font-bold before:text-foreground/40 before:mr-2 md:before:content-none"
-                                        data-label="WAKTU"
-                                    >
-                                        {b.time}
-                                    </td>
-                                    <td
-                                        className="md:px-6 md:py-4 before:content-attr(data-label) before:font-bold before:text-foreground/40 before:mr-2 md:before:content-none"
-                                        data-label="STATUS"
-                                    >
-                                        <StatusBadge status={b.status} />
-                                    </td>
-                                    <td
-                                        className="md:px-6 md:py-4 before:content-attr(data-label) before:font-bold before:text-foreground/40 before:mr-2 md:before:content-none"
-                                        data-label="AKSI"
-                                    >
-                                        {b.status === "PENDING" ? (
-                                            <div className="flex items-center gap-2">
-                                                <IconButton
-                                                    icon={<IconEdit />}
-                                                    variant="primary"
-                                                />
-                                                <IconButton
-                                                    icon={<IconX />}
-                                                    variant="danger"
-                                                />
-                                            </div>
-                                        ) : (
-                                            <span className="text-foreground/30 text-xs md:text-body-reg">
-                                                —
-                                            </span>
-                                        )}
+                                        <td
+                                            className="md:px-6 md:py-4 text-foreground/60 before:content-attr(data-label) before:font-bold before:text-foreground/40 before:mr-2 md:before:content-none"
+                                            data-label="NO"
+                                        >
+                                            {b.id}
+                                        </td>
+                                        <td
+                                            className="md:px-6 md:py-4 text-super-black font-semibold before:content-attr(data-label) before:font-bold before:text-foreground/40 before:mr-2 md:before:content-none"
+                                            data-label="NAMA"
+                                        >
+                                            {b.customer}
+                                        </td>
+                                        <td
+                                            className="md:px-6 md:py-4 text-foreground/70 before:content-attr(data-label) before:font-bold before:text-foreground/40 before:mr-2 md:before:content-none"
+                                            data-label="LAYANAN"
+                                        >
+                                            {b.service}
+                                        </td>
+                                        <td
+                                            className="md:px-6 md:py-4 before:content-attr(data-label) before:font-bold before:text-foreground/40 before:mr-2 md:before:content-none"
+                                            data-label="UNIT"
+                                        >
+                                            <Badge
+                                                text={b.unit}
+                                                variant={unitBadgeVariant[b.unit]}
+                                            />
+                                        </td>
+                                        <td
+                                            className="md:px-6 md:py-4 text-foreground/70 before:content-attr(data-label) before:font-bold before:text-foreground/40 before:mr-2 md:before:content-none"
+                                            data-label="WAKTU"
+                                        >
+                                            {b.time}
+                                        </td>
+                                        <td
+                                            className="md:px-6 md:py-4 before:content-attr(data-label) before:font-bold before:text-foreground/40 before:mr-2 md:before:content-none"
+                                            data-label="STATUS"
+                                        >
+                                            <StatusBadge status={b.status} />
+                                        </td>
+                                        <td
+                                            className="md:px-6 md:py-4 before:content-attr(data-label) before:font-bold before:text-foreground/40 before:mr-2 md:before:content-none"
+                                            data-label="AKSI"
+                                        >
+                                            {b.status === "PENDING" ? (
+                                                <div className="flex items-center gap-2">
+                                                    <IconButton
+                                                        icon={<IconEdit />}
+                                                        variant="primary"
+                                                    />
+                                                    <IconButton
+                                                        icon={<IconX />}
+                                                        variant="danger"
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <span className="text-foreground/30 text-xs md:text-body-reg">
+                                                    —
+                                                </span>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={7} className="px-6 py-10 text-center text-foreground/40 italic">
+                                        Belum ada data booking atau pesanan terbaru.
                                     </td>
                                 </tr>
-                            ))}
+                            )}
                         </tbody>
                     </table>
                 </TableResponsive>
             </div>
 
-            {/* FAB */}
-            <button
-                className="fixed bottom-6 md:bottom-8 right-6 md:right-8 w-14 h-14 rounded-full bg-secondary text-white shadow-lg md:shadow-xl flex items-center justify-center hover:bg-secondary/90 hover:scale-105 active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-secondary/30"
-                title="Tambah booking"
-            >
-                <IconPlus />
-            </button>
         </AdminLayout>
     );
 }

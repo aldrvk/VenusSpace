@@ -15,7 +15,7 @@ Route::get('/', function () {
     return Inertia::render('Welcome');
 })->middleware('redirectAdmin');
 
-Route::middleware('redirectAdmin')->group(function () {
+Route::group([], function () {
     // ── Doorsmeer ─────────────────────────────────────────────────────────────────
     Route::get('/doorsmeer', [DoorsmeerBookingController::class, 'index'])->name('doorsmeer.index');
 
@@ -25,29 +25,8 @@ Route::middleware('redirectAdmin')->group(function () {
     // ── Rental PS ─────────────────────────────────────────────────────────────────
     Route::get('/rental-ps', [RentalPsBookingController::class, 'index'])->name('rental-ps.index');
 
-    Route::get('/doorsmeer/booking-detail', function () {
-        return Inertia::render('Doorsmeer/booking_detail');
-    })->name('doorsmeer.booking_detail');
-
-    Route::get('/doorsmeer/booking-receipt', function () {
-        return Inertia::render('Doorsmeer/booking_receipt');
-    })->name('doorsmeer.booking_receipt');
-
-    Route::get('/bengkel/booking-detail', function () {
-        return Inertia::render('Bengkel/booking_detail');
-    })->name('bengkel.booking_detail');
-
-    Route::get('/bengkel/booking-receipt', function () {
-        return Inertia::render('Bengkel/booking_receipt');
-    })->name('bengkel.booking_receipt');
-
-    Route::get('/rental-ps/booking-detail', function () {
-        return Inertia::render('RentalPs/booking_detail');
-    })->name('rental-ps.booking_detail');
-
-    Route::get('/rental-ps/booking-receipt', function () {
-        return Inertia::render('RentalPs/booking_receipt');
-    })->name('rental-ps.booking_receipt');
+    // Index pages are public, but detail/receipt are protected
+    // (Moving them down to the auth group)
 
     Route::get('/vape-store', function () {
         $query = \App\Models\Product::where('unit', 'VAPE STORE');
@@ -77,29 +56,14 @@ Route::middleware('redirectAdmin')->group(function () {
         ]);
     })->name('vape.product');
 
-    Route::get('/vape-store/cart', function () {
-        return Inertia::render('VapeStore/cart');
-    })->name('vape.cart');
+    // Catalog is public, but cart/checkout/receipt are protected below
 
-    Route::get('/vape-store/checkout', function () {
-        return Inertia::render('VapeStore/checkout');
-    })->name('vape.checkout');
-
-    Route::get('/vape-store/receipt', function () {
-        $orderCode = request('order_code');
-        $order = null;
-        if ($orderCode) {
-            $order = \App\Models\StoreOrder::with('items')->where('order_code', $orderCode)->first();
-        }
-        return Inertia::render('VapeStore/receipt', [
-            'order' => $order
-        ]);
-    })->name('vape.receipt');
 
     Route::get('/vape-store/tracking/{code}', [\App\Http\Controllers\StoreOrderController::class, 'tracking'])->name('vape.tracking');
 
     // ── Store Order Submission ───────────────────────────────────────────────────
-    Route::post('/store/order', [\App\Http\Controllers\StoreOrderController::class, 'store'])->name('store.order.create');
+    // Order creation is protected below
+
 
     // ── Coffee Shop ───────────────────────────────────────────────────────────────
     Route::get('/coffee-shop', function () {
@@ -130,24 +94,8 @@ Route::middleware('redirectAdmin')->group(function () {
         ]);
     })->name('coffee.product');
 
-    Route::get('/coffee-shop/cart', function () {
-        return Inertia::render('CoffeeShop/cart');
-    })->name('coffee.cart');
+    // Cart/Checkout/Receipt are protected below
 
-    Route::get('/coffee-shop/checkout', function () {
-        return Inertia::render('CoffeeShop/checkout');
-    })->name('coffee.checkout');
-
-    Route::get('/coffee-shop/receipt', function () {
-        $orderCode = request('order_code');
-        $order = null;
-        if ($orderCode) {
-            $order = \App\Models\StoreOrder::with('items')->where('order_code', $orderCode)->first();
-        }
-        return Inertia::render('CoffeeShop/receipt', [
-            'order' => $order
-        ]);
-    })->name('coffee.receipt');
 
     Route::get('/coffee-shop/tracking/{code}', [\App\Http\Controllers\StoreOrderController::class, 'tracking'])->name('coffee.tracking');
     Route::get('/api/store/status/{code}', [\App\Http\Controllers\StoreOrderController::class, 'statusPoll'])->name('store.status_poll');
@@ -204,14 +152,43 @@ Route::middleware('auth')->group(function () {
         Route::get('/rental-ps/my-bookings', [RentalPsBookingController::class, 'myBookings'])->name('rental-ps.my_bookings');
         Route::get('/api/rental-ps/status/{code}', [RentalPsBookingController::class, 'statusPoll'])->name('rental-ps.status_poll');
 
-        // ── Store Tracking & History (Coffee Shop & Vape Store) ─────────────────────
+        // ── Protected Booking Pages (Redirects to Login if guest) ─────────────────
+        Route::get('/doorsmeer/booking-detail', fn() => Inertia::render('Doorsmeer/booking_detail'))->name('doorsmeer.booking_detail');
+        Route::get('/doorsmeer/booking-receipt', fn() => Inertia::render('Doorsmeer/booking_receipt'))->name('doorsmeer.booking_receipt');
+        
+        Route::get('/bengkel/booking-detail', fn() => Inertia::render('Bengkel/booking_detail'))->name('bengkel.booking_detail');
+        Route::get('/bengkel/booking-receipt', fn() => Inertia::render('Bengkel/booking_receipt'))->name('bengkel.booking_receipt');
+        
+        Route::get('/rental-ps/booking-detail', fn() => Inertia::render('RentalPs/booking_detail'))->name('rental-ps.booking_detail');
+        Route::get('/rental-ps/booking-receipt', fn() => Inertia::render('RentalPs/booking_receipt'))->name('rental-ps.booking_receipt');
+
+        // ── Protected Store Pages ────────────────────────────────────────────────
+        Route::get('/vape-store/cart', fn() => Inertia::render('VapeStore/cart'))->name('vape.cart');
+        Route::get('/vape-store/checkout', fn() => Inertia::render('VapeStore/checkout'))->name('vape.checkout');
+        Route::get('/vape-store/receipt', function () {
+            $orderCode = request('order_code');
+            $order = $orderCode ? \App\Models\StoreOrder::with('items')->where('order_code', $orderCode)->first() : null;
+            return Inertia::render('VapeStore/receipt', ['order' => $order]);
+        })->name('vape.receipt');
+
+        Route::get('/coffee-shop/cart', fn() => Inertia::render('CoffeeShop/cart'))->name('coffee.cart');
+        Route::get('/coffee-shop/checkout', fn() => Inertia::render('CoffeeShop/checkout'))->name('coffee.checkout');
+        Route::get('/coffee-shop/receipt', function () {
+            $orderCode = request('order_code');
+            $order = $orderCode ? \App\Models\StoreOrder::with('items')->where('order_code', $orderCode)->first() : null;
+            return Inertia::render('CoffeeShop/receipt', ['order' => $order]);
+        })->name('coffee.receipt');
+
+        Route::post('/store/order', [\App\Http\Controllers\StoreOrderController::class, 'store'])->name('store.order.create');
+
+        // ── Tracking & My Orders ──────────────────────────────────────────────────
         Route::get('/coffee-shop/my-orders', [\App\Http\Controllers\StoreOrderController::class, 'coffeeMyOrders'])->name('coffee.my_orders');
         Route::get('/vape-store/my-orders', [\App\Http\Controllers\StoreOrderController::class, 'vapeMyOrders'])->name('vape.my_orders');
     });
 
     // ── Admin Routes ──────────────────────────────────────────────────────────
     Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
-        Route::get('/dashboard', fn () => Inertia::render('Admin/Dashboard'))->name('dashboard');
+        Route::get('/dashboard', [\App\Http\Controllers\AdminController::class, 'dashboard'])->name('dashboard');
 
         // Doorsmeer – data dari DB + actions
         Route::get('/booking-doorsmeer', [DoorsmeerBookingController::class, 'adminIndex'])->name('doorsmeer');
@@ -251,12 +228,17 @@ Route::middleware('auth')->group(function () {
         Route::post('/pesanan-store/{order}/progress', [StoreAdminController::class, 'updateProgress'])->name('store.order.progress');
         Route::post('/pesanan-store/{order}/cancel', [StoreAdminController::class, 'cancelOrder'])->name('store.order.cancel');
         Route::get('/jadwal', fn () => Inertia::render('Admin/Jadwal'))->name('jadwal');
-        Route::get('/laporan', fn () => Inertia::render('Admin/Laporan'))->name('laporan');
+        Route::get('/laporan', [\App\Http\Controllers\ReportController::class, 'index'])->name('laporan');
+        Route::get('/laporan/export', [\App\Http\Controllers\ReportController::class, 'exportPdf'])->name('laporan.export');
         Route::get('/pengaturan', fn () => Inertia::render('Admin/Pengaturan'))->name('pengaturan');
         Route::post('/settings/operational', [\App\Http\Controllers\SettingsController::class, 'updateOperational'])->name('settings.operational');
+        Route::post('/settings/payment', [\App\Http\Controllers\SettingsController::class, 'updatePayment'])->name('settings.payment');
     });
 
-    // Logout
-    Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
+    // Midtrans Payment
+    Route::post('/payment/snap-token/{order}', [\App\Http\Controllers\PaymentController::class, 'createSnapToken'])->name('payment.snap-token');
+    Route::post('/payment/notification', [\App\Http\Controllers\PaymentController::class, 'handleNotification'])->name('payment.notification');
 
+    // Logout
+    Route::post('/logout', [\App\Http\Controllers\Auth\LoginController::class, 'destroy'])->name('logout');
 });
