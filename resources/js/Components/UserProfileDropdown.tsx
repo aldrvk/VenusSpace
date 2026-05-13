@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from '@inertiajs/react';
+import ProfileModal from './ProfileModal';
 
 interface UserProfileDropdownProps {
     user: {
@@ -19,6 +20,7 @@ const ExitIcon = () => (
 
 export default function UserProfileDropdown({ user }: UserProfileDropdownProps) {
     const [isOpen, setIsOpen] = useState(false);
+    const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     // Close the dropdown when clicking outside
@@ -62,13 +64,15 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
                         )}
                     </div>
                     
-                    <Link 
-                        href="/profile" 
-                        className="block px-4 py-2 text-body text-foreground hover:bg-background hover:text-primary transition-colors"
-                        onClick={() => setIsOpen(false)}
+                    <button 
+                        className="block w-full text-left px-4 py-2 text-body text-foreground hover:bg-background hover:text-primary transition-colors"
+                        onClick={() => {
+                            setIsOpen(false);
+                            setIsProfileModalOpen(true);
+                        }}
                     >
                         Edit Profile
-                    </Link>
+                    </button>
                     
                     <Link 
                         href="/logout" 
@@ -81,6 +85,15 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
                         Logout
                     </Link>
                 </div>
+            )}
+
+            {/* Modal Edit Profile */}
+            {user && (
+                <ProfileModal 
+                    isOpen={isProfileModalOpen} 
+                    onClose={() => setIsProfileModalOpen(false)} 
+                    user={user as any} 
+                />
             )}
         </div>
     );

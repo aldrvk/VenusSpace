@@ -9,6 +9,8 @@ use App\Http\Controllers\DoorsmeerBookingController;
 use App\Http\Controllers\BengkelBookingController;
 use App\Http\Controllers\RentalPsBookingController;
 use App\Http\Controllers\StoreAdminController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\FavoriteController;
 
 // ── Halaman Utama ──────────────────────────────────────────────────────────────
 Route::get('/', function () {
@@ -56,10 +58,7 @@ Route::group([], function () {
         ]);
     })->name('vape.product');
 
-    // Catalog is public, but cart/checkout/receipt are protected below
-
-
-    Route::get('/vape-store/tracking/{code}', [\App\Http\Controllers\StoreOrderController::class, 'tracking'])->name('vape.tracking');
+    // Catalog is public, but cart/checkout/receipt/tracking are protected below
 
     // ── Store Order Submission ───────────────────────────────────────────────────
     // Order creation is protected below
@@ -94,11 +93,7 @@ Route::group([], function () {
         ]);
     })->name('coffee.product');
 
-    // Cart/Checkout/Receipt are protected below
-
-
-    Route::get('/coffee-shop/tracking/{code}', [\App\Http\Controllers\StoreOrderController::class, 'tracking'])->name('coffee.tracking');
-    Route::get('/api/store/status/{code}', [\App\Http\Controllers\StoreOrderController::class, 'statusPoll'])->name('store.status_poll');
+    // Cart/Checkout/Receipt/Tracking are protected below
 });
 
 // ── Auth: Guest only (belum login) ────────────────────────────────────────────
@@ -128,6 +123,15 @@ Route::middleware('auth')->group(function () {
     })->name('dashboard');
 
     Route::middleware('redirectAdmin')->group(function () {
+        // ── Profile (User) ────────────────────────────────────────────────────────
+        Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+        Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
+
+        // ── Favorites (User) ─────────────────────────────────────────────────────
+        Route::get('/api/favorites', [FavoriteController::class, 'index'])->name('favorites.index');
+        Route::post('/api/favorites/toggle', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
+        Route::post('/api/favorites/merge', [FavoriteController::class, 'merge'])->name('favorites.merge');
+
         // ── Doorsmeer Booking (user) ──────────────────────────────────────────────
         Route::post('/doorsmeer/booking', [DoorsmeerBookingController::class, 'store'])
              ->name('doorsmeer.booking.store');
@@ -182,6 +186,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/store/order', [\App\Http\Controllers\StoreOrderController::class, 'store'])->name('store.order.create');
 
         // ── Tracking & My Orders ──────────────────────────────────────────────────
+        Route::get('/vape-store/tracking/{code}', [\App\Http\Controllers\StoreOrderController::class, 'tracking'])->name('vape.tracking');
+        Route::get('/coffee-shop/tracking/{code}', [\App\Http\Controllers\StoreOrderController::class, 'tracking'])->name('coffee.tracking');
+        Route::get('/api/store/status/{code}', [\App\Http\Controllers\StoreOrderController::class, 'statusPoll'])->name('store.status_poll');
+        
         Route::get('/coffee-shop/my-orders', [\App\Http\Controllers\StoreOrderController::class, 'coffeeMyOrders'])->name('coffee.my_orders');
         Route::get('/vape-store/my-orders', [\App\Http\Controllers\StoreOrderController::class, 'vapeMyOrders'])->name('vape.my_orders');
     });

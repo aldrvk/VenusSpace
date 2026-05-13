@@ -31,6 +31,12 @@ export default function Receipt({ order }: Props) {
 
     useEffect(() => {
         setIsLoaded(true);
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('print') === 'true') {
+            setTimeout(() => {
+                window.print();
+            }, 500);
+        }
     }, []);
 
     if (!isLoaded) return null;
@@ -64,10 +70,10 @@ export default function Receipt({ order }: Props) {
             <Navbar />
 
             <main className="flex-grow max-w-3xl mx-auto px-6 py-16 w-full">
-                <div className="bg-card rounded-venus border border-border shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="bg-card rounded-venus border border-border shadow-2xl overflow-hidden">
                     {/* Receipt Header */}
-                    <div className={`bg-primary p-8 text-center text-primary-foreground`}>
-                        <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <div className="bg-primary p-8 text-center text-primary-foreground">
+                        <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 no-print">
                             <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
                         </div>
                         <h1 className="text-h2 uppercase tracking-widest font-bold">
@@ -93,6 +99,22 @@ export default function Receipt({ order }: Props) {
                             </div>
                         </div>
 
+                        {/* Customer & Payment Info */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 border-b border-border pb-8">
+                            <div>
+                                <p className="text-label-sm text-foreground/40 uppercase tracking-widest mb-1">Pelanggan</p>
+                                <p className="text-body-m font-bold text-super-black">{order.customer_name}</p>
+                            </div>
+                            <div>
+                                <p className="text-label-sm text-foreground/40 uppercase tracking-widest mb-1">Pembayaran</p>
+                                <p className="text-body-m font-bold text-super-black uppercase">{order.payment_method}</p>
+                            </div>
+                            <div>
+                                <p className="text-label-sm text-foreground/40 uppercase tracking-widest mb-1">Unit</p>
+                                <p className="text-body-m font-bold text-super-black">Coffee Shop</p>
+                            </div>
+                        </div>
+
                         {/* Items List */}
                         <div className="space-y-4">
                             <p className="text-label-sm text-foreground/40 uppercase tracking-widest">Rincian Menu</p>
@@ -104,7 +126,7 @@ export default function Receipt({ order }: Props) {
                                         </div>
                                         <div>
                                             <p className="text-body-m font-bold text-super-black">{item.name}</p>
-                                            <p className="text-label-sm text-foreground/50">{formatPrice(item.price)}</p>
+                                            <p className="text-label-sm text-foreground/50">@ {formatPrice(item.price)}</p>
                                         </div>
                                     </div>
                                     <span className="text-body-m font-bold text-super-black">{formatPrice(parseFloat(item.price) * item.quantity)}</span>
@@ -112,12 +134,27 @@ export default function Receipt({ order }: Props) {
                             ))}
                         </div>
 
-                        {/* Total */}
-                        <div className="border-t-2 border-dashed border-border pt-6 mt-6">
+                        {/* Subtotal & Total */}
+                        <div className="border-t-2 border-dashed border-border pt-6 mt-6 space-y-3">
                             <div className="flex justify-between items-center">
+                                <span className="text-body-m text-foreground/60">Subtotal ({order.items.reduce((sum, i) => sum + i.quantity, 0)} item)</span>
+                                <span className="text-body-m text-super-black">{formatPrice(order.total)}</span>
+                            </div>
+                            <div className="flex justify-between items-center pt-3 border-t border-border">
                                 <span className="text-h3 text-super-black uppercase tracking-widest font-bold">Total Pembayaran</span>
                                 <span className="text-h2 text-secondary">{formatPrice(order.total)}</span>
                             </div>
+                        </div>
+
+                        {/* Status Badge */}
+                        <div className="text-center py-2">
+                            <span className={`inline-block px-6 py-2 rounded-full text-label-sm font-bold uppercase tracking-widest ${
+                                isSelesai 
+                                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
+                                    : 'bg-amber-50 text-amber-700 border border-amber-200'
+                            }`}>
+                                {isSelesai ? '✓ LUNAS' : '⏳ MENUNGGU PEMBAYARAN'}
+                            </span>
                         </div>
 
                         {/* Footer Info */}
@@ -127,7 +164,7 @@ export default function Receipt({ order }: Props) {
                                     ? 'Tunjukkan bukti pesanan ini kepada petugas kami di toko saat pengambilan.' 
                                     : 'Tunjukkan nomor pesanan ini kepada kasir untuk memproses pesanan dan melakukan pembayaran.'}
                             </p>
-                            <div className="pt-4 flex justify-center gap-4">
+                            <div className="pt-4 flex justify-center gap-4 no-print">
                                 <button onClick={() => window.print()} className="px-6 py-2 border border-border rounded-full text-label-sm hover:bg-white transition-colors uppercase font-bold">Cetak</button>
                                 <Link href="/coffee-shop" className="px-6 py-2 bg-super-black text-white rounded-full text-label-sm hover:bg-super-black/80 transition-colors uppercase font-bold">Kembali Belanja</Link>
                             </div>

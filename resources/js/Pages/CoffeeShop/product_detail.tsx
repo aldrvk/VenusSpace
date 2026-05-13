@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
 import Card from '../../Components/Card/Card';
+import { useFavorites } from '../../hooks/useFavorites';
 
 interface Product {
     id: number;
@@ -26,6 +27,8 @@ export default function ProductDetail({ product, recommendations }: Props) {
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
     const [quantity, setQuantity] = useState(1);
     const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
+    const { isFavorited, toggleFavorite } = useFavorites();
+    const [favAnimating, setFavAnimating] = useState(false);
 
     useEffect(() => {
         if (product.options && Object.keys(product.options).length > 0) {
@@ -185,8 +188,31 @@ export default function ProductDetail({ product, recommendations }: Props) {
                                 TAMBAHKAN KE PESANAN — {formatPrice(product.price * quantity)}
                                 <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                             </button>
-                            <button className="w-14 h-14 flex items-center justify-center border border-border rounded-full text-foreground hover:bg-surface hover:text-error transition-all">
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            <button 
+                                onClick={() => {
+                                    const { action } = toggleFavorite(product.id, {
+                                        name: product.name,
+                                        price: product.price,
+                                        image: product.image,
+                                    });
+                                    setFavAnimating(true);
+                                    setTimeout(() => setFavAnimating(false), 400);
+                                    toast.success(action === 'added' ? 'Ditambahkan ke Favorit' : 'Dihapus dari Favorit');
+                                }}
+                                className={`w-14 h-14 flex items-center justify-center border rounded-full transition-all duration-300 ${
+                                    isFavorited(product.id)
+                                        ? 'bg-error/10 border-error/30 text-error'
+                                        : 'border-border text-foreground hover:bg-surface hover:text-error'
+                                }`}
+                            >
+                                <svg 
+                                    className={`w-6 h-6 transition-transform duration-300 ${favAnimating ? 'scale-125' : 'scale-100'}`} 
+                                    fill={isFavorited(product.id) ? 'currentColor' : 'none'} 
+                                    stroke="currentColor" 
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                </svg>
                             </button>
                         </div>
                     </div>

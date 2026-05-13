@@ -1,8 +1,9 @@
 import { Link, usePage } from "@inertiajs/react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import ButtonInitiate from "./Buttons/ButtonInitiate";
 import UserProfileDropdown from "./UserProfileDropdown";
 import { useFlashToast } from "../hooks/useFlashToast";
+import { useFavorites } from "../hooks/useFavorites";
 
 interface NavbarProps {
     onOpenAuthModal?: (type: "login" | "register") => void;
@@ -19,6 +20,20 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps = {}) {
     const isCoffeeShop = url.startsWith('/coffee-shop');
     
     const [cartCount, setCartCount] = useState(0);
+    const { favoriteIds, favoriteMeta, toggleFavorite } = useFavorites();
+    const [favOpen, setFavOpen] = useState(false);
+    const favRef = useRef<HTMLDivElement>(null);
+
+    // Close favorites dropdown on outside click
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (favRef.current && !favRef.current.contains(e.target as Node)) {
+                setFavOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     useEffect(() => {
         if (!isVapeStore && !isCoffeeShop) return;
@@ -84,9 +99,103 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps = {}) {
                     {/* CTA & AUTH LOGIC */}
                     <div className="flex items-center space-x-4 md:space-x-6">
                         
+                        {/* Favorites Icon */}
+                        {(isVapeStore || isCoffeeShop) && (
+                            <div ref={favRef} className="relative">
+                                <button
+                                    onClick={() => setFavOpen(prev => !prev)}
+                                    aria-label="Favorites"
+                                    className="relative text-foreground hover:text-error transition-colors flex items-center"
+                                >
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill={favoriteIds.length > 0 ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={favoriteIds.length > 0 ? 'text-error' : ''}>
+                                        <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                    </svg>
+                                    {favoriteIds.length > 0 && (
+                                        <span className="absolute -top-1 -right-2 min-w-[18px] h-[18px] bg-error text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-background">
+                                            {favoriteIds.length}
+                                        </span>
+                                    )}
+                                </button>
+
+                                {/* Favorites Dropdown */}
+                                {favOpen && (
+                                    <div className="absolute right-0 top-full mt-3 w-80 bg-card rounded-venus border border-border shadow-2xl z-50 overflow-hidden">
+                                        <div className="p-4 border-b border-border flex items-center justify-between">
+                                            <h3 className="text-h4 text-super-black">Favorit Saya</h3>
+                                            <span className="text-label-sm text-foreground/50">{favoriteIds.length} item</span>
+                                        </div>
+                                        <div className="max-h-64 overflow-y-auto">
+                                            {favoriteIds.length === 0 ? (
+                                                <div className="p-6 text-center">
+                                                    <svg className="w-10 h-10 mx-auto text-foreground/20 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                                    </svg>
+                                                    <p className="text-body-reg text-foreground/40">Belum ada produk favorit</p>
+                                                </div>
+                                            ) : (
+                                                favoriteIds.map(id => {
+                                                    const meta = favoriteMeta[id];
+                                                    const formatPrice = (p: number) => 'Rp' + p.toLocaleString('id-ID');
+                                                    return (
+                                                        <div key={id} className="flex items-center justify-between px-4 py-3 hover:bg-surface transition-colors border-b border-border/30 last:border-0">
+                                                            <Link
+                                                                href={`${isVapeStore ? '/vape-store' : '/coffee-shop'}/product/${id}`}
+                                                                className="flex-1 mr-3 min-w-0"
+                                                                onClick={() => setFavOpen(false)}
+                                                            >
+                                                                <p className="text-body-m font-semibold text-super-black hover:text-primary transition-colors truncate">
+                                                                    {meta?.name || `Produk #${id}`}
+                                                                </p>
+                                                                {meta?.price && (
+                                                                    <p className="text-label-sm text-foreground/50 mt-0.5">{formatPrice(meta.price)}</p>
+                                                                )}
+                                                            </Link>
+                                                            <button
+                                                                onClick={() => toggleFavorite(id)}
+                                                                className="text-error hover:text-error/70 transition-colors shrink-0 p-1"
+                                                                aria-label="Hapus dari favorit"
+                                                            >
+                                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                                                </svg>
+                                                            </button>
+                                                        </div>
+                                                    );
+                                                })
+                                            )}
+                                        </div>
+                                        {favoriteIds.length > 0 && (
+                                            <div className="p-3 border-t border-border bg-surface/50">
+                                                <Link
+                                                    href={isVapeStore ? '/vape-store' : '/coffee-shop'}
+                                                    className="block text-center text-label-sm text-primary hover:text-primary/80 font-bold transition-colors"
+                                                    onClick={() => setFavOpen(false)}
+                                                >
+                                                    LIHAT DI KATALOG
+                                                </Link>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
                         {/* Cart Icon */}
                         {(isVapeStore || isCoffeeShop) && (
-                            <Link href={isVapeStore ? "/vape-store/cart" : "/coffee-shop/cart"} aria-label="Cart" className="relative text-foreground hover:text-primary transition-colors flex items-center">
+                            <Link 
+                                href={auth?.user ? (isVapeStore ? "/vape-store/cart" : "/coffee-shop/cart") : "/login"} 
+                                onClick={(e) => {
+                                    if (!auth?.user) {
+                                        if (onOpenAuthModal) {
+                                            e.preventDefault();
+                                            onOpenAuthModal("login");
+                                        }
+                                    }
+                                }}
+                                aria-label="Cart" 
+                                className="relative text-foreground hover:text-primary transition-colors flex items-center"
+                            >
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <circle cx="9" cy="21" r="1"></circle>
                                     <circle cx="20" cy="21" r="1"></circle>

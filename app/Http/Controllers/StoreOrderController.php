@@ -58,7 +58,10 @@ class StoreOrderController extends Controller
 
     public function tracking(string $code)
     {
-        $order = StoreOrder::with('items')->where('order_code', $code)->firstOrFail();
+        $order = StoreOrder::with('items')
+            ->where('order_code', $code)
+            ->where('user_id', auth()->id())
+            ->firstOrFail();
 
         $view = $order->unit === 'COFFEE SHOP' ? 'CoffeeShop/tracking' : 'VapeStore/tracking';
 
@@ -95,7 +98,9 @@ class StoreOrderController extends Controller
 
     public function statusPoll(string $code)
     {
-        $order = StoreOrder::where('order_code', $code)->firstOrFail();
+        $order = StoreOrder::where('order_code', $code)
+            ->where('user_id', auth()->id())
+            ->firstOrFail();
 
         return response()->json([
             'progress_status' => $order->progress_status,

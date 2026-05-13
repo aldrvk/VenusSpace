@@ -209,6 +209,22 @@ export default function TrackingPage({ order: initialOrder }: Props) {
 
     const currentStepIndex = getStepIndex(order.progress_status);
     
+    const handlePrintReceipt = () => {
+        const iframe = document.createElement('iframe');
+        iframe.style.position = 'absolute';
+        iframe.style.width = '0px';
+        iframe.style.height = '0px';
+        iframe.style.border = 'none';
+        iframe.src = `/vape-store/receipt?order_code=${order.order_code}&print=true`;
+        document.body.appendChild(iframe);
+        
+        setTimeout(() => {
+            if (document.body.contains(iframe)) {
+                document.body.removeChild(iframe);
+            }
+        }, 10000);
+    };
+    
     const formatPrice = (price: string | number) => {
         const numPrice = typeof price === 'string' ? parseFloat(price) : price;
         return 'Rp' + numPrice.toLocaleString('id-ID');
@@ -335,7 +351,13 @@ export default function TrackingPage({ order: initialOrder }: Props) {
 
                     <div className="space-y-4">
                         <div className="bg-card border border-border rounded-venus p-5">
-                            <p className="text-label-sm text-foreground/50 uppercase mb-3">Detail Pesanan</p>
+                            <div className="flex justify-between items-center mb-3">
+                                <p className="text-label-sm text-foreground/50 uppercase">Detail Pesanan</p>
+                                <button onClick={handlePrintReceipt} className="px-4 py-1.5 border border-border rounded-full text-label-sm hover:bg-surface transition-colors uppercase font-bold flex items-center gap-1.5 no-print">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                                    Cetak
+                                </button>
+                            </div>
                             
                             <div className="space-y-3 mb-4">
                                 {order.items.map(item => (
