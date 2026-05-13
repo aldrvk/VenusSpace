@@ -5,6 +5,7 @@ import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
 import ProductDetailButton from '../../Components/ProductDetailButton';
 import Card from '../../Components/Card/Card';
+import { useFavorites } from '../../hooks/useFavorites';
 
 interface Product {
     id: number;
@@ -27,6 +28,8 @@ export default function ProductDetail({ product, recommendations }: Props) {
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
     const [quantity, setQuantity] = useState(1);
     const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
+    const { isFavorited, toggleFavorite } = useFavorites();
+    const [favAnimating, setFavAnimating] = useState(false);
 
     // Initialize default options
     useEffect(() => {
@@ -86,7 +89,7 @@ export default function ProductDetail({ product, recommendations }: Props) {
             <Head title={`Vape Store - ${product.name}`} />
             <Navbar />
 
-            <main className="max-w-7xl mx-auto px-6 py-8 flex-grow">
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 flex-grow">
                 {/* Breadcrumbs */}
                 <div className="flex items-center gap-2 mb-8 text-label-sm text-foreground/60 uppercase">
                     <Link href="/vape-store" className="hover:text-primary transition-colors">{product.category}</Link>
@@ -94,7 +97,7 @@ export default function ProductDetail({ product, recommendations }: Props) {
                     <span className="text-foreground font-bold">{product.name}</span>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 mb-24">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 mb-12 lg:mb-24">
                     {/* Left Column: Images */}
                     <div className="space-y-6">
                         <div className="bg-surface rounded-venus aspect-[4/5] relative flex items-center justify-center overflow-hidden border border-border shadow-2xl">
@@ -177,16 +180,40 @@ export default function ProductDetail({ product, recommendations }: Props) {
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-4 mt-4">
+                        <div className="flex items-center gap-3 sm:gap-4 mt-4">
                             <button 
                                 onClick={handleAddToCart}
-                                className="flex-1 bg-secondary hover:bg-secondary/90 text-secondary-foreground h-14 rounded-full flex items-center justify-center gap-3 transition-all shadow-lg text-label-sm tracking-widest font-bold group"
+                                className="flex-1 bg-secondary hover:bg-secondary/90 text-secondary-foreground h-12 sm:h-14 rounded-full flex items-center justify-center gap-2 sm:gap-3 transition-all shadow-lg text-[10px] sm:text-label-sm tracking-widest font-bold group"
                             >
-                                TAMBAHKAN KE PESANAN — {formatPrice(product.price * quantity)}
-                                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                                <span className="hidden sm:inline">TAMBAHKAN KE PESANAN — {formatPrice(product.price * quantity)}</span>
+                                <span className="sm:hidden">TAMBAH — {formatPrice(product.price * quantity)}</span>
+                                <svg className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                             </button>
-                            <button className="w-14 h-14 flex items-center justify-center border border-border rounded-full text-foreground hover:bg-surface hover:text-error transition-all">
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            <button 
+                                onClick={() => {
+                                    const { action } = toggleFavorite(product.id, {
+                                        name: product.name,
+                                        price: product.price,
+                                        image: product.image,
+                                    });
+                                    setFavAnimating(true);
+                                    setTimeout(() => setFavAnimating(false), 400);
+                                    toast.success(action === 'added' ? 'Ditambahkan ke Favorit' : 'Dihapus dari Favorit');
+                                }}
+                                className={`w-14 h-14 flex items-center justify-center border rounded-full transition-all duration-300 ${
+                                    isFavorited(product.id)
+                                        ? 'bg-error/10 border-error/30 text-error'
+                                        : 'border-border text-foreground hover:bg-surface hover:text-error'
+                                }`}
+                            >
+                                <svg 
+                                    className={`w-6 h-6 transition-transform duration-300 ${favAnimating ? 'scale-125' : 'scale-100'}`} 
+                                    fill={isFavorited(product.id) ? 'currentColor' : 'none'} 
+                                    stroke="currentColor" 
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                </svg>
                             </button>
                         </div>
                     </div>
