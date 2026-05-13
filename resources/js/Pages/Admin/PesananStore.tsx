@@ -180,15 +180,13 @@ export default function PesananStore({ orders, filters: searchFilters }: Props) 
 
     const handleConfirmPayment = (orderId: number | string) => {
         router.post(`/admin/pesanan-store/${orderId}/confirm`, {}, {
-            preserveScroll: true,
-            onSuccess: () => toast.success('Pembayaran dikonfirmasi')
+            preserveScroll: true
         });
     };
 
     const handleUpdateProgress = (orderId: number | string, newStatus: string) => {
         router.post(`/admin/pesanan-store/${orderId}/progress`, { progress_status: newStatus }, {
-            preserveScroll: true,
-            onSuccess: () => toast.success('Status pesanan diperbarui')
+            preserveScroll: true
         });
     };
 
@@ -208,7 +206,6 @@ export default function PesananStore({ orders, filters: searchFilters }: Props) 
         router.post(`/admin/pesanan-store/${cancelOrderId}/cancel`, { reason: cancelReason }, {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('Pesanan dibatalkan');
                 setIsCancelModalOpen(false);
             }
         });
