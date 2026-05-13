@@ -145,6 +145,41 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE TYPOGRAPHY — Scale headings for smaller screens
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .text-h1 {
+    font-size: 2rem !important;
+    line-height: 1.15 !important;
+  }
+  .text-h2 {
+    font-size: 1.5rem !important;
+    line-height: 1.2 !important;
+  }
+  .text-h3 {
+    font-size: 1.125rem !important;
+    line-height: 1.3 !important;
+  }
+  .text-card-title {
+    font-size: 1.25rem !important;
+  }
+  .text-body-l {
+    font-size: 1rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .text-h1 {
+    font-size: 1.75rem !important;
+    line-height: 1.15 !important;
+  }
+  .text-h2 {
+    font-size: 1.25rem !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
    PRINT STYLES — Clean, Professional Receipt/Bill Output
    ═══════════════════════════════════════════════════════════════════════════ */
 

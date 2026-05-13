@@ -89,7 +89,7 @@ export default function ProductDetail({ product, recommendations }: Props) {
             <Head title={`Coffee Shop - ${product.name}`} />
             <Navbar />
 
-            <main className="max-w-7xl mx-auto px-6 py-8 flex-grow">
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 flex-grow">
                 {/* Breadcrumbs */}
                 <div className="flex items-center gap-2 mb-8 text-label-sm text-foreground/60 uppercase">
                     <Link href="/coffee-shop" className="hover:text-primary transition-colors">{product.category}</Link>
@@ -97,7 +97,7 @@ export default function ProductDetail({ product, recommendations }: Props) {
                     <span className="text-foreground font-bold">{product.name}</span>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 mb-24">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 mb-12 lg:mb-24">
                     {/* Left Column: Images */}
                     <div className="space-y-6">
                         <div className="bg-surface rounded-venus aspect-[4/5] relative flex items-center justify-center overflow-hidden border border-border shadow-2xl">
@@ -180,13 +180,14 @@ export default function ProductDetail({ product, recommendations }: Props) {
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-4 mt-4">
+                        <div className="flex items-center gap-3 sm:gap-4 mt-4">
                             <button 
                                 onClick={handleAddToCart}
-                                className="flex-1 bg-secondary hover:bg-secondary/90 text-secondary-foreground h-14 rounded-full flex items-center justify-center gap-3 transition-all shadow-lg text-label-sm tracking-widest font-bold group"
+                                className="flex-1 bg-secondary hover:bg-secondary/90 text-secondary-foreground h-12 sm:h-14 rounded-full flex items-center justify-center gap-2 sm:gap-3 transition-all shadow-lg text-[10px] sm:text-label-sm tracking-widest font-bold group"
                             >
-                                TAMBAHKAN KE PESANAN — {formatPrice(product.price * quantity)}
-                                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                                <span className="hidden sm:inline">TAMBAHKAN KE PESANAN — {formatPrice(product.price * quantity)}</span>
+                                <span className="sm:hidden">TAMBAH — {formatPrice(product.price * quantity)}</span>
+                                <svg className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                             </button>
                             <button 
                                 onClick={() => {

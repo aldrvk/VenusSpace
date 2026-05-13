@@ -69,10 +69,10 @@ export default function Receipt({ order }: Props) {
             <Head title="Coffee Shop - Bukti Pesanan" />
             <Navbar />
 
-            <main className="flex-grow max-w-3xl mx-auto px-6 py-16 w-full">
+            <main className="flex-grow max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-16 w-full">
                 <div className="bg-card rounded-venus border border-border shadow-2xl overflow-hidden">
                     {/* Receipt Header */}
-                    <div className="bg-primary p-8 text-center text-primary-foreground">
+                    <div className="bg-primary p-5 sm:p-8 text-center text-primary-foreground">
                         <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 no-print">
                             <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
                         </div>
@@ -86,7 +86,7 @@ export default function Receipt({ order }: Props) {
                         </p>
                     </div>
 
-                    <div className="p-8 space-y-8">
+                    <div className="p-4 sm:p-8 space-y-6 sm:space-y-8">
                         {/* Order Info */}
                         <div className="flex flex-col md:flex-row justify-between gap-6 border-b border-border pb-8">
                             <div>

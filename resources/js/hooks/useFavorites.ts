@@ -4,6 +4,7 @@ import axios from 'axios';
 
 const LOCAL_STORAGE_KEY = 'venus_favorites';
 const LOCAL_STORAGE_META_KEY = 'venus_favorites_meta';
+const FAVORITES_EVENT = 'favorites_updated';
 
 export interface FavoriteMeta {
     id: number;
@@ -17,6 +18,7 @@ export interface FavoriteMeta {
  * - Guest users: persisted in localStorage
  * - Logged-in users: persisted in database via API
  * - Auto-merges localStorage favorites to DB upon login
+ * - Cross-component sync via custom event (same pattern as cart_updated)
  */
 export function useFavorites() {
     const { auth } = usePage<any>().props;
@@ -25,42 +27,65 @@ export function useFavorites() {
     const [favoriteMeta, setFavoriteMeta] = useState<Record<number, FavoriteMeta>>({});
     const [isLoading, setIsLoading] = useState(true);
 
-    // ── Load favorites on mount / auth change ──────────────────────────────────
-    useEffect(() => {
+    // ── Sync helper — reads current state from localStorage/API ────────────────
+    const syncFromSource = useCallback(() => {
         if (user) {
-            // Logged in: check for localStorage favorites to merge, then fetch from DB
-            const localFavs = getLocalFavorites();
-            if (localFavs.length > 0) {
-                // Merge local favorites to DB
-                axios.post('/api/favorites/merge', { product_ids: localFavs })
-                    .then(res => {
-                        setFavoriteIds(res.data.favorites);
-                        // Merge local meta into state
-                        const localMeta = getLocalFavoriteMeta();
-                        setFavoriteMeta(prev => ({ ...prev, ...localMeta }));
-                        clearLocalFavorites();
-                    })
-                    .catch(() => {
-                        // Fallback: just fetch from DB
-                        fetchFromApi();
-                    })
-                    .finally(() => setIsLoading(false));
-            } else {
-                fetchFromApi();
-            }
+            axios.get('/api/favorites')
+                .then(res => {
+                    setFavoriteIds(res.data.favorites);
+                    // Also load cached meta from localStorage
+                    setFavoriteMeta(getLocalFavoriteMeta());
+                })
+                .catch(() => {})
+                .finally(() => setIsLoading(false));
         } else {
-            // Guest: load from localStorage
             setFavoriteIds(getLocalFavorites());
             setFavoriteMeta(getLocalFavoriteMeta());
             setIsLoading(false);
         }
     }, [user?.id]);
 
-    const fetchFromApi = useCallback(() => {
-        axios.get('/api/favorites')
-            .then(res => setFavoriteIds(res.data.favorites))
-            .catch(() => {})
-            .finally(() => setIsLoading(false));
+    // ── Load favorites on mount / auth change ──────────────────────────────────
+    useEffect(() => {
+        if (user) {
+            const localFavs = getLocalFavorites();
+            if (localFavs.length > 0) {
+                axios.post('/api/favorites/merge', { product_ids: localFavs })
+                    .then(res => {
+                        setFavoriteIds(res.data.favorites);
+                        const localMeta = getLocalFavoriteMeta();
+                        setFavoriteMeta(prev => ({ ...prev, ...localMeta }));
+                        clearLocalFavoriteIds();
+                    })
+                    .catch(() => {
+                        syncFromSource();
+                    })
+                    .finally(() => setIsLoading(false));
+            } else {
+                syncFromSource();
+            }
+        } else {
+            setFavoriteIds(getLocalFavorites());
+            setFavoriteMeta(getLocalFavoriteMeta());
+            setIsLoading(false);
+        }
+    }, [user?.id]);
+
+    // ── Listen for cross-component sync events ─────────────────────────────────
+    useEffect(() => {
+        const handleFavoritesUpdated = () => {
+            // Re-read from localStorage (always has cached data)
+            setFavoriteIds(getLocalFavorites());
+            setFavoriteMeta(getLocalFavoriteMeta());
+        };
+
+        window.addEventListener(FAVORITES_EVENT, handleFavoritesUpdated);
+        return () => window.removeEventListener(FAVORITES_EVENT, handleFavoritesUpdated);
+    }, []);
+
+    // ── Broadcast change to other component instances ──────────────────────────
+    const broadcastUpdate = useCallback(() => {
+        window.dispatchEvent(new CustomEvent(FAVORITES_EVENT));
     }, []);
 
     // ── Toggle favorite ────────────────────────────────────────────────────────
@@ -73,48 +98,50 @@ export function useFavorites() {
             const newIds = favoriteIds.filter(id => id !== productId);
             setFavoriteIds(newIds);
 
-            // Remove meta
+            // Remove meta from state
             setFavoriteMeta(prev => {
                 const next = { ...prev };
                 delete next[productId];
                 return next;
             });
 
+            // Always update localStorage (acts as cross-component cache)
+            saveLocalFavorites(newIds);
+            removeLocalFavoriteMeta(productId);
+
             if (user) {
                 axios.post('/api/favorites/toggle', { product_id: productId }).catch(() => {
-                    // Revert on error
                     setFavoriteIds(prev => [...prev, productId]);
                 });
-            } else {
-                saveLocalFavorites(newIds);
-                removeLocalFavoriteMeta(productId);
             }
+
+            // Broadcast to other components (e.g. Navbar)
+            broadcastUpdate();
         } else {
             // Optimistic add
             const newIds = [...favoriteIds, productId];
             setFavoriteIds(newIds);
 
-            // Save meta if provided
-            if (meta) {
-                const fullMeta: FavoriteMeta = { id: productId, ...meta };
-                setFavoriteMeta(prev => ({ ...prev, [productId]: fullMeta }));
-                if (!user) {
-                    saveLocalFavoriteMeta(productId, fullMeta);
-                }
-            }
+            // Save meta
+            const fullMeta: FavoriteMeta = { id: productId, name: meta?.name || `Produk #${productId}`, price: meta?.price || 0, image: meta?.image };
+            setFavoriteMeta(prev => ({ ...prev, [productId]: fullMeta }));
+
+            // Always update localStorage (acts as cross-component cache)
+            saveLocalFavorites(newIds);
+            saveLocalFavoriteMeta(productId, fullMeta);
 
             if (user) {
                 axios.post('/api/favorites/toggle', { product_id: productId }).catch(() => {
-                    // Revert on error
                     setFavoriteIds(prev => prev.filter(id => id !== productId));
                 });
-            } else {
-                saveLocalFavorites(newIds);
             }
+
+            // Broadcast to other components (e.g. Navbar)
+            broadcastUpdate();
         }
 
         return { action };
-    }, [favoriteIds, user]);
+    }, [favoriteIds, user, broadcastUpdate]);
 
     // ── Check if a product is favorited ────────────────────────────────────────
     const isFavorited = useCallback((productId: number): boolean => {
@@ -144,9 +171,8 @@ function saveLocalFavorites(ids: number[]): void {
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(ids));
 }
 
-function clearLocalFavorites(): void {
+function clearLocalFavoriteIds(): void {
     localStorage.removeItem(LOCAL_STORAGE_KEY);
-    localStorage.removeItem(LOCAL_STORAGE_META_KEY);
 }
 
 function getLocalFavoriteMeta(): Record<number, FavoriteMeta> {
