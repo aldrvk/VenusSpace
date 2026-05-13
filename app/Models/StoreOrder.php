@@ -7,6 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 class StoreOrder extends Model
 {
     protected $guarded = [];
+    
+    protected $casts = [
+        'done_at' => 'datetime',
+    ];
 
     public function items()
     {
