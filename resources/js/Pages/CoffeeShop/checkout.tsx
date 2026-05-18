@@ -18,7 +18,7 @@ interface CartItem {
 
 export default function Checkout() {
     const [cartItems, setCartItems] = useState<CartItem[]>([]);
-    const [paymentMethod, setPaymentMethod] = useState<'cash' | 'qris'>('qris');
+    const [paymentMethod, setPaymentMethod] = useState<'cash' | 'qris' | 'transfer'>('qris');
     const [isLoaded, setIsLoaded] = useState(false);
     const { isOpen, message } = useOperationalStatus('Coffee Shop');
 
@@ -28,6 +28,9 @@ export default function Checkout() {
 
     const qrisPayload = payment_settings?.qris_payload || "00020101021226660011ID.CO.GPN.WWW011893600522000001234502150001020345678900303ID51440014ID1234567890123520459995303360540505802ID5916VenusHub6006Jakarta6304ABCD";
     const merchantName = payment_settings?.qris_merchant_name || "Venus Hub Store";
+    const bankName = payment_settings?.bank_name || "Bank Mandiri";
+    const bankAccountName = payment_settings?.bank_account_name || "Venus Hub";
+    const bankAccountNumber = payment_settings?.bank_account_number || "123-00-1234567-8";
 
     useEffect(() => {
         const cart = JSON.parse(localStorage.getItem('venus_cart_coffee') || '[]');
@@ -151,7 +154,7 @@ export default function Checkout() {
                                 <h2 className="text-h3 text-super-black">Metode Pembayaran</h2>
                             </div>
                             
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 {/* QRIS Option */}
                                 <button 
                                     onClick={() => setPaymentMethod('qris')}
@@ -164,6 +167,21 @@ export default function Checkout() {
                                     <div className="text-center">
                                         <p className="text-card-title text-super-black">QRIS</p>
                                         <p className="text-label-sm text-foreground/50 uppercase tracking-widest mt-1">Pembayaran Instan</p>
+                                    </div>
+                                </button>
+
+                                {/* Transfer Bank Option */}
+                                <button 
+                                    onClick={() => setPaymentMethod('transfer')}
+                                    className={`relative p-6 rounded-venus border-2 transition-all flex flex-col items-center gap-4 ${paymentMethod === 'transfer' ? 'border-primary bg-primary/5 shadow-md' : 'border-border bg-surface hover:border-primary/50'}`}
+                                >
+                                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center absolute top-4 right-4 ${paymentMethod === 'transfer' ? 'border-primary' : 'border-border'}`}>
+                                        {paymentMethod === 'transfer' && <div className="w-3 h-3 bg-primary rounded-full"></div>}
+                                    </div>
+                                    <svg className={`w-12 h-12 ${paymentMethod === 'transfer' ? 'text-primary' : 'text-foreground/40'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                                    <div className="text-center">
+                                        <p className="text-card-title text-super-black">Transfer</p>
+                                        <p className="text-label-sm text-foreground/50 uppercase tracking-widest mt-1">Manual Verifikasi</p>
                                     </div>
                                 </button>
 
@@ -210,6 +228,36 @@ export default function Checkout() {
                                         <svg className="w-6 h-6 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                         <p className="text-body-reg">Silakan lanjutkan pemesanan dan tunjukkan nomor pesanan Anda ke barista/kasir untuk melakukan pembayaran tunai.</p>
                                     </div>
+                                </div>
+                            )}
+
+                            {paymentMethod === 'transfer' && (
+                                <div className="mt-8 p-6 bg-surface rounded-2xl border border-dashed border-primary/30 flex flex-col items-center animate-in fade-in slide-in-from-top-4 duration-500">
+                                    <div className="bg-white p-6 rounded-xl shadow-inner w-full max-w-sm mb-4 border border-border">
+                                        <p className="text-label-sm text-foreground/50 uppercase tracking-widest mb-1 text-center">Transfer ke Rekening</p>
+                                        <p className="text-h3 text-super-black text-center mb-4">{bankName}</p>
+                                        
+                                        <div className="bg-surface rounded-lg p-4 flex items-center justify-between mb-4 border border-border/50">
+                                            <div className="font-mono text-h4 text-super-black tracking-widest">{bankAccountNumber}</div>
+                                            <button 
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(bankAccountNumber);
+                                                    alert('Nomor rekening disalin!');
+                                                }}
+                                                className="text-primary hover:text-primary/80 transition-colors"
+                                                title="Salin Nomor Rekening"
+                                            >
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                            </button>
+                                        </div>
+                                        
+                                        <p className="text-center text-body-m text-foreground/70">
+                                            a.n. <strong className="text-super-black">{bankAccountName}</strong>
+                                        </p>
+                                    </div>
+                                    <p className="text-body-reg text-foreground/60 text-center text-xs max-w-sm">
+                                        Lakukan transfer sesuai total pesanan. Setelah selesai, konfirmasi pesanan ini dan hubungi admin atau kasir untuk verifikasi.
+                                    </p>
                                 </div>
                             )}
                         </div>

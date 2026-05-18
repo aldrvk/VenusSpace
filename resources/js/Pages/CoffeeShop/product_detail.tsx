@@ -118,7 +118,7 @@ export default function ProductDetail({ product, recommendations }: Props) {
                     <div className="flex flex-col justify-center">
                         <div className="mb-6">
                             <span className="inline-block bg-surface px-3 py-1 rounded-full text-label-sm text-foreground mb-4">
-                                {product.tag}
+                                {product.category}
                             </span>
                             <h1 className="text-h1 mb-6 text-super-black uppercase tracking-tight">{product.name}</h1>
                             <p className="text-body-l text-foreground/80 mb-8 max-w-lg">
@@ -183,7 +183,7 @@ export default function ProductDetail({ product, recommendations }: Props) {
                         <div className="flex items-center gap-3 sm:gap-4 mt-4">
                             <button 
                                 onClick={handleAddToCart}
-                                className="flex-1 bg-secondary hover:bg-secondary/90 text-secondary-foreground h-12 sm:h-14 rounded-full flex items-center justify-center gap-2 sm:gap-3 transition-all shadow-lg text-[10px] sm:text-label-sm tracking-widest font-bold group"
+                                className="flex-1 bg-secondary hover:bg-secondary/90 !text-white h-12 sm:h-14 rounded-full flex items-center justify-center gap-2 sm:gap-3 transition-all shadow-lg text-[10px] sm:text-label-sm tracking-widest font-bold group"
                             >
                                 <span className="hidden sm:inline">TAMBAHKAN KE PESANAN — {formatPrice(product.price * quantity)}</span>
                                 <span className="sm:hidden">TAMBAH — {formatPrice(product.price * quantity)}</span>
