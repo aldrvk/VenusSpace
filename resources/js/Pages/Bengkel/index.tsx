@@ -147,8 +147,13 @@ export default function BengkelIndex() {
     }, [queueCount, availablePits, servicingCount]);
 
     const handleConfirm = () => {
+        const platRegex = /^[A-Za-z]{1,2}\s?\d{1,4}\s?[A-Za-z]{1,3}$/;
         if (!licensePlate.trim()) {
             setPlateError('Nomor plat wajib diisi.');
+            return;
+        }
+        if (!platRegex.test(licensePlate.trim())) {
+            setPlateError('Format plat tidak valid (contoh: BK 1234 ABC).');
             return;
         }
 

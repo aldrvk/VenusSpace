@@ -46,8 +46,8 @@ function statusDot(status: string) {
 const SERVICE_FEE = 5000;
 
 export default function MyBookings({ bookings }: Props) {
-    const active = bookings.filter(b => b.status !== 'done');
-    const history = bookings.filter(b => b.status === 'done');
+    const active = bookings.filter(b => b.status !== 'done' && b.status !== 'cancelled');
+    const history = bookings.filter(b => b.status === 'done' || b.status === 'cancelled');
 
     return (
         <div className="min-h-screen bg-background flex flex-col">

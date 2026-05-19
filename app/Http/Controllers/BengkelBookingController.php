@@ -37,7 +37,9 @@ class BengkelBookingController extends Controller
             'service_price'    => 'required|integer|min:0',
             'service_duration' => 'required|string',
             'vehicle_class'    => 'required|string',
-            'license_plate'    => 'required|string|max:20',
+            'license_plate'    => ['required', 'string', 'max:15', 'regex:/^[A-Za-z]{1,2}\s?\d{1,4}\s?[A-Za-z]{1,3}$/'],
+        ], [
+            'license_plate.regex' => 'Format plat nomor tidak valid (contoh: BK 1234 ABC).'
         ]);
 
         $booking = BengkelBooking::create([
@@ -184,9 +186,11 @@ class BengkelBookingController extends Controller
             'service_price'    => 'required|integer|min:0',
             'service_duration' => 'required|string',
             'vehicle_class'    => 'required|string',
-            'license_plate'    => 'required|string|max:20',
+            'license_plate'    => ['required', 'string', 'max:15', 'regex:/^[A-Za-z]{1,2}\s?\d{1,4}\s?[A-Za-z]{1,3}$/'],
             'customer_name'    => 'required|string|max:50',
             'customer_email'   => 'nullable|email|max:50',
+        ], [
+            'license_plate.regex' => 'Format plat nomor tidak valid (contoh: BK 1234 ABC).'
         ]);
 
         $booking = BengkelBooking::create([
