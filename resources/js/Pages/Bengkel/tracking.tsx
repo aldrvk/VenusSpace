@@ -397,11 +397,11 @@ export default function TrackingPage({ booking: initialBooking, showAd: shouldSh
     }, [adOpen]);
 
     const STATUS_TOAST: Partial<Record<string, { msg: string; type: 'success' | 'error' | 'loading' | 'default' }>> = {
-        verified:  { msg: '✅ Kedatangan Anda dikonfirmasi! Menunggu pit...', type: 'success' },
-        in_queue:  { msg: '📋 Kendaraan Anda masuk ke antrian.', type: 'default' },
-        servicing:   { msg: '🚿 Proses pencucian kendaraan Anda dimulai!', type: 'default' },
-        done:      { msg: '🎉 Kendaraan Anda sudah selesai! Silakan ambil.', type: 'success' },
-        cancelled: { msg: '❌ Booking Anda dibatalkan.', type: 'error' },
+        verified:  { msg: 'Kedatangan Anda dikonfirmasi! Menunggu pit...', type: 'success' },
+        in_queue:  { msg: 'Kendaraan Anda masuk ke antrian.', type: 'default' },
+        servicing: { msg: 'Proses pencucian kendaraan Anda dimulai!', type: 'default' },
+        done:      { msg: 'Kendaraan Anda sudah selesai! Silakan ambil.', type: 'success' },
+        cancelled: { msg: 'Booking Anda dibatalkan.', type: 'error' },
     };
 
     useEffect(() => {
@@ -433,7 +433,7 @@ export default function TrackingPage({ booking: initialBooking, showAd: shouldSh
                         };
                         if (toastCfg.type === 'success') toast.success(toastCfg.msg, opts);
                         else if (toastCfg.type === 'error') toast.error(toastCfg.msg, opts);
-                        else toast(toastCfg.msg, { ...opts, icon: '🔔' });
+                        else toast(toastCfg.msg, opts);
                     }
                 }
             } catch (_) { /* silent */ }
@@ -572,7 +572,7 @@ export default function TrackingPage({ booking: initialBooking, showAd: shouldSh
                                             </svg>
                                         </div>
                                         <div>
-                                            <p className="text-h4 text-emerald-700 font-bold">Kendaraan Siap Diambil! 🎉</p>
+                                            <p className="text-h4 text-emerald-700 font-bold">Kendaraan Siap Diambil!</p>
                                             <p className="text-body-reg text-emerald-600 mt-1">Proses pencucian telah selesai. Silakan ambil kendaraan Anda di area bengkel.</p>
                                         </div>
                                     </div>

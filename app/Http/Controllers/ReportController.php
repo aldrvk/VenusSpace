@@ -112,7 +112,7 @@ class ReportController extends Controller
                     'unit' => $item->unit === 'VAPE STORE' ? 'Vape Store' : 'Coffee Shop',
                     'service' => $serviceName,
                     'amount' => $item->total,
-                    'status' => $item->status === 'BERHASIL' ? 'Lunas' : ($item->status === 'BATAL' || $item->progress_status === 'cancelled' ? 'Batal' : 'Pending'),
+                    'status' => ($item->status === 'BERHASIL' || $item->progress_status === 'completed') ? 'Lunas' : ($item->status === 'BATAL' || $item->progress_status === 'cancelled' ? 'Batal' : 'Pending'),
                     'created_at' => $item->created_at,
                 ];
             });
@@ -201,7 +201,7 @@ class ReportController extends Controller
                     ->filter(function($item) use ($hour) {
                         return Carbon::parse($item['created_at'])->format('H') == $hour;
                     })->count();
-                $chartData[] = ['label' => $hour, 'value' => $count];
+                $chartData[] = ['label' => $hour . ':00', 'value' => $count];
             }
         } else {
             $current = $startDate->copy();

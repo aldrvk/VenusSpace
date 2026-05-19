@@ -55,7 +55,9 @@ export default function Receipt({ order }: Props) {
         return 'Rp' + numPrice.toLocaleString('id-ID');
     };
 
-    const isSelesai = order.status === 'BERHASIL';
+    const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
+    const urlStatus = params.get('status');
+    const isSelesai = order.status === 'BERHASIL' || urlStatus === 'success' || urlStatus === 'settlement';
     const date = new Date(order.created_at).toLocaleDateString('id-ID', {
         day: 'numeric',
         month: 'long',
@@ -153,7 +155,7 @@ export default function Receipt({ order }: Props) {
                                     ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
                                     : 'bg-amber-50 text-amber-700 border border-amber-200'
                             }`}>
-                                {isSelesai ? '✓ LUNAS' : '⏳ MENUNGGU PEMBAYARAN'}
+                                {isSelesai ? 'LUNAS' : 'MENUNGGU PEMBAYARAN'}
                             </span>
                         </div>
 

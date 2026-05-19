@@ -18,7 +18,7 @@ interface CartItem {
 
 export default function Checkout() {
     const [cartItems, setCartItems] = useState<CartItem[]>([]);
-    const [paymentMethod, setPaymentMethod] = useState<'cash' | 'qris' | 'transfer'>('qris');
+    const [paymentMethod, setPaymentMethod] = useState<'cash' | 'qris'>('qris');
     const [isLoaded, setIsLoaded] = useState(false);
     const { isOpen, message } = useOperationalStatus('Vape Store');
 
@@ -66,14 +66,23 @@ export default function Checkout() {
                     if (window.snap) {
                         window.snap.pay(snapToken, {
                             onSuccess: function(result: any) {
-                                localStorage.removeItem('venus_cart');
-                                window.dispatchEvent(new Event('cart_updated'));
-                                window.location.href = `/vape-store/receipt?order_code=${orderCode}&method=${paymentMethod}`;
+                                axios.post(`/payment/local-success/${orderCode}`)
+                                    .then(() => {
+                                        localStorage.removeItem('venus_cart');
+                                        window.dispatchEvent(new Event('cart_updated'));
+                                        window.location.href = `/vape-store/receipt?order_code=${orderCode}&method=${paymentMethod}&status=success`;
+                                    })
+                                    .catch(err => {
+                                        console.error("Failed to update status locally", err);
+                                        localStorage.removeItem('venus_cart');
+                                        window.dispatchEvent(new Event('cart_updated'));
+                                        window.location.href = `/vape-store/receipt?order_code=${orderCode}&method=${paymentMethod}&status=success`;
+                                    });
                             },
                             onPending: function(result: any) {
                                 localStorage.removeItem('venus_cart');
                                 window.dispatchEvent(new Event('cart_updated'));
-                                window.location.href = `/vape-store/receipt?order_code=${orderCode}&method=${paymentMethod}`;
+                                window.location.href = `/vape-store/receipt?order_code=${orderCode}&method=${paymentMethod}&status=pending`;
                             },
                             onError: function(result: any) {
                                 console.error("Midtrans error", result);
@@ -154,7 +163,7 @@ export default function Checkout() {
                                 <h2 className="text-h3 text-super-black">Payment Method</h2>
                             </div>
                             
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {/* QRIS Option */}
                                 <button 
                                     onClick={() => setPaymentMethod('qris')}
@@ -165,23 +174,12 @@ export default function Checkout() {
                                     </div>
                                     <svg className={`w-12 h-12 ${paymentMethod === 'qris' ? 'text-primary' : 'text-foreground/40'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
                                     <div className="text-center">
-                                        <p className="text-card-title text-super-black">QRIS</p>
-                                        <p className="text-label-sm text-foreground/50 uppercase tracking-widest mt-1">Pembayaran Instan</p>
-                                    </div>
-                                </button>
-
-                                {/* Transfer Bank Option */}
-                                <button 
-                                    onClick={() => setPaymentMethod('transfer')}
-                                    className={`relative p-6 rounded-venus border-2 transition-all flex flex-col items-center gap-4 ${paymentMethod === 'transfer' ? 'border-primary bg-primary/5 shadow-md' : 'border-border bg-surface hover:border-primary/50'}`}
-                                >
-                                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center absolute top-4 right-4 ${paymentMethod === 'transfer' ? 'border-primary' : 'border-border'}`}>
-                                        {paymentMethod === 'transfer' && <div className="w-3 h-3 bg-primary rounded-full"></div>}
-                                    </div>
-                                    <svg className={`w-12 h-12 ${paymentMethod === 'transfer' ? 'text-primary' : 'text-foreground/40'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
-                                    <div className="text-center">
-                                        <p className="text-card-title text-super-black">Transfer</p>
-                                        <p className="text-label-sm text-foreground/50 uppercase tracking-widest mt-1">Manual Verifikasi</p>
+                                        <p className="text-card-title text-super-black">
+                                            {payment_settings?.midtrans_client_key ? 'Pembayaran Online' : 'QRIS'}
+                                        </p>
+                                        <p className="text-label-sm text-foreground/50 uppercase tracking-widest mt-1">
+                                            {payment_settings?.midtrans_client_key ? 'Instan via Midtrans' : 'Pembayaran Instan'}
+                                        </p>
                                     </div>
                                 </button>
 
@@ -202,24 +200,36 @@ export default function Checkout() {
                             </div>
 
                             {paymentMethod === 'qris' && (
-                                <div className="mt-8 p-6 bg-surface rounded-2xl border border-dashed border-primary/30 flex flex-col items-center animate-in fade-in slide-in-from-top-4 duration-500">
-                                    <div className="w-48 h-48 bg-white p-2 rounded-xl shadow-inner mb-6 relative overflow-hidden flex flex-col items-center justify-center border-4 border-primary/20">
-                                        <div className="absolute top-0 left-0 right-0 bg-primary/10 py-1 text-[8px] font-bold text-primary text-center uppercase tracking-widest px-2 truncate">
-                                            {merchantName}
+                                payment_settings?.midtrans_client_key ? (
+                                    <div className="mt-8 p-6 bg-surface rounded-2xl border border-dashed border-primary/30 flex flex-col items-center animate-in fade-in slide-in-from-top-4 duration-500">
+                                        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center text-primary mb-4">
+                                            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                                         </div>
-                                        <img 
-                                            src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${qrisPayload.replace('05802ID', `05${Math.round(total).toString().length}${Math.round(total)}5802ID`)}`} 
-                                            alt="QRIS Code"
-                                            className="w-36 h-36 object-contain mt-2"
-                                        />
+                                        <p className="text-body-m font-bold text-super-black mb-2">Pembayaran Online Aman via Midtrans</p>
+                                        <p className="text-body-reg text-foreground/60 text-center text-xs max-w-sm">
+                                            Mendukung Gopay, ShopeePay, QRIS, Virtual Account, dll. Pop-up pembayaran aman Midtrans akan otomatis muncul setelah Anda menekan tombol <strong>Konfirmasi Pesanan</strong>.
+                                        </p>
                                     </div>
-                                    <div className="flex items-center gap-3 mb-4">
-                                        <img src="https://upload.wikimedia.org/wikipedia/commons/a/a2/Logo_QRIS.svg" alt="QRIS Logo" className="h-6" />
-                                        <div className="h-4 w-[1px] bg-border"></div>
-                                        <p className="text-label-sm font-bold text-super-black">GPN / QRIS Nasional</p>
+                                ) : (
+                                    <div className="mt-8 p-6 bg-surface rounded-2xl border border-dashed border-primary/30 flex flex-col items-center animate-in fade-in slide-in-from-top-4 duration-500">
+                                        <div className="w-48 h-48 bg-white p-2 rounded-xl shadow-inner mb-6 relative overflow-hidden flex flex-col items-center justify-center border-4 border-primary/20">
+                                            <div className="absolute top-0 left-0 right-0 bg-primary/10 py-1 text-[8px] font-bold text-primary text-center uppercase tracking-widest px-2 truncate">
+                                                {merchantName}
+                                            </div>
+                                            <img 
+                                                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${qrisPayload.replace('05802ID', `05${Math.round(total).toString().length}${Math.round(total)}5802ID`)}`} 
+                                                alt="QRIS Code"
+                                                className="w-36 h-36 object-contain mt-2"
+                                            />
+                                        </div>
+                                        <div className="flex items-center gap-3 mb-4">
+                                            <img src="https://upload.wikimedia.org/wikipedia/commons/a/a2/Logo_QRIS.svg" alt="QRIS Logo" className="h-6" />
+                                            <div className="h-4 w-[1px] bg-border"></div>
+                                            <p className="text-label-sm font-bold text-super-black">GPN / QRIS Nasional</p>
+                                        </div>
+                                        <p className="text-body-reg text-foreground/60 text-center text-xs">Scan kode QR di atas dengan aplikasi pembayaran Anda (Gopay, OVO, Dana, LinkAja, atau Mobile Banking).</p>
                                     </div>
-                                    <p className="text-body-reg text-foreground/60 text-center text-xs">Scan kode QR di atas dengan aplikasi pembayaran Anda (Gopay, OVO, Dana, LinkAja, atau Mobile Banking).</p>
-                                </div>
+                                )
                             )}
 
                             {paymentMethod === 'cash' && (
@@ -231,35 +241,6 @@ export default function Checkout() {
                                 </div>
                             )}
 
-                            {paymentMethod === 'transfer' && (
-                                <div className="mt-8 p-6 bg-surface rounded-2xl border border-dashed border-primary/30 flex flex-col items-center animate-in fade-in slide-in-from-top-4 duration-500">
-                                    <div className="bg-white p-6 rounded-xl shadow-inner w-full max-w-sm mb-4 border border-border">
-                                        <p className="text-label-sm text-foreground/50 uppercase tracking-widest mb-1 text-center">Transfer ke Rekening</p>
-                                        <p className="text-h3 text-super-black text-center mb-4">{bankName}</p>
-                                        
-                                        <div className="bg-surface rounded-lg p-4 flex items-center justify-between mb-4 border border-border/50">
-                                            <div className="font-mono text-h4 text-super-black tracking-widest">{bankAccountNumber}</div>
-                                            <button 
-                                                onClick={() => {
-                                                    navigator.clipboard.writeText(bankAccountNumber);
-                                                    alert('Nomor rekening disalin!');
-                                                }}
-                                                className="text-primary hover:text-primary/80 transition-colors"
-                                                title="Salin Nomor Rekening"
-                                            >
-                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                                            </button>
-                                        </div>
-                                        
-                                        <p className="text-center text-body-m text-foreground/70">
-                                            a.n. <strong className="text-super-black">{bankAccountName}</strong>
-                                        </p>
-                                    </div>
-                                    <p className="text-body-reg text-foreground/60 text-center text-xs max-w-sm">
-                                        Lakukan transfer sesuai total pesanan. Setelah selesai, konfirmasi pesanan ini dan hubungi admin atau kasir untuk verifikasi.
-                                    </p>
-                                </div>
-                            )}
                         </div>
                     </div>
 

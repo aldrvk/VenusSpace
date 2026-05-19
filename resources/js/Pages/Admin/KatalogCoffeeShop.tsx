@@ -28,14 +28,31 @@ interface MenuItem {
 
 type FilterTab = "Semua" | "Kopi" | "Non-Kopi" | "Makanan";
 
-interface Props {
-    products: MenuItem[];
-    categories: string[];
+interface PaginatedProducts {
+    data: MenuItem[];
+    links: { url: string | null; label: string; active: boolean }[];
+    current_page: number;
+    last_page: number;
+    total: number;
 }
 
-export default function KatalogCoffeeShop({ products = [], categories = [] }: Props) {
-    const [activeFilter, setActiveFilter] = useState<FilterTab>("Semua");
-    const [search, setSearch] = useState("");
+interface Props {
+    products: PaginatedProducts;
+    categories: string[];
+    filters?: { search?: string; category?: string };
+    stats: {
+        total_products: number;
+        total_sold: number;
+        out_of_stock: number;
+        est_revenue: number;
+    };
+}
+
+import { Link } from "@inertiajs/react";
+
+export default function KatalogCoffeeShop({ products, categories = [], filters: urlFilters, stats }: Props) {
+    const [activeFilter, setActiveFilter] = useState<FilterTab>((urlFilters?.category as FilterTab) || "Semua");
+    const [search, setSearch] = useState(urlFilters?.search || "");
     const [isProductModalOpen, setIsProductModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState<MenuItem | null>(null);
@@ -151,19 +168,13 @@ export default function KatalogCoffeeShop({ products = [], categories = [] }: Pr
 
     const filters = ["Semua", ...categories];
 
-    const filtered = products.filter((item) => {
-        const matchCat =
-            activeFilter === "Semua" || item.category === activeFilter;
-        const matchSearch = item.name
-            .toLowerCase()
-            .includes(search.toLowerCase());
-        return matchCat && matchSearch;
-    });
+    const productData: MenuItem[] = Array.isArray(products) ? products : (products?.data || []);
+    const filtered = productData;
 
-    const totalItems = products.length;
-    const totalSold = products.reduce((s, i) => s + i.sold, 0);
-    const habisCount = products.filter((i) => i.stock === "Habis").length;
-    const revenue = products.reduce((s, i) => s + i.price * i.sold, 0);
+    const totalItems = stats.total_products;
+    const totalSold = stats.total_sold;
+    const habisCount = stats.out_of_stock;
+    const revenue = stats.est_revenue;
 
     return (
         <AdminLayout>
@@ -205,8 +216,8 @@ export default function KatalogCoffeeShop({ products = [], categories = [] }: Pr
                         color: "bg-amber-50 text-amber-600",
                     },
                     {
-                        label: "Total Terjual Hari Ini",
-                        value: totalSold,
+                        label: "Total Terjual",
+                        value: `${totalSold} pcs`,
                         icon: "📦",
                         color: "bg-primary/10 text-primary",
                     },
@@ -247,13 +258,27 @@ export default function KatalogCoffeeShop({ products = [], categories = [] }: Pr
                 <FilterTabs
                     tabs={filters}
                     active={activeFilter}
-                    onChange={(tab) => setActiveFilter(tab as FilterTab)}
+                    onChange={(tab) => {
+                        setActiveFilter(tab as FilterTab);
+                        router.get(
+                            window.location.pathname,
+                            { search: search, category: tab !== 'Semua' ? tab : undefined },
+                            { preserveState: true }
+                        );
+                    }}
                 />
                 <div className="flex-1 md:max-w-xs">
                     <SearchInput
                         placeholder="Cari menu..."
                         value={search}
-                        onChange={setSearch}
+                        onChange={(val) => {
+                            setSearch(val);
+                            router.get(
+                                window.location.pathname,
+                                { search: val, category: activeFilter !== 'Semua' ? activeFilter : undefined },
+                                { preserveState: true, replace: true }
+                            );
+                        }}
                     />
                 </div>
             </div>
@@ -391,10 +416,31 @@ export default function KatalogCoffeeShop({ products = [], categories = [] }: Pr
                         </tbody>
                     </table>
                 </div>
-                <div className="px-4 md:px-6 py-3 border-t border-border text-xs md:text-body-m">
-                    <p className="text-foreground/40">
-                        Menampilkan {filtered.length} dari {totalItems} menu
+                <div className="px-4 md:px-6 py-4 border-t border-border flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <p className="text-foreground/40 text-xs md:text-body-m text-center md:text-left">
+                        Menampilkan {filtered.length} dari {(products as any).total ?? productData.length} menu
                     </p>
+
+                    {/* Pagination */}
+                    {!Array.isArray(products) && products.links && products.links.length > 3 && (
+                        <div className="flex items-center justify-center gap-1">
+                            {products.links.map((link, idx) => (
+                                <Link
+                                    key={idx}
+                                    href={link.url || '#'}
+                                    className={`px-3 py-1 text-xs md:text-sm rounded-md transition-colors ${
+                                        link.active 
+                                            ? 'bg-primary text-white font-bold' 
+                                            : link.url 
+                                                ? 'text-foreground/60 hover:bg-border' 
+                                                : 'text-foreground/30 cursor-not-allowed'
+                                    }`}
+                                    dangerouslySetInnerHTML={{ __html: link.label }}
+                                    preserveScroll
+                                />
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
 

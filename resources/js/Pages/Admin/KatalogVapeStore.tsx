@@ -34,14 +34,31 @@ const statusBadge: Record<Product["stock"], string> = {
     Habis: "bg-red-100 text-red-600 border border-red-200",
 };
 
-interface Props {
-    products: Product[];
-    categories: string[];
+interface PaginatedProducts {
+    data: Product[];
+    links: { url: string | null; label: string; active: boolean }[];
+    current_page: number;
+    last_page: number;
+    total: number;
 }
 
-export default function KatalogVapeStore({ products = [], categories = [] }: Props) {
-    const [activeFilter, setActiveFilter] = useState<FilterTab>("Semua");
-    const [search, setSearch] = useState("");
+interface Props {
+    products: PaginatedProducts;
+    categories: string[];
+    filters?: { search?: string; category?: string };
+    stats: {
+        total_products: number;
+        total_sold: number;
+        out_of_stock: number;
+        est_revenue: number;
+    };
+}
+
+import { Link } from "@inertiajs/react";
+
+export default function KatalogVapeStore({ products, categories = [], filters: urlFilters, stats }: Props) {
+    const [activeFilter, setActiveFilter] = useState<FilterTab>((urlFilters?.category as FilterTab) || "Semua");
+    const [search, setSearch] = useState(urlFilters?.search || "");
     const [isProductModalOpen, setIsProductModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -158,13 +175,8 @@ export default function KatalogVapeStore({ products = [], categories = [] }: Pro
 
     const filters = ["Semua", ...categories];
 
-    const filtered = products.filter((p) => {
-        const matchCat =
-            activeFilter === "Semua" || p.category === activeFilter;
-        const matchSearch =
-            p.name.toLowerCase().includes(search.toLowerCase());
-        return matchCat && matchSearch;
-    });
+    const productData: Product[] = Array.isArray(products) ? products : (products?.data || []);
+    const filtered = productData;
 
     return (
         <AdminLayout>
@@ -199,25 +211,25 @@ export default function KatalogVapeStore({ products = [], categories = [] }: Pro
                 {[
                     {
                         label: "Total Produk",
-                        value: products.length,
+                        value: stats.total_products,
                         emoji: "🛒",
                         color: "bg-secondary/10 text-secondary",
                     },
                     {
                         label: "Total Terjual",
-                        value: `${products.reduce((s, p) => s + p.sold, 0)} pcs`,
+                        value: `${stats.total_sold} pcs`,
                         emoji: "📦",
                         color: "bg-primary/10 text-primary",
                     },
                     {
                         label: "Produk Habis",
-                        value: products.filter((p) => p.stock === "Habis").length,
+                        value: stats.out_of_stock,
                         emoji: "⚠️",
                         color: "bg-red-50 text-red-500",
                     },
                     {
                         label: "Est. Nilai Terjual",
-                        value: `Rp ${(products.reduce((s, p) => s + p.price * p.sold, 0) / 1000000).toFixed(1)}jt`,
+                        value: `Rp ${(stats.est_revenue / 1000000).toFixed(1)}jt`,
                         emoji: "💎",
                         color: "bg-emerald-50 text-emerald-600",
                     },
@@ -246,13 +258,27 @@ export default function KatalogVapeStore({ products = [], categories = [] }: Pro
                 <FilterTabs
                     tabs={filters}
                     active={activeFilter}
-                    onChange={(tab) => setActiveFilter(tab as FilterTab)}
+                    onChange={(tab) => {
+                        setActiveFilter(tab as FilterTab);
+                        router.get(
+                            window.location.pathname,
+                            { search: search, category: tab !== 'Semua' ? tab : undefined },
+                            { preserveState: true }
+                        );
+                    }}
                 />
                 <div className="flex-1 md:max-w-xs">
                     <SearchInput
                         placeholder="Cari produk atau brand..."
                         value={search}
-                        onChange={setSearch}
+                        onChange={(val) => {
+                            setSearch(val);
+                            router.get(
+                                window.location.pathname,
+                                { search: val, category: activeFilter !== 'Semua' ? activeFilter : undefined },
+                                { preserveState: true, replace: true }
+                            );
+                        }}
                     />
                 </div>
             </div>
@@ -367,11 +393,31 @@ export default function KatalogVapeStore({ products = [], categories = [] }: Pro
                         </tbody>
                     </table>
                 </div>
-                <div className="px-6 py-3 border-t border-border">
-                    <p className="text-body-reg text-foreground/40">
-                        Menampilkan {filtered.length} dari {products.length}{" "}
-                        produk
+                <div className="px-6 py-4 border-t border-border flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <p className="text-body-reg text-foreground/40 text-center md:text-left">
+                        Menampilkan {filtered.length} dari {(products as any).total ?? productData.length} produk
                     </p>
+
+                    {/* Pagination */}
+                    {!Array.isArray(products) && products.links && products.links.length > 3 && (
+                        <div className="flex items-center justify-center gap-1">
+                            {products.links.map((link, idx) => (
+                                <Link
+                                    key={idx}
+                                    href={link.url || '#'}
+                                    className={`px-3 py-1 text-xs md:text-sm rounded-md transition-colors ${
+                                        link.active 
+                                            ? 'bg-primary text-white font-bold' 
+                                            : link.url 
+                                                ? 'text-foreground/60 hover:bg-border' 
+                                                : 'text-foreground/30 cursor-not-allowed'
+                                    }`}
+                                    dangerouslySetInnerHTML={{ __html: link.label }}
+                                    preserveScroll
+                                />
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
 

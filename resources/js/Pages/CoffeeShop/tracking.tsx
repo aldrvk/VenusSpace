@@ -395,11 +395,11 @@ export default function TrackingPage({ order: initialOrder, showAd: shouldShowAd
     }, [adOpen]);
 
     const STATUS_TOAST: Partial<Record<string, { msg: string; type: 'success' | 'error' | 'loading' | 'default' }>> = {
-        pending:    { msg: '✅ Pembayaran diterima! Menunggu barista...', type: 'success' },
-        processing: { msg: '☕ Pesanan mulai diracik!', type: 'default' },
-        ready:      { msg: '🔔 Pesanan Anda siap diambil!', type: 'success' },
-        completed:  { msg: '🎉 Pesanan selesai. Nikmati kopi Anda!', type: 'success' },
-        cancelled:  { msg: '❌ Pesanan dibatalkan.', type: 'error' },
+        pending:    { msg: 'Pembayaran diterima! Menunggu barista...', type: 'success' },
+        processing: { msg: 'Pesanan mulai diracik!', type: 'default' },
+        ready:      { msg: 'Pesanan Anda siap diambil!', type: 'success' },
+        completed:  { msg: 'Pesanan selesai. Nikmati kopi Anda!', type: 'success' },
+        cancelled:  { msg: 'Pesanan dibatalkan.', type: 'error' },
     };
 
     useEffect(() => {
@@ -428,7 +428,7 @@ export default function TrackingPage({ order: initialOrder, showAd: shouldShowAd
                         };
                         if (toastCfg.type === 'success') toast.success(toastCfg.msg, opts);
                         else if (toastCfg.type === 'error') toast.error(toastCfg.msg, opts);
-                        else toast(toastCfg.msg, { ...opts, icon: '🔔' });
+                        else toast(toastCfg.msg, opts);
                     }
                 }
             } catch (_) { /* silent */ }
@@ -557,7 +557,7 @@ export default function TrackingPage({ order: initialOrder, showAd: shouldShowAd
                                             </svg>
                                         </div>
                                         <div>
-                                            <p className="text-h4 text-super-black font-bold">Yeay! Pesanan Siap Diambil ☕</p>
+                                            <p className="text-h4 text-super-black font-bold">Yeay! Pesanan Siap Diambil</p>
                                             <p className="text-body-reg text-foreground/60 mt-0.5">Silakan tunjukkan ID Pesanan ke Barista atau area Pick-Up.</p>
                                         </div>
                                     </div>
@@ -571,7 +571,7 @@ export default function TrackingPage({ order: initialOrder, showAd: shouldShowAd
                                             </svg>
                                         </div>
                                         <div>
-                                            <p className="text-h4 text-emerald-700 font-bold">Pesanan Telah Selesai 🎉</p>
+                                            <p className="text-h4 text-emerald-700 font-bold">Pesanan Telah Selesai</p>
                                             <p className="text-body-reg text-emerald-600 mt-1">Terima kasih telah mengunjungi Venus Coffee. Sampai jumpa kembali!</p>
                                         </div>
                                     </div>

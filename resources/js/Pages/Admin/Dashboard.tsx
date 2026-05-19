@@ -187,7 +187,7 @@ export default function Dashboard({ stats: dbStats, recentBookings: dbRecentBook
 
             {/* Header */}
             <PageHeader
-                title="Selamat Datang! 👋"
+                title="Selamat Datang!"
                 subtitle="Berikut adalah ringkasan aktivitas hari ini."
             />
 
@@ -260,7 +260,6 @@ export default function Dashboard({ stats: dbStats, recentBookings: dbRecentBook
                                     "UNIT USAHA",
                                     "WAKTU",
                                     "STATUS",
-                                    "AKSI",
                                 ].map((h) => (
                                     <th
                                         key={h}
@@ -273,7 +272,7 @@ export default function Dashboard({ stats: dbStats, recentBookings: dbRecentBook
                         </thead>
                         <tbody>
                             {bookingsToDisplay.length > 0 ? (
-                                bookingsToDisplay.map((b) => (
+                                bookingsToDisplay.map((b, idx) => (
                                     <tr
                                         key={`${b.unit}-${b.id}`}
                                         className="border-b border-border/50 hover:bg-background/40 transition-colors flex md:table-row flex-col md:flex-row gap-2 md:gap-0 p-4 md:p-0"
@@ -282,7 +281,7 @@ export default function Dashboard({ stats: dbStats, recentBookings: dbRecentBook
                                             className="md:px-6 md:py-4 text-foreground/60 before:content-attr(data-label) before:font-bold before:text-foreground/40 before:mr-2 md:before:content-none"
                                             data-label="NO"
                                         >
-                                            {b.id}
+                                            {idx + 1}
                                         </td>
                                         <td
                                             className="md:px-6 md:py-4 text-super-black font-semibold before:content-attr(data-label) before:font-bold before:text-foreground/40 before:mr-2 md:before:content-none"
@@ -317,32 +316,11 @@ export default function Dashboard({ stats: dbStats, recentBookings: dbRecentBook
                                         >
                                             <StatusBadge status={b.status} />
                                         </td>
-                                        <td
-                                            className="md:px-6 md:py-4 before:content-attr(data-label) before:font-bold before:text-foreground/40 before:mr-2 md:before:content-none"
-                                            data-label="AKSI"
-                                        >
-                                            {b.status === "PENDING" ? (
-                                                <div className="flex items-center gap-2">
-                                                    <IconButton
-                                                        icon={<IconEdit />}
-                                                        variant="primary"
-                                                    />
-                                                    <IconButton
-                                                        icon={<IconX />}
-                                                        variant="danger"
-                                                    />
-                                                </div>
-                                            ) : (
-                                                <span className="text-foreground/30 text-xs md:text-body-reg">
-                                                    —
-                                                </span>
-                                            )}
-                                        </td>
                                     </tr>
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={7} className="px-6 py-10 text-center text-foreground/40 italic">
+                                    <td colSpan={6} className="px-6 py-10 text-center text-foreground/40 italic">
                                         Belum ada data booking atau pesanan terbaru.
                                     </td>
                                 </tr>
@@ -350,6 +328,11 @@ export default function Dashboard({ stats: dbStats, recentBookings: dbRecentBook
                         </tbody>
                     </table>
                 </TableResponsive>
+                <div className="px-4 md:px-6 py-3 border-t border-border">
+                    <p className="text-foreground/40 text-xs md:text-body-reg">
+                        Menampilkan 10 booking terbaru
+                    </p>
+                </div>
             </div>
 
         </AdminLayout>

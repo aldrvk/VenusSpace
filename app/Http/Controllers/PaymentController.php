@@ -90,4 +90,21 @@ class PaymentController extends Controller
 
         return response()->json(['message' => 'Notification processed']);
     }
+
+    /**
+     * Update order status to successful locally (fallback for sandbox/localhost testing)
+     */
+    public function localSuccess(string $orderCode)
+    {
+        $order = StoreOrder::where('order_code', $orderCode)
+            ->where('user_id', auth()->id())
+            ->firstOrFail();
+
+        $order->update([
+            'status' => 'BERHASIL',
+            'progress_status' => 'pending'
+        ]);
+
+        return response()->json(['message' => 'Status updated locally']);
+    }
 }

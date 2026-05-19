@@ -343,7 +343,7 @@ export default function ProfileModal({ isOpen, onClose, user }: ProfileModalProp
                                 <button
                                     type="submit"
                                     disabled={passwordForm.processing}
-                                    className="w-full bg-secondary text-primary-foreground text-labelSm uppercase font-bold py-4 rounded-venus transition-all duration-300 hover:-translate-y-1 hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
+                                    className="w-full bg-primary text-primary-foreground text-labelSm uppercase font-bold py-4 rounded-venus transition-all duration-300 hover:-translate-y-1 hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
                                 >
                                     {passwordForm.processing ? 'Menyimpan...' : 'Ganti Kata Sandi'}
                                 </button>

@@ -12,25 +12,69 @@ use Inertia\Inertia;
 
 class StoreAdminController extends Controller
 {
-    public function katalogCoffee()
+    public function katalogCoffee(Request $request)
     {
-        $products = Product::where('unit', 'COFFEE SHOP')->get();
+        $query = Product::where('unit', 'COFFEE SHOP');
+        
+        $totalProducts = Product::where('unit', 'COFFEE SHOP')->count();
+        $totalSold = Product::where('unit', 'COFFEE SHOP')->sum('sold');
+        $outOfStock = Product::where('unit', 'COFFEE SHOP')->where('stock', 'Habis')->count();
+        $estRevenue = Product::where('unit', 'COFFEE SHOP')->selectRaw('SUM(price * sold) as total')->value('total') ?? 0;
+
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where('name', 'like', "%{$search}%");
+        }
+        if ($request->has('category') && $request->category != '' && $request->category != 'Semua') {
+            $query->where('category', $request->category);
+        }
+        
+        $products = $query->paginate(10)->withQueryString();
         $categories = Setting::get('coffee_categories', ['Kopi', 'Non-Kopi', 'Makanan', 'Cemilan']);
         
         return Inertia::render('Admin/KatalogCoffeeShop', [
             'products' => $products,
-            'categories' => $categories
+            'categories' => $categories,
+            'filters' => $request->only('search', 'category'),
+            'stats' => [
+                'total_products' => $totalProducts,
+                'total_sold' => $totalSold,
+                'out_of_stock' => $outOfStock,
+                'est_revenue' => (int)$estRevenue,
+            ]
         ]);
     }
 
-    public function katalogVape()
+    public function katalogVape(Request $request)
     {
-        $products = Product::where('unit', 'VAPE STORE')->get();
+        $query = Product::where('unit', 'VAPE STORE');
+        
+        $totalProducts = Product::where('unit', 'VAPE STORE')->count();
+        $totalSold = Product::where('unit', 'VAPE STORE')->sum('sold');
+        $outOfStock = Product::where('unit', 'VAPE STORE')->where('stock', 'Habis')->count();
+        $estRevenue = Product::where('unit', 'VAPE STORE')->selectRaw('SUM(price * sold) as total')->value('total') ?? 0;
+
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where('name', 'like', "%{$search}%");
+        }
+        if ($request->has('category') && $request->category != '' && $request->category != 'Semua') {
+            $query->where('category', $request->category);
+        }
+        
+        $products = $query->paginate(10)->withQueryString();
         $categories = Setting::get('vape_categories', ['Device', 'Liquid', 'Accessories']);
         
         return Inertia::render('Admin/KatalogVapeStore', [
             'products' => $products,
-            'categories' => $categories
+            'categories' => $categories,
+            'filters' => $request->only('search', 'category'),
+            'stats' => [
+                'total_products' => $totalProducts,
+                'total_sold' => $totalSold,
+                'out_of_stock' => $outOfStock,
+                'est_revenue' => (int)$estRevenue,
+            ]
         ]);
     }
 
@@ -146,12 +190,28 @@ class StoreAdminController extends Controller
             'progress_status' => 'required|in:pending,processing,ready,completed',
         ]);
 
+        $oldStatus = $order->progress_status;
+        $newStatus = $request->progress_status;
+
         $updateData = ['progress_status' => $request->progress_status];
         if ($request->progress_status === 'completed') {
             $updateData['done_at'] = now();
+            $updateData['status'] = 'BERHASIL';
         }
 
         $order->update($updateData);
+
+        // If transitioning to completed, increment sold count of products
+        if ($newStatus === 'completed' && $oldStatus !== 'completed') {
+            foreach ($order->items as $item) {
+                $product = Product::where('name', $item->name)
+                    ->where('unit', $order->unit)
+                    ->first();
+                if ($product) {
+                    $product->increment('sold', $item->quantity);
+                }
+            }
+        }
 
         return back()->with('success', 'Status pesanan berhasil diperbarui.');
     }
@@ -162,11 +222,25 @@ class StoreAdminController extends Controller
             'reason' => 'required|string|max:255',
         ]);
 
+        $oldStatus = $order->progress_status;
+
         $order->update([
             'progress_status' => 'cancelled',
             'admin_notes' => $request->reason,
             'done_at' => now(),
         ]);
+
+        // If it was completed, decrement the sold count
+        if ($oldStatus === 'completed') {
+            foreach ($order->items as $item) {
+                $product = Product::where('name', $item->name)
+                    ->where('unit', $order->unit)
+                    ->first();
+                if ($product) {
+                    $product->decrement('sold', $item->quantity);
+                }
+            }
+        }
 
         return back()->with('success', 'Pesanan berhasil dibatalkan.');
     }

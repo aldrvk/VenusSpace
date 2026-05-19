@@ -245,8 +245,10 @@ Route::middleware('auth')->group(function () {
 
     // Midtrans Payment
     Route::post('/payment/snap-token/{order}', [\App\Http\Controllers\PaymentController::class, 'createSnapToken'])->name('payment.snap-token');
-    Route::post('/payment/notification', [\App\Http\Controllers\PaymentController::class, 'handleNotification'])->name('payment.notification');
+    Route::post('/payment/local-success/{orderCode}', [\App\Http\Controllers\PaymentController::class, 'localSuccess'])->name('payment.local-success');
 
     // Logout
     Route::post('/logout', [\App\Http\Controllers\Auth\LoginController::class, 'destroy'])->name('logout');
 });
+
+Route::post('/payment/notification', [\App\Http\Controllers\PaymentController::class, 'handleNotification'])->name('payment.notification');

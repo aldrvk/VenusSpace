@@ -164,11 +164,11 @@ export default function TrackingPage({ order: initialOrder }: Props) {
     const isTerminal = order.progress_status === 'completed' || order.progress_status === 'cancelled';
 
     const STATUS_TOAST: Partial<Record<string, { msg: string; type: 'success' | 'error' | 'loading' | 'default' }>> = {
-        pending:    { msg: '✅ Pembayaran diterima! Silakan ambil pesanan Anda.', type: 'success' },
-        processing: { msg: '🔔 Pesanan siap diambil di Kasir.', type: 'success' },
-        ready:      { msg: '🔔 Pesanan siap diambil di Kasir.', type: 'success' },
-        completed:  { msg: '🎉 Pesanan selesai. Terima kasih!', type: 'success' },
-        cancelled:  { msg: '❌ Pesanan dibatalkan.', type: 'error' },
+        pending:    { msg: 'Pembayaran diterima! Silakan ambil pesanan Anda.', type: 'success' },
+        processing: { msg: 'Pesanan siap diambil di Kasir.', type: 'success' },
+        ready:      { msg: 'Pesanan siap diambil di Kasir.', type: 'success' },
+        completed:  { msg: 'Pesanan selesai. Terima kasih!', type: 'success' },
+        cancelled:  { msg: 'Pesanan dibatalkan.', type: 'error' },
     };
 
     useEffect(() => {
@@ -197,7 +197,7 @@ export default function TrackingPage({ order: initialOrder }: Props) {
                         };
                         if (toastCfg.type === 'success') toast.success(toastCfg.msg, opts);
                         else if (toastCfg.type === 'error') toast.error(toastCfg.msg, opts);
-                        else toast(toastCfg.msg, { ...opts, icon: '🔔' });
+                        else toast(toastCfg.msg, opts);
                     }
                 }
             } catch (_) { /* silent */ }
@@ -340,7 +340,7 @@ export default function TrackingPage({ order: initialOrder }: Props) {
                                             </svg>
                                         </div>
                                         <div>
-                                            <p className="text-h4 text-emerald-700 font-bold">Pesanan Telah Selesai 🎉</p>
+                                            <p className="text-h4 text-emerald-700 font-bold">Pesanan Telah Selesai</p>
                                             <p className="text-body-reg text-emerald-600 mt-1">Terima kasih telah berbelanja di Venus Vape Store.</p>
                                         </div>
                                     </div>

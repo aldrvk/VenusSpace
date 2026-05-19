@@ -55,7 +55,9 @@ export default function Receipt({ order }: Props) {
         return 'Rp' + numPrice.toLocaleString('id-ID');
     };
 
-    const isSelesai = order.status === 'BERHASIL';
+    const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
+    const urlStatus = params.get('status');
+    const isSelesai = order.status === 'BERHASIL' || urlStatus === 'success' || urlStatus === 'settlement';
     const date = new Date(order.created_at).toLocaleDateString('id-ID', {
         day: 'numeric',
         month: 'long',
@@ -153,7 +155,7 @@ export default function Receipt({ order }: Props) {
                                     ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
                                     : 'bg-amber-50 text-amber-700 border border-amber-200'
                             }`}>
-                                {isSelesai ? '✓ LUNAS' : '⏳ MENUNGGU PEMBAYARAN'}
+                                {isSelesai ? 'LUNAS' : 'MENUNGGU PEMBAYARAN'}
                             </span>
                         </div>
 
@@ -165,7 +167,8 @@ export default function Receipt({ order }: Props) {
                                     : 'Tunjukkan nomor pesanan ini kepada kasir untuk memproses pesanan dan melakukan pembayaran.'}
                             </p>
                             <div className="pt-4 flex justify-center gap-4 no-print">
-                                <button onClick={() => window.print()} className="px-6 py-2 border border-border rounded-full text-label-sm hover:bg-white transition-colors uppercase font-bold">Cetak</button>
+                                <button onClick={() => window.print()} className="px-6 py-2 border border-border rounded-full text-label-sm hover:bg-white transition-colors uppercase font-bold text-super-black">Cetak</button>
+                                <Link href={`/coffee-shop/tracking/${order.order_code}`} className="px-6 py-2 bg-secondary text-white rounded-full text-label-sm hover:bg-secondary/90 transition-colors uppercase font-bold">Lacak Pesanan</Link>
                                 <Link href="/coffee-shop" className="px-6 py-2 bg-super-black text-white rounded-full text-label-sm hover:bg-super-black/80 transition-colors uppercase font-bold">Kembali Belanja</Link>
                             </div>
                         </div>
