@@ -67,7 +67,7 @@ export default function Hero() {
           }`}
           style={{ transitionDelay: '600ms' }}
         >
-          Lebih dari sekadar tempat cuci mobil. Modern Hub dirancang sebagai ruang jeda yang memadukan presisi otomotif dengan kultur lifestyle urban. Nongkrong, main, dan rawat kendaraan dalam satu ekosistem.
+          Lebih dari sekadar tempat cuci mobil. Venus Hub dirancang sebagai ruang jeda yang memadukan presisi otomotif dengan kultur lifestyle urban. Nongkrong, main, dan rawat kendaraan dalam satu ekosistem.
         </p>
 
         {/* Button */}

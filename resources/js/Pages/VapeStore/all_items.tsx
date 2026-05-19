@@ -88,7 +88,7 @@ export default function AllItems({ products, categories, filters }: Props) {
                     <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                         <div className="max-w-2xl">
                             <h1 className="text-h1 text-super-black mb-4">
-                                Mendefinisikan Ulang Seni <span className="text-primary">Vapor</span>
+                                Redefining the Art of <span className="text-primary">Vapor</span>
                             </h1>
                             <p className="text-body-l text-foreground">
                                 Temukan pilihan perangkat premium dan e-liquid buatan tangan yang dirancang khusus untuk para penggemar yang cerdas.

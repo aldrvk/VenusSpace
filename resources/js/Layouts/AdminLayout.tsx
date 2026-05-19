@@ -106,9 +106,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     // Controlled search input
     const initialSearch = new URLSearchParams(url.split('?')[1] || '').get('search') || '';
     const [searchTerm, setSearchTerm] = useState(initialSearch);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     useEffect(() => {
         setSearchTerm(new URLSearchParams(url.split('?')[1] || '').get('search') || '');
+        setIsMobileMenuOpen(false); // Close menu on route change
     }, [url]);
 
     const isActive = (href: string) => url.startsWith(href);
@@ -134,35 +136,65 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 }
             `}</style>
 
+            {/* Mobile Sidebar Overlay */}
+            {isMobileMenuOpen && (
+                <div 
+                    className="fixed inset-0 bg-black/50 z-30 md:hidden transition-opacity" 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                />
+            )}
+
             {/* ── Sidebar ─────────────────────────────────────────────────── */}
-            <aside className="w-36 bg-secondary flex flex-col shrink-0 z-40">
+            <aside className={`fixed inset-y-0 left-0 w-36 bg-secondary flex flex-col shrink-0 z-40 transform transition-transform duration-200 ease-in-out md:relative md:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
                 {/* Logo */}
-                <div className="px-4 py-5 border-b border-white/10">
-                    <p className="font-heading font-bold text-white text-[15px] leading-tight">Venus Hub</p>
-                    <p className="text-white/50 text-[10px] mt-0.5 leading-tight">Admin Dashboard</p>
+                <div className="px-4 py-5 border-b border-white/10 flex items-center justify-between">
+                    <div>
+                        <p className="font-heading font-bold text-white text-[15px] leading-tight">Venus Hub</p>
+                        <p className="text-white/50 text-[10px] mt-0.5 leading-tight">Admin Dashboard</p>
+                    </div>
                 </div>
 
                 {/* Nav */}
-                <nav className="flex-1 py-3 overflow-y-auto hide-scrollbar" style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
-                    {navItems.map((item) => {
-                        const active = isActive(item.href);
-                        return (
-                            <Link
-                                key={item.href}
-                                href={item.href}
-                                className={`flex flex-col items-center gap-1.5 px-2 py-3 mx-2 my-0.5 rounded-venus transition-all text-center ${
-                                    active
-                                        ? 'bg-white/15 text-white'
-                                        : 'text-white/60 hover:bg-white/10 hover:text-white'
-                                }`}
-                            >
-                                <span className={active ? 'text-white' : 'text-white/60'}>{item.icon}</span>
-                                <span style={{ fontSize: '10px', lineHeight: '13px', fontWeight: 500 }} className="leading-tight">
-                                    {item.label}
-                                </span>
-                            </Link>
-                        );
-                    })}
+                <nav className="flex-1 overflow-y-auto hide-scrollbar relative" style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
+                    <div className="pt-3">
+                        {navItems.map((item) => {
+                            const active = isActive(item.href);
+                            const notifications = (usePage().props.notifications as any) || {};
+                            let count = 0;
+                            if (item.href === '/admin/booking-doorsmeer') count = notifications.doorsmeerCount || 0;
+                            else if (item.href === '/admin/booking-bengkel') count = notifications.bengkelCount || 0;
+                            else if (item.href === '/admin/booking-rental-ps') count = notifications.rentalCount || 0;
+                            else if (item.href === '/admin/pesanan-store') count = notifications.storeCount || 0;
+                            
+                            const displayCount = count >= 10 ? '9+' : count;
+
+                            return (
+                                <Link
+                                    key={item.href}
+                                    href={item.href}
+                                    className={`flex flex-col items-center gap-1.5 px-2 py-3 mx-2 my-0.5 rounded-venus transition-all text-center ${
+                                        active
+                                            ? 'bg-white/15 text-white'
+                                            : 'text-white/60 hover:bg-white/10 hover:text-white'
+                                    }`}
+                                >
+                                    <div className="relative">
+                                        <span className={active ? 'text-white' : 'text-white/60'}>{item.icon}</span>
+                                        {count > 0 && (
+                                            <span className="absolute -top-1 -right-2 min-w-[14px] h-[14px] flex items-center justify-center bg-red-500 text-white text-[8px] font-bold rounded-full px-0.5 border border-[#1b434d] shadow-sm">
+                                                {displayCount}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <span style={{ fontSize: '10px', lineHeight: '13px', fontWeight: 500 }} className="leading-tight">
+                                        {item.label}
+                                    </span>
+                                </Link>
+                            );
+                        })}
+                        {/* Spacer at the bottom to guarantee no clipping on scroll limit */}
+                        <div className="h-6" />
+                    </div>
                 </nav>
 
                 {/* Bottom */}
@@ -187,9 +219,22 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             </aside>
 
             {/* ── Main Area ───────────────────────────────────────────────── */}
-            <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex-1 flex flex-col overflow-hidden w-full">
                 {/* Top Bar */}
-                <header className="h-14 bg-background border-b border-border flex items-center px-6 gap-4 shrink-0">
+                <header className="h-14 bg-background border-b border-border flex items-center px-4 md:px-6 gap-3 shrink-0">
+                    
+                    {/* Hamburger Mobile Toggle */}
+                    <button 
+                        className="md:hidden p-2 -ml-2 text-foreground/60 hover:text-foreground transition-colors"
+                        onClick={() => setIsMobileMenuOpen(true)}
+                    >
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="3" y1="12" x2="21" y2="12" />
+                            <line x1="3" y1="6" x2="21" y2="6" />
+                            <line x1="3" y1="18" x2="21" y2="18" />
+                        </svg>
+                    </button>
+
                     {/* Search */}
                     {showSearch ? (
                         <div className="flex-1 max-w-md relative">
@@ -225,7 +270,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                                 </span>
                             )}
                         </Link>
-                        <div className="flex items-center gap-2.5 pl-3 border-l border-border">
+                        <div className="hidden sm:flex items-center gap-2.5 pl-3 border-l border-border">
                             <span className="text-body-m text-foreground font-semibold">Venus Hub</span>
                             <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-white font-bold text-xs">V</div>
                         </div>
@@ -233,7 +278,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 </header>
 
                 {/* Page Content */}
-                <main className="flex-1 overflow-y-auto p-8">
+                <main className="flex-1 overflow-y-auto p-4 md:p-8">
                     {children}
                 </main>
             </div>

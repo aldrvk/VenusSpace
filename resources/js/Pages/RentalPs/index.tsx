@@ -184,8 +184,8 @@ export default function RentalPsIndex() {
 
                         {/* Hero */}
                         <div>
-                            <h1 className="text-h2 text-super-black">
-                                Pengalaman <span className="text-primary">PlayStation</span> Elit
+                            <h1 className="text-h1 text-super-black mb-4">
+                                Elite <span className="text-primary">PlayStation</span> Experience
                             </h1>
                             <p className="text-body-l text-foreground/70 mt-4 max-w-lg">
                                 Manjakan sesi Anda dengan ritual perawatan premium. Booking sekarang dan masuk ke antrian realtime — tanpa perlu janji temu.

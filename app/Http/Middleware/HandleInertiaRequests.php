@@ -46,6 +46,10 @@ class HandleInertiaRequests extends Middleware
             ],
             'notifications' => [
                 'pendingCount' => fn () => $this->getPendingCount(),
+                'doorsmeerCount' => fn () => $this->getDoorsmeerCount(),
+                'bengkelCount' => fn () => $this->getBengkelCount(),
+                'rentalCount' => fn () => $this->getRentalCount(),
+                'storeCount' => fn () => $this->getStoreCount(),
             ],
             'settings' => fn () => $this->getOperationalSettings(),
             'payment_settings' => function () use ($request) {
@@ -59,17 +63,37 @@ class HandleInertiaRequests extends Middleware
         ];
     }
 
-    private function getPendingCount(): int
+    private function getDoorsmeerCount(): int
     {
         try {
-            $doorsmeer = \App\Models\DoorsmeerBooking::whereNotIn('status', ['done', 'cancelled'])->count();
-            $bengkel = \App\Models\BengkelBooking::whereNotIn('status', ['done', 'cancelled'])->count();
-            $rental = \App\Models\RentalPsBooking::whereNotIn('status', ['done', 'cancelled'])->count();
-            $store = \App\Models\StoreOrder::whereNotIn('status', ['BERHASIL', 'BATAL'])->count();
-            return $doorsmeer + $bengkel + $rental + $store;
-        } catch (\Exception $e) {
-            return 0;
-        }
+            return \App\Models\DoorsmeerBooking::whereNotIn('status', ['done', 'cancelled'])->count();
+        } catch (\Exception $e) { return 0; }
+    }
+
+    private function getBengkelCount(): int
+    {
+        try {
+            return \App\Models\BengkelBooking::whereNotIn('status', ['done', 'cancelled'])->count();
+        } catch (\Exception $e) { return 0; }
+    }
+
+    private function getRentalCount(): int
+    {
+        try {
+            return \App\Models\RentalPsBooking::whereNotIn('status', ['done', 'cancelled'])->count();
+        } catch (\Exception $e) { return 0; }
+    }
+
+    private function getStoreCount(): int
+    {
+        try {
+            return \App\Models\StoreOrder::whereNotIn('status', ['BERHASIL', 'BATAL'])->count();
+        } catch (\Exception $e) { return 0; }
+    }
+
+    private function getPendingCount(): int
+    {
+        return $this->getDoorsmeerCount() + $this->getBengkelCount() + $this->getRentalCount() + $this->getStoreCount();
     }
 
     /**

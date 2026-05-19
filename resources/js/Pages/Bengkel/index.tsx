@@ -209,8 +209,8 @@ export default function BengkelIndex() {
 
                         {/* Hero */}
                         <div>
-                            <h1 className="text-h2 text-super-black">
-                                Pengalaman <span className="text-primary">Servis Kendaraan</span> Elit
+                            <h1 className="text-h1 text-super-black mb-4">
+                                Elite <span className="text-primary">Vehicle Service</span> Experience
                             </h1>
                             <p className="text-body-l text-foreground/70 mt-4 max-w-lg">
                                 Manjakan kendaraan Anda dengan ritual perawatan premium. Booking sekarang dan masuk ke antrian realtime — tanpa perlu janji temu.
