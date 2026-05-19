@@ -60,9 +60,6 @@ export default function Pengaturan() {
     const [paymentSettings, setPaymentSettings] = useState(() => ({
         qris_merchant_name: sharedPayment?.qris_merchant_name || "Venus Hub Store",
         qris_payload: sharedPayment?.qris_payload || "00020101021226660011ID.CO.GPN.WWW011893600522000001234502150001020345678900303ID51440014ID1234567890123520459995303360540505802ID5916VenusHub6006Jakarta6304ABCD",
-        bank_name: sharedPayment?.bank_name || "Bank Mandiri",
-        bank_account_name: sharedPayment?.bank_account_name || "Venus Hub",
-        bank_account_number: sharedPayment?.bank_account_number || "123-00-1234567-8",
         // Midtrans Keys
         midtrans_client_key: sharedPayment?.midtrans_client_key || "",
         midtrans_server_key: sharedPayment?.midtrans_server_key || "",
@@ -460,29 +457,7 @@ export default function Pengaturan() {
                                     </div>
                                 </div>
 
-                                <div className="pt-4 border-t border-border">
-                                    <h3 className="text-body-m font-bold text-super-black mb-4">Informasi Rekening Bank (Manual)</h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="space-y-2">
-                                            <label className="text-label-sm text-foreground/50 uppercase">Nama Pemilik Rekening</label>
-                                            <input 
-                                                type="text"
-                                                value={paymentSettings.bank_account_name}
-                                                onChange={(e) => setPaymentSettings({...paymentSettings, bank_account_name: e.target.value})}
-                                                className="w-full bg-background border border-border rounded-venus px-4 py-3 text-body-m"
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-label-sm text-foreground/50 uppercase">Nomor Rekening</label>
-                                            <input 
-                                                type="text"
-                                                value={paymentSettings.bank_account_number}
-                                                onChange={(e) => setPaymentSettings({...paymentSettings, bank_account_number: e.target.value})}
-                                                className="w-full bg-background border border-border rounded-venus px-4 py-3 text-body-m"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
+
                             </div>
                         </div>
                     )}

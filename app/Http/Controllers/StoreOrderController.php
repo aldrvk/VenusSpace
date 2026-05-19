@@ -36,8 +36,8 @@ class StoreOrderController extends Controller
             'unit'           => $validated['unit'],
             'payment_method' => $validated['payment_method'],
             'total'          => $total,
-            'status'         => $validated['payment_method'] === 'qris' ? 'BERHASIL' : 'MENUNGGU PEMBAYARAN',
-            'progress_status'=> $validated['payment_method'] === 'qris' ? 'pending' : 'menunggu_pembayaran',
+            'status'         => 'MENUNGGU PEMBAYARAN',
+            'progress_status'=> 'menunggu_pembayaran',
         ]);
 
         foreach ($validated['items'] as $item) {

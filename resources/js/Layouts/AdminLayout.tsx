@@ -113,6 +113,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
     const isActive = (href: string) => url.startsWith(href);
 
+    const showSearch = !['/admin/dashboard', '/admin/laporan', '/admin/pengaturan'].includes(currentPath);
+
     // Contextual placeholders
     let searchPlaceholder = "Ketik untuk mencari (tekan Enter)...";
     if (currentPath === '/admin/pesanan-store') {
@@ -189,23 +191,27 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 {/* Top Bar */}
                 <header className="h-14 bg-background border-b border-border flex items-center px-6 gap-4 shrink-0">
                     {/* Search */}
-                    <div className="flex-1 max-w-md relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground/30">
-                            <IconSearch />
-                        </span>
-                        <input
-                            type="text"
-                            placeholder={searchPlaceholder}
-                            className="w-full bg-card border border-border rounded-venus pl-9 pr-4 py-2 text-body-reg text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-primary transition-colors"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                    router.get(currentPath, { search: searchTerm }, { preserveState: true, preserveScroll: true });
-                                }
-                            }}
-                        />
-                    </div>
+                    {showSearch ? (
+                        <div className="flex-1 max-w-md relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground/30">
+                                <IconSearch />
+                            </span>
+                            <input
+                                type="text"
+                                placeholder={searchPlaceholder}
+                                className="w-full bg-card border border-border rounded-venus pl-9 pr-4 py-2 text-body-reg text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-primary transition-colors"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        router.get(currentPath, { search: searchTerm }, { preserveState: true, preserveScroll: true });
+                                    }
+                                }}
+                            />
+                        </div>
+                    ) : (
+                        <div className="flex-1" />
+                    )}
 
                     <div className="flex items-center gap-3 ml-auto">
                         <Link 

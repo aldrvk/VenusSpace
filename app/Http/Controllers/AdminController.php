@@ -75,10 +75,10 @@ class AdminController extends Controller
                          StoreOrder::where('status', 'BERHASIL')->sum('total');
 
         // Recent Bookings (All time)
-        $recentDoorsmeer = DoorsmeerBooking::with('user')->latest()->limit(5)->get();
-        $recentBengkel = BengkelBooking::with('user')->latest()->limit(5)->get();
-        $recentRental = RentalPsBooking::with('user')->latest()->limit(5)->get();
-        $recentStore = StoreOrder::with('items')->latest()->limit(5)->get();
+        $recentDoorsmeer = DoorsmeerBooking::with('user')->latest()->limit(10)->get();
+        $recentBengkel = BengkelBooking::with('user')->latest()->limit(10)->get();
+        $recentRental = RentalPsBooking::with('user')->latest()->limit(10)->get();
+        $recentStore = StoreOrder::with('items')->latest()->limit(10)->get();
 
         $recent = collect()
             ->concat($recentDoorsmeer->map(function($item) {
@@ -126,7 +126,7 @@ class AdminController extends Controller
                     'service' => $serviceName,
                     'unit' => $item->unit ?? 'COFFEE SHOP',
                     'time' => $item->created_at->format('H:i'),
-                    'status' => $item->status === 'BERHASIL' ? 'SELESAI' : ($item->status === 'BATAL' ? 'BATAL' : 'PENDING'),
+                    'status' => $item->progress_status === 'cancelled' ? 'BATAL' : ($item->progress_status === 'completed' ? 'SELESAI' : (in_array($item->progress_status, ['pending', 'processing', 'ready']) ? 'IN PROGRESS' : 'PENDING')),
                     'created_at' => $item->created_at,
                 ];
             }))

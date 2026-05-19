@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 
 export default function HomeMain() {
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
+  const { settings } = usePage().props as any;
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -88,152 +89,265 @@ export default function HomeMain() {
     }
   ];
 
+  const strengths = [
+    {
+      id: 1,
+      title: "Real-Time Tracking",
+      description: "Pantau proses cuci kendaraan, pembuatan kopi, atau status antrian bermain PS secara langsung dari gawai Anda.",
+      icon: (
+        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      )
+    },
+    {
+      id: 2,
+      title: "Pembayaran Digital Instan",
+      description: "Mendukung metode pembayaran non-tunai melalui QRIS, E-Wallet, dan layanan perbankan terintegrasi untuk efisiensi maksimal.",
+      icon: (
+        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+      )
+    },
+    {
+      id: 3,
+      title: "Fasilitas Lounge Premium",
+      description: "Nikmati ruang tunggu ber-AC yang nyaman dengan pilihan menu kopi berkualitas tinggi serta area bermain PS5 eksklusif.",
+      icon: (
+        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      )
+    }
+  ];
+
+  function formatOperationalHours(unitName: string, operationalSettings: any) {
+    const defaults: Record<string, { label: string; hours: string; badge: string; isClosed: boolean }> = {
+      'Doorsmeer': { badge: 'Buka Setiap Hari', hours: '08.00 - 18.00', label: 'Waktu Setempat', isClosed: false },
+      'Coffee Shop': { badge: 'Buka Setiap Hari', hours: '09.00 - 23.00', label: 'Waktu Setempat', isClosed: false },
+      'Vape Store': { badge: 'Buka Setiap Hari', hours: '10.00 - 22.00', label: 'Waktu Setempat', isClosed: false },
+      'Bengkel': { badge: 'Minggu Libur', hours: '08.00 - 17.00', label: 'Senin - Sabtu', isClosed: false },
+      'Rental PS': { badge: 'Buka Setiap Hari', hours: '10.00 - 24.00', label: 'Waktu Setempat', isClosed: false },
+    };
+
+    const fallback = defaults[unitName] || { badge: 'Hubungi Kami', hours: 'Tutup', label: '—', isClosed: true };
+    
+    if (!operationalSettings || !operationalSettings[unitName]) {
+      return fallback;
+    }
+
+    const unitSettings = operationalSettings[unitName];
+    if (!unitSettings.is_active) {
+      return { badge: 'Tutup Sementara', hours: 'TUTUP', label: '—', isClosed: true };
+    }
+
+    const schedule = unitSettings.schedule;
+    if (!schedule) {
+      return fallback;
+    }
+
+    const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+    const openDays = days.filter(d => schedule[d]?.is_open);
+    if (openDays.length === 0) {
+      return { badge: 'Tutup', hours: 'TUTUP', label: '—', isClosed: true };
+    }
+
+    const firstOpenDay = openDays[0];
+    const openTime = schedule[firstOpenDay].open ? schedule[firstOpenDay].open.substring(0, 5).replace(':', '.') : '08.00';
+    const closeTime = schedule[firstOpenDay].close ? schedule[firstOpenDay].close.substring(0, 5).replace(':', '.') : '17.00';
+    const sameHours = openDays.every(d => schedule[d].open === schedule[firstOpenDay].open && schedule[d].close === schedule[firstOpenDay].close);
+
+    if (openDays.length === 7 && sameHours) {
+      return {
+        badge: 'Buka Setiap Hari',
+        hours: `${openTime} - ${closeTime}`,
+        label: 'Waktu Setempat',
+        isClosed: false
+      };
+    }
+
+    const isMonToSatOpen = days.slice(0, 6).every(d => schedule[d]?.is_open) && !schedule['Minggu']?.is_open;
+    if (isMonToSatOpen && sameHours) {
+      return {
+        badge: 'Minggu Libur',
+        hours: `${openTime} - ${closeTime}`,
+        label: 'Senin - Sabtu',
+        isClosed: false
+      };
+    }
+
+    return {
+      badge: openDays.length === 7 ? 'Buka Setiap Hari' : `Buka ${openDays.length} Hari/Minggu`,
+      hours: `${openTime} - ${closeTime}`,
+      label: openDays.length === 7 ? 'Waktu Setempat' : 'Hari Kerja',
+      isClosed: false
+    };
+  }
+
+  const unitsToDisplay = ['Doorsmeer', 'Coffee Shop', 'Vape Store', 'Bengkel', 'Rental PS'];
+
   return (
-    <section className="w-full bg-background py-20 px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto flex flex-col gap-16">
-        
-        {/* 5 Layanan Hub Cards with Scroll Animation & Premium Hover UI */}
-        <div 
-          ref={sectionRef}
-          className="flex flex-wrap justify-center gap-6"
-        >
-          {services.map((service, index) => (
-            <div
-              key={service.id}
-              className={`w-full sm:w-[calc(50%-12px)] md:w-[calc(33.333%-16px)] transition-all duration-1000 ease-out ${
-                isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-16'
-              }`}
-              style={{ transitionDelay: isVisible ? `${index * 150}ms` : '0ms' }}
-            >
-              <Link 
-                href={service.href || "#"} 
-                className="group relative w-full h-full rounded-venus overflow-hidden p-6 flex flex-col justify-between border border-border bg-surface shadow-md transition-all duration-500 ease-out hover:shadow-xl hover:-translate-y-2 min-h-[220px] block"
+    <div className="w-full bg-background flex flex-col gap-24 py-20">
+      
+      {/* ─── SECTION 1: LAYANAN KAMI ─── */}
+      <section className="w-full px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto flex flex-col gap-16">
+          
+          {/* Heading Section */}
+          <div className="flex flex-col items-center text-center gap-4">
+            <h2 className="text-h2">Layanan Kami</h2>
+            <p className="text-body-l">Lima layanan terintegrasi dalam satu lokasi premium.</p>
+          </div>
+
+          {/* 5 Layanan Hub Cards with Scroll Animation & Premium Hover UI */}
+          <div 
+            ref={sectionRef}
+            className="flex flex-wrap justify-center gap-6"
+          >
+            {services.map((service, index) => (
+              <div
+                key={service.id}
+                className={`w-full sm:w-[calc(50%-12px)] md:w-[calc(33.333%-16px)] transition-all duration-1000 ease-out ${
+                  isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-16'
+                }`}
+                style={{ transitionDelay: isVisible ? `${index * 150}ms` : '0ms' }}
               >
-                 {/* Background Image (Hidden normally, reveals intensely on hover) */}
-                 <img 
-                   src={service.image} 
-                   className="absolute inset-0 w-full h-full object-cover opacity-0 scale-105 grayscale transition-all duration-700 ease-out group-hover:opacity-100 group-hover:scale-100 group-hover:grayscale-0" 
-                   alt={service.title} 
-                 />
-                 
-                 {/* Primary Color Dark Overlay on hover */}
-                 <div className="absolute inset-0 bg-primary/0 transition-all duration-500 group-hover:bg-primary/90" />
-                 
-                 {/* Content Container */}
-                 <div className="relative z-10 flex flex-col h-full justify-between gap-6">
+                <Link 
+                  href={service.href || "#"} 
+                  className="group relative w-full h-full rounded-venus overflow-hidden p-6 flex flex-col justify-between border border-border bg-surface shadow-md transition-all duration-500 ease-out hover:shadow-xl hover:-translate-y-2 min-h-[220px] block"
+                >
+                   {/* Background Image (Hidden normally, reveals intensely on hover) */}
+                   <img 
+                     src={service.image} 
+                     className="absolute inset-0 w-full h-full object-cover opacity-0 scale-105 grayscale transition-all duration-700 ease-out group-hover:opacity-100 group-hover:scale-100 group-hover:grayscale-0" 
+                     alt={service.title} 
+                   />
                    
-                   {/* Top Row: Icon & Arrow */}
-                   <div className="flex items-start justify-between w-full">
-                     {/* Main Service Icon */}
-                     <div className="p-3.5 rounded-full bg-background border border-border text-super-black transition-colors duration-500 group-hover:bg-primary-foreground group-hover:border-primary-foreground group-hover:text-primary">
-                        {service.icon}
+                   {/* Primary Color Dark Overlay on hover */}
+                   <div className="absolute inset-0 bg-primary/0 transition-all duration-500 group-hover:bg-primary/90" />
+                   
+                   {/* Content Container */}
+                   <div className="relative z-10 flex flex-col h-full justify-between gap-6">
+                     
+                     {/* Top Row: Icon & Arrow */}
+                     <div className="flex items-start justify-between w-full">
+                       {/* Main Service Icon */}
+                       <div className="p-3.5 rounded-full bg-background border border-border text-super-black transition-colors duration-500 group-hover:bg-primary-foreground group-hover:border-primary-foreground group-hover:text-primary">
+                          {service.icon}
+                       </div>
+                       
+                       {/* Interactive Arrow Indicator */}
+                       <div className="w-10 h-10 rounded-full border border-border flex items-center justify-center bg-surface transition-all duration-500 group-hover:bg-primary-foreground group-hover:border-primary-foreground group-hover:-rotate-45">
+                         <svg className="w-5 h-5 text-super-black transition-colors duration-500 group-hover:text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 12h14M12 5l7 7m0 0l-7-7" />
+                         </svg>
+                       </div>
                      </div>
                      
-                     {/* Interactive Arrow Indicator */}
-                     <div className="w-10 h-10 rounded-full border border-border flex items-center justify-center bg-surface transition-all duration-500 group-hover:bg-primary-foreground group-hover:border-primary-foreground group-hover:-rotate-45">
-                       <svg className="w-5 h-5 text-super-black transition-colors duration-500 group-hover:text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 12h14M12 5l7 7m0 0l-7-7" />
-                       </svg>
+                     {/* Bottom Row: Text Content */}
+                     <div className="flex flex-col gap-2">
+                       <h3 className="text-card-title text-super-black transition-colors duration-500 group-hover:text-primary-foreground">{service.title}</h3>
+                       <p className="text-body-reg text-foreground transition-colors duration-500 group-hover:text-primary-foreground">{service.description}</p>
                      </div>
+                     
                    </div>
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── SECTION 2: KEUNGGULAN KAMI ─── */}
+      <section className="w-full px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto flex flex-col gap-16">
+          <div className="flex flex-col items-center text-center gap-4">
+            <h2 className="text-h2">Keunggulan Kami</h2>
+            <p className="text-body-l max-w-2xl">Layanan modern dengan standar terbaik yang dirancang khusus untuk kenyamanan Anda.</p>
+          </div>
+
+          <div className="flex flex-wrap justify-center gap-6">
+            {strengths.map((item) => (
+              <div
+                key={item.id}
+                className="w-full sm:w-[calc(50%-12px)] md:w-[calc(33.333%-16px)] min-h-[220px]"
+              >
+                <div 
+                  className="group relative w-full h-full rounded-venus overflow-hidden p-6 flex flex-col justify-between border border-border bg-surface shadow-md transition-all duration-500 ease-out hover:shadow-xl hover:-translate-y-2 min-h-[220px] cursor-default block"
+                >
+                   {/* Solid Primary Background overlay on hover (No background image) */}
+                   <div className="absolute inset-0 bg-primary/0 transition-all duration-500 group-hover:bg-primary" />
                    
-                   {/* Bottom Row: Text Content */}
-                   <div className="flex flex-col gap-2">
-                     <h3 className="text-card-title text-super-black transition-colors duration-500 group-hover:text-primary-foreground">{service.title}</h3>
-                     <p className="text-body-reg text-foreground transition-colors duration-500 group-hover:text-primary-foreground">{service.description}</p>
+                   {/* Content Container */}
+                   <div className="relative z-10 flex flex-col h-full justify-between gap-6">
+                     
+                     {/* Top Row: Icon */}
+                     <div className="flex items-start justify-between w-full">
+                       {/* Main Icon */}
+                       <div className="p-3.5 rounded-full bg-background border border-border text-super-black transition-colors duration-500 group-hover:bg-primary-foreground group-hover:border-primary-foreground group-hover:text-primary">
+                          {item.icon}
+                       </div>
+                     </div>
+                     
+                     {/* Bottom Row: Text Content */}
+                     <div className="flex flex-col gap-2">
+                       <h3 className="text-card-title text-super-black transition-colors duration-500 group-hover:text-primary-foreground">{item.title}</h3>
+                       <p className="text-body-reg text-foreground transition-colors duration-500 group-hover:text-primary-foreground">{item.description}</p>
+                     </div>
+                     
                    </div>
-                   
-                 </div>
-              </Link>
-            </div>
-          ))}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
+      </section>
 
-        {/* Heading Section */}
-        <div className="flex flex-col items-center text-center gap-4">
-          <h2 className="text-h2">Layanan Kami</h2>
-          <p className="text-body-l">Lima layanan terintegrasi dalam satu lokasi premium.</p>
+      {/* ─── SECTION 3: JAM OPERASIONAL ─── */}
+      <section className="w-full px-6 lg:px-8 mb-8">
+        <div className="max-w-7xl mx-auto flex flex-col gap-16">
+          <div className="flex flex-col items-center text-center gap-4">
+            <h2 className="text-h2">Jam Operasional</h2>
+            <p className="text-body-l">Jadwal operasional harian untuk setiap unit usaha di Venus Hub.</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+            {unitsToDisplay.map((unitName) => {
+              const info = formatOperationalHours(unitName, settings);
+              const isClosedBadge = info.badge === 'Minggu Libur' || info.badge === 'Tutup' || info.badge === 'Tutup Sementara';
+              return (
+                <div 
+                  key={unitName} 
+                  className="group relative w-full h-full rounded-venus overflow-hidden p-6 flex flex-col justify-between min-h-[200px] border border-border bg-surface shadow-md transition-all duration-500 ease-out hover:shadow-xl hover:-translate-y-2 cursor-default block"
+                >
+                  {/* Solid Primary Background overlay on hover (No background image) */}
+                  <div className="absolute inset-0 bg-primary/0 transition-all duration-500 group-hover:bg-primary" />
+
+                  {/* Content Container */}
+                  <div className="relative z-10 flex flex-col h-full justify-between gap-6">
+                    <div className="flex flex-col gap-2">
+                      <span className={`inline-flex items-center self-start px-3 py-1 rounded-full text-[10px] font-bold tracking-wider transition-all duration-500 ${
+                        isClosedBadge 
+                          ? 'bg-foreground/5 text-foreground/45 border border-border group-hover:bg-primary-foreground/10 group-hover:text-primary-foreground/85 group-hover:border-primary-foreground/20'
+                          : 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 group-hover:bg-primary-foreground/20 group-hover:text-primary-foreground group-hover:border-primary-foreground/30'
+                      }`}>
+                        {info.badge}
+                      </span>
+                      <h4 className="text-h3 text-super-black font-bold mt-2 transition-colors duration-500 group-hover:text-primary-foreground">{unitName}</h4>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <p className="text-body-reg font-semibold text-primary transition-colors duration-500 group-hover:text-primary-foreground">{info.hours}</p>
+                      <p className="text-label-sm text-foreground/40 transition-colors duration-500 group-hover:text-primary-foreground/60">{info.label}</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
+      </section>
 
-        {/* Bento Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 grid-rows-none md:grid-rows-2 gap-6 h-auto md:h-[600px]">
-          
-          {/* Left Column (Tall) */}
-          <Link href="/doorsmeer" className="dark group relative rounded-venus overflow-hidden md:col-span-1 md:row-span-2 min-h-[400px] md:min-h-full block">
-            <img 
-              src="https://images.unsplash.com/photo-1605810230434-7631ac76ec81?q=80&w=800&auto=format&fit=crop" 
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
-              alt="Doorsmeer & Bengkel" 
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-super-black/90 via-super-black/40 to-transparent z-0 pointer-events-none" />
-            
-            <div className="absolute bottom-0 left-0 w-full p-8 flex flex-col items-start gap-4 z-10">
-              <div className="inline-flex items-center px-4 py-1.5 border border-border rounded-full bg-surface/20 backdrop-blur-md">
-                <span className="text-label-sm text-foreground">AUTOMOTIVE</span>
-              </div>
-              <div className="flex flex-col gap-2">
-                <h3 className="text-h2 text-foreground">Doorsmeer & Bengkel</h3>
-                <p className="text-body-reg text-foreground">Perawatan profesional dengan presisi tinggi. Sambil menunggu, nikmati fasilitas lifestyle kami.</p>
-              </div>
-            </div>
-          </Link>
-
-          {/* Middle Top (Cafe Lounge) */}
-          <Link href="/coffee-shop" className="dark group relative rounded-venus overflow-hidden md:col-span-1 md:row-span-1 min-h-[250px] block">
-            <img 
-              src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=800&auto=format&fit=crop" 
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
-              alt="Cafe Lounge" 
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-super-black/90 via-super-black/30 to-transparent z-0 pointer-events-none" />
-            
-            <div className="absolute bottom-0 left-0 w-full p-6 flex flex-col items-start gap-3 z-10">
-              <div className="inline-flex items-center px-4 py-1.5 border border-border rounded-full bg-surface/20 backdrop-blur-md">
-                <span className="text-label-sm text-foreground">LIFESTYLE</span>
-              </div>
-              <h3 className="text-h3 text-foreground">Cafe Lounge</h3>
-            </div>
-          </Link>
-
-          {/* Right Top (PS Arena) */}
-          <Link href="/rental-ps" className="dark group relative rounded-venus overflow-hidden md:col-span-1 md:row-span-1 min-h-[250px] block">
-            <img 
-              src="https://images.unsplash.com/photo-1538481199705-c710c4e965fc?q=80&w=800&auto=format&fit=crop" 
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
-              alt="PS Arena" 
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-super-black/90 via-super-black/30 to-transparent z-0 pointer-events-none" />
-            
-            <div className="absolute bottom-0 left-0 w-full p-6 flex flex-col items-start gap-3 z-10">
-              <div className="inline-flex items-center px-4 py-1.5 border border-border rounded-full bg-surface/20 backdrop-blur-md">
-                <span className="text-label-sm text-foreground">ENTERTAINMENT</span>
-              </div>
-              <h3 className="text-h3 text-foreground">PS Arena</h3>
-            </div>
-          </Link>
-
-          {/* Bottom Wide (Vape Store) */}
-          <Link href="/vape-store" className="dark group relative rounded-venus overflow-hidden md:col-span-2 md:row-span-1 min-h-[250px] block">
-            <img 
-              src="https://images.unsplash.com/photo-1555529771-835f59fc5efe?q=80&w=1200&auto=format&fit=crop" 
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
-              alt="Vape Store" 
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-super-black/90 via-super-black/40 to-transparent z-0 pointer-events-none" />
-            
-            <div className="absolute bottom-0 left-0 w-full p-6 flex flex-col items-start gap-3 z-10">
-              <div className="inline-flex items-center px-4 py-1.5 border border-border rounded-full bg-surface/20 backdrop-blur-md">
-                <span className="text-label-sm text-foreground">RETAIL</span>
-              </div>
-              <div className="flex flex-col gap-1 max-w-md">
-                <h3 className="text-h3 text-foreground">Vape Store</h3>
-                <p className="text-body-reg text-foreground">Koleksi premium dan liquid pilihan untuk melengkapi santai Anda.</p>
-              </div>
-            </div>
-          </Link>
-
-        </div>
-      </div>
-    </section>
+    </div>
   );
 }

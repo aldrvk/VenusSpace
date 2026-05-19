@@ -83,21 +83,57 @@ class BengkelBookingController extends Controller
         ]);
     }
 
-    public function adminIndex()
+    public function adminIndex(Request $request)
     {
-        $bookings = BengkelBooking::with('user')
-            ->orderByRaw("FIELD(status, 'pending', 'verified', 'in_queue', 'servicing', 'done', 'cancelled')")
+        $query = BengkelBooking::with('user');
+
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('booking_code', 'like', "%{$search}%")
+                  ->orWhere('license_plate', 'like', "%{$search}%")
+                  ->orWhere('vehicle_class', 'like', "%{$search}%")
+                  ->orWhere('service_name', 'like', "%{$search}%")
+                  ->orWhere('walkin_name', 'like', "%{$search}%")
+                  ->orWhere('admin_notes', 'like', "%{$search}%")
+                  ->orWhereHas('user', function($u) use ($search) {
+                      $u->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        if ($request->has('status') && $request->status != '' && $request->status != 'Semua') {
+            $status = $request->status;
+            if ($status === 'Menunggu') {
+                $query->where('status', 'pending');
+            } elseif ($status === 'Antrian') {
+                $query->whereIn('status', ['verified', 'in_queue']);
+            } elseif ($status === 'Diservis') {
+                $query->where('status', 'servicing');
+            } elseif ($status === 'Selesai') {
+                $query->where('status', 'done');
+            } elseif ($status === 'Dibatalkan') {
+                $query->where('status', 'cancelled');
+            }
+        }
+
+        $bookings = $query->orderByRaw("FIELD(status, 'pending', 'verified', 'in_queue', 'servicing', 'done', 'cancelled')")
             ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(fn ($b) => $this->formatBookingAdmin($b));
+            ->paginate(10)
+            ->withQueryString();
+
+        $bookings->getCollection()->transform(fn ($b) => $this->formatBookingAdmin($b));
 
         $stalls = $this->getStallSummary();
         $queueCount = BengkelBooking::where('status', 'in_queue')->count();
+        $pendingCount = BengkelBooking::where('status', 'pending')->count();
 
         return Inertia::render('Admin/BookingBengkel', [
-            'bookings'   => $bookings,
-            'stalls'     => $stalls,
-            'queueCount' => $queueCount,
+            'bookings'     => $bookings,
+            'stalls'       => $stalls,
+            'queueCount'   => $queueCount,
+            'pendingCount' => $pendingCount,
+            'filters'      => $request->only('search', 'status')
         ]);
     }
 

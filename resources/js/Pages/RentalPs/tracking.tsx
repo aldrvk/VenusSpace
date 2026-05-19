@@ -395,11 +395,11 @@ export default function TrackingPage({ booking: initialBooking, showAd: shouldSh
     }, [adOpen]);
 
     const STATUS_TOAST: Partial<Record<string, { msg: string; type: 'success' | 'error' | 'loading' | 'default' }>> = {
-        verified:  { msg: '✅ Booking Anda dikonfirmasi! Menunggu TV tersedia...', type: 'success' },
-        in_queue:  { msg: '📋 Anda masuk ke antrian bermain.', type: 'default' },
-        playing:   { msg: '🎮 Waktu bermain Anda sudah dimulai!', type: 'default' },
-        done:      { msg: '🎉 Sesi bermain selesai! Terima kasih.', type: 'success' },
-        cancelled: { msg: '❌ Booking Anda dibatalkan.', type: 'error' },
+        verified:  { msg: 'Booking Anda dikonfirmasi! Menunggu TV tersedia...', type: 'success' },
+        in_queue:  { msg: 'Anda masuk ke antrian bermain.', type: 'default' },
+        playing:   { msg: 'Waktu bermain Anda sudah dimulai!', type: 'default' },
+        done:      { msg: 'Sesi bermain selesai! Terima kasih.', type: 'success' },
+        cancelled: { msg: 'Booking Anda dibatalkan.', type: 'error' },
     };
 
     useEffect(() => {
@@ -431,7 +431,7 @@ export default function TrackingPage({ booking: initialBooking, showAd: shouldSh
                         };
                         if (toastCfg.type === 'success') toast.success(toastCfg.msg, opts);
                         else if (toastCfg.type === 'error') toast.error(toastCfg.msg, opts);
-                        else toast(toastCfg.msg, { ...opts, icon: '🔔' });
+                        else toast(toastCfg.msg, opts);
                     }
                 }
             } catch (_) { /* silent */ }
@@ -570,7 +570,7 @@ export default function TrackingPage({ booking: initialBooking, showAd: shouldSh
                                             </svg>
                                         </div>
                                         <div>
-                                            <p className="text-h4 text-emerald-700 font-bold">Sesi Bermain Selesai! 🎉</p>
+                                            <p className="text-h4 text-emerald-700 font-bold">Sesi Bermain Selesai!</p>
                                             <p className="text-body-reg text-emerald-600 mt-1">Terima kasih telah bermain di Venus Rental PS. Sampai jumpa lagi!</p>
                                         </div>
                                     </div>

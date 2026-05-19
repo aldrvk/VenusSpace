@@ -50,10 +50,20 @@ interface Stall {
     progress?: string;
 }
 
+interface PaginatedBookings {
+    data: Booking[];
+    links: { url: string | null; label: string; active: boolean }[];
+    current_page: number;
+    last_page: number;
+    total: number;
+}
+
 interface Props {
-    bookings: Booking[];
+    bookings: PaginatedBookings;
     stalls: Stall[];
     queueCount: number;
+    pendingCount: number;
+    filters?: { search?: string; status?: string };
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -67,12 +77,12 @@ const STATUS_BADGE: Record<BookingStatus, "default" | "warning" | "success" | "d
 };
 
 const STATUS_LABEL: Record<BookingStatus, string> = {
-    pending:   "⏱ Menunggu",
-    verified:  "✓ Dikonfirmasi",
-    in_queue:  "● Di Antrian",
-    washing:   "▶ Dicuci",
-    done:      "✓ Selesai",
-    cancelled: "❌ Batal",
+    pending:   "Menunggu",
+    verified:  "Dikonfirmasi",
+    in_queue:  "Di Antrian",
+    washing:   "Dicuci",
+    done:      "Selesai",
+    cancelled: "Batal",
 };
 
 // ── Car Silhouette ────────────────────────────────────────────────────────────
@@ -354,25 +364,17 @@ function ActionButton({
 }
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
-export default function BookingDoorsmeer({ bookings, stalls, queueCount }: Props) {
-    const [activeFilter, setActiveFilter] = useState<FilterTab>("Semua");
+export default function BookingDoorsmeer({ bookings, stalls, queueCount, pendingCount, filters: urlFilters }: Props) {
+    const [activeFilter, setActiveFilter] = useState<FilterTab>((urlFilters?.status as FilterTab) || "Semua");
     const [confirmTarget, setConfirmTarget] = useState<Booking | null>(null);
     const [doneTarget, setDoneTarget] = useState<Booking | null>(null);
     const [cancelTarget, setCancelTarget] = useState<Booking | null>(null);
     
     const filters: FilterTab[] = ["Semua", "Menunggu", "Antrian", "Dicuci", "Selesai", "Dibatalkan"];
 
-    const filteredBookings = bookings.filter((b) => {
-        if (activeFilter === "Semua")      return true;
-        if (activeFilter === "Menunggu")   return b.status === "pending";
-        if (activeFilter === "Antrian")    return ["verified", "in_queue"].includes(b.status);
-        if (activeFilter === "Dicuci")     return b.status === "washing";
-        if (activeFilter === "Selesai")    return b.status === "done";
-        if (activeFilter === "Dibatalkan") return b.status === "cancelled";
-        return true;
-    });
+    const bookingData: Booking[] = Array.isArray(bookings) ? bookings : (bookings?.data || []);
 
-    const pendingCount = bookings.filter((b) => b.status === "pending").length;
+    const filteredBookings = bookingData;
 
     return (
         <AdminLayout>
@@ -470,12 +472,19 @@ export default function BookingDoorsmeer({ bookings, stalls, queueCount }: Props
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 px-4 md:px-6 py-3 md:py-4 border-b border-border">
                     <h2 className="text-lg md:text-h4 text-super-black font-bold">
                         Semua Booking
-                        <span className="ml-2 text-label-sm text-foreground/40 font-normal">({bookings.length})</span>
+                        <span className="ml-2 text-label-sm text-foreground/40 font-normal">({(bookings as any).total ?? bookingData.length})</span>
                     </h2>
                     <FilterTabs
                         tabs={filters}
                         active={activeFilter}
-                        onChange={(tab) => setActiveFilter(tab as FilterTab)}
+                        onChange={(tab) => {
+                            setActiveFilter(tab as FilterTab);
+                            router.get(
+                                window.location.pathname,
+                                { search: urlFilters?.search || "", status: tab !== "Semua" ? tab : undefined },
+                                { preserveState: true }
+                            );
+                        }}
                     />
                 </div>
 
@@ -553,10 +562,31 @@ export default function BookingDoorsmeer({ bookings, stalls, queueCount }: Props
                     </div>
                 )}
 
-                <div className="px-4 md:px-6 py-3 border-t border-border text-center md:text-left">
-                    <p className="text-xs text-foreground/40">
-                        Menampilkan {filteredBookings.length} dari {bookings.length} booking
+                <div className="px-4 md:px-6 py-3 border-t border-border flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <p className="text-xs text-foreground/40 text-center md:text-left">
+                        Menampilkan {filteredBookings.length} dari {(bookings as any).total ?? bookingData.length} booking
                     </p>
+
+                    {/* Pagination */}
+                    {!Array.isArray(bookings) && bookings.links && bookings.links.length > 3 && (
+                        <div className="flex items-center justify-center gap-1">
+                            {bookings.links.map((link, idx) => (
+                                <Link
+                                    key={idx}
+                                    href={link.url || '#'}
+                                    className={`px-3 py-1 text-xs md:text-sm rounded-md transition-colors ${
+                                        link.active 
+                                            ? 'bg-primary text-white font-bold' 
+                                            : link.url 
+                                                ? 'text-foreground/60 hover:bg-border' 
+                                                : 'text-foreground/30 cursor-not-allowed'
+                                    }`}
+                                    dangerouslySetInnerHTML={{ __html: link.label }}
+                                    preserveScroll
+                                />
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
 
