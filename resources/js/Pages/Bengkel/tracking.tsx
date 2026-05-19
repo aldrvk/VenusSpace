@@ -233,7 +233,7 @@ const STEPS = [
     },
     {
         key: 'servicing',
-        label: 'Sedang Dicuci',
+        label: 'Sedang Diservis',
         desc: 'Kendaraan sedang diservis oleh tim kami.',
         icon: (
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
