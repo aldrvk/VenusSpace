@@ -426,7 +426,7 @@ export default function TrackingPage({ booking: initialBooking, showAd: shouldSh
                     const toastCfg = STATUS_TOAST[data.status];
                     if (toastCfg) {
                         const opts = {
-                            duration: 5000,
+                            duration: 1000,
                             style: { borderRadius: '12px', background: '#1a1a2e', color: '#fff', padding: '14px 18px' },
                         };
                         if (toastCfg.type === 'success') toast.success(toastCfg.msg, opts);

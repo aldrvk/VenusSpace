@@ -20,7 +20,7 @@ function GlobalToaster() {
         <Toaster 
             position="top-center" 
             toastOptions={{
-                duration: 4000,
+                duration: 1000,
                 style: { borderRadius: '10px', background: '#333', color: '#fff' },
                 success: {
                     iconTheme: { primary: '#3cdbc0', secondary: '#fff' },

@@ -182,7 +182,7 @@ export default function ForgotPassword({
 
     useEffect(() => {
         if (flash?.success && step === 1) {
-            toast.success(flash.success, { duration: 6000 });
+            toast.success(flash.success, { duration: 1000 });
             setStep(2);
         }
     }, [flash, step]);
@@ -207,7 +207,7 @@ export default function ForgotPassword({
             });
 
             if (response.data.success) {
-                toast.success("Kode OTP telah berhasil dikirim!", { duration: 4000 });
+                toast.success("Kode OTP telah berhasil dikirim!", { duration: 1000 });
                 setTimeout(() => setStep(2), 500);
             }
         } catch (error: any) {

@@ -213,7 +213,7 @@ export default function BengkelIndex() {
                                 Elite <span className="text-primary">Vehicle Service</span> Experience
                             </h1>
                             <p className="text-body-l text-foreground/70 mt-4 max-w-lg">
-                                Manjakan kendaraan Anda dengan ritual perawatan premium. Booking sekarang dan masuk ke antrian realtime — tanpa perlu janji temu.
+                                Kembalikan performa optimal kendaraan Anda di tangan teknisi berpengalaman. Booking slot servis Anda sekarang dan pantau antrian secara langsung.
                             </p>
                         </div>
 
