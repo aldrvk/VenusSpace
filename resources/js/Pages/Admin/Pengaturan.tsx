@@ -180,7 +180,7 @@ export default function Pengaturan() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6">
                 {/* Sidebar Tabs */}
                 <div className="md:col-span-1">
-                    <div className="flex md:flex-col gap-2 md:gap-1 bg-card border border-border rounded-venus p-3 md:p-4 md:space-y-1">
+                    <div className="flex md:flex-col gap-2 md:gap-1 bg-card border border-border rounded-venus p-3 md:p-4 md:space-y-1 overflow-x-auto">
                         {tabs.map((tab) => (
                             <button
                                 key={tab}
@@ -220,7 +220,7 @@ export default function Pengaturan() {
                                     </button>
                                 </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 {[
                                     { label: "Nama Bisnis", value: "Venus Hub", type: "text" },
                                     { label: "Email Admin", value: "admin@venushub.id", type: "email" },
@@ -330,7 +330,7 @@ export default function Pengaturan() {
                                             return (
                                                 <div
                                                     key={day}
-                                                    className={`flex items-center justify-between p-4 border rounded-venus transition-all ${
+                                                    className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border rounded-venus transition-all ${
                                                         isDayOpen 
                                                             ? "border-border bg-background" 
                                                             : "border-border/50 bg-surface/50"
@@ -356,7 +356,7 @@ export default function Pengaturan() {
                                                             {day}
                                                         </p>
                                                     </div>
-                                                    <div className="flex items-center gap-3">
+                                                    <div className="flex items-center gap-3 w-full sm:w-auto">
                                                         <input
                                                             type="time"
                                                             value={daySchedule?.open ?? "08:00"}

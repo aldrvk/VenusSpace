@@ -143,8 +143,8 @@ export default function Receipt({ order }: Props) {
                                 <span className="text-body-m text-super-black">{formatPrice(order.total)}</span>
                             </div>
                             <div className="flex justify-between items-center pt-3 border-t border-border">
-                                <span className="text-h3 text-super-black uppercase tracking-widest font-bold">Total Pembayaran</span>
-                                <span className="text-h2 text-secondary">{formatPrice(order.total)}</span>
+                                <span className="text-body-l sm:text-h3 text-super-black uppercase tracking-widest font-bold">Total</span>
+                                <span className="text-h3 sm:text-h2 text-secondary">{formatPrice(order.total)}</span>
                             </div>
                         </div>
 
@@ -166,10 +166,10 @@ export default function Receipt({ order }: Props) {
                                     ? 'Tunjukkan bukti pesanan ini kepada petugas kami di toko saat pengambilan.' 
                                     : 'Tunjukkan nomor pesanan ini kepada kasir untuk memproses pesanan dan melakukan pembayaran.'}
                             </p>
-                            <div className="pt-4 flex justify-center gap-4 no-print">
-                                <button onClick={() => window.print()} className="px-6 py-2 border border-border rounded-full text-label-sm hover:bg-white transition-colors uppercase font-bold text-super-black">Cetak</button>
-                                <Link href={`/coffee-shop/tracking/${order.order_code}`} className="px-6 py-2 bg-secondary text-white rounded-full text-label-sm hover:bg-secondary/90 transition-colors uppercase font-bold">Lacak Pesanan</Link>
-                                <Link href="/coffee-shop" className="px-6 py-2 bg-super-black text-white rounded-full text-label-sm hover:bg-super-black/80 transition-colors uppercase font-bold">Kembali Belanja</Link>
+                            <div className="pt-4 flex flex-wrap justify-center gap-3 no-print">
+                                <button onClick={() => window.print()} className="w-full sm:w-auto px-6 py-3 sm:py-2 border border-border rounded-full text-label-sm hover:bg-white transition-colors uppercase font-bold text-super-black">Cetak</button>
+                                <Link href={`/coffee-shop/tracking/${order.order_code}`} className="flex-1 sm:flex-none px-6 py-3 sm:py-2 bg-secondary text-white rounded-full text-label-sm hover:bg-secondary/90 transition-colors uppercase font-bold text-center">Lacak Pesanan</Link>
+                                <Link href="/coffee-shop" className="flex-1 sm:flex-none px-6 py-3 sm:py-2 bg-super-black text-white rounded-full text-label-sm hover:bg-super-black/80 transition-colors uppercase font-bold text-center">Kembali</Link>
                             </div>
                         </div>
                     </div>

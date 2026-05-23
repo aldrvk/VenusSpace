@@ -50,6 +50,7 @@ class HandleInertiaRequests extends Middleware
                 'bengkelCount' => fn () => $this->getBengkelCount(),
                 'rentalCount' => fn () => $this->getRentalCount(),
                 'storeCount' => fn () => $this->getStoreCount(),
+                'pendingItems' => fn () => ($request->user() && $request->user()->role === 'admin') ? $this->getPendingItems() : [],
             ],
             'settings' => fn () => $this->getOperationalSettings(),
             'payment_settings' => function () use ($request) {
@@ -87,13 +88,108 @@ class HandleInertiaRequests extends Middleware
     private function getStoreCount(): int
     {
         try {
-            return \App\Models\StoreOrder::whereNotIn('status', ['BERHASIL', 'BATAL'])->count();
+            return \App\Models\StoreOrder::whereNotIn('progress_status', ['completed', 'cancelled'])->count();
         } catch (\Exception $e) { return 0; }
     }
 
     private function getPendingCount(): int
     {
         return $this->getDoorsmeerCount() + $this->getBengkelCount() + $this->getRentalCount() + $this->getStoreCount();
+    }
+
+    private function getPendingItems(): array
+    {
+        try {
+            $list = [];
+
+            // 1. Doorsmeer Bookings (Menunggu Konfirmasi)
+            $doorsmeer = \App\Models\DoorsmeerBooking::where('status', 'pending')
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(function ($b) {
+                    return [
+                        'id' => 'doorsmeer-' . $b->id,
+                        'code' => $b->booking_code,
+                        'title' => 'Booking Doorsmeer Baru',
+                        'customer' => $b->customer_name,
+                        'detail' => $b->vehicle_class . ' · ' . $b->license_plate,
+                        'time' => $b->created_at->diffForHumans(),
+                        'timestamp' => $b->created_at->timestamp,
+                        'link' => '/admin/booking-doorsmeer?search=' . urlencode($b->booking_code),
+                        'type' => 'doorsmeer',
+                    ];
+                });
+            foreach ($doorsmeer as $item) $list[] = $item;
+
+            // 2. Bengkel Bookings (Menunggu Konfirmasi)
+            $bengkel = \App\Models\BengkelBooking::where('status', 'pending')
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(function ($b) {
+                    return [
+                        'id' => 'bengkel-' . $b->id,
+                        'code' => $b->booking_code,
+                        'title' => 'Booking Bengkel Baru',
+                        'customer' => $b->customer_name,
+                        'detail' => $b->vehicle_class . ' · ' . $b->license_plate,
+                        'time' => $b->created_at->diffForHumans(),
+                        'timestamp' => $b->created_at->timestamp,
+                        'link' => '/admin/booking-bengkel?search=' . urlencode($b->booking_code),
+                        'type' => 'bengkel',
+                    ];
+                });
+            foreach ($bengkel as $item) $list[] = $item;
+
+            // 3. Rental PS Bookings (Menunggu Konfirmasi)
+            $rental = \App\Models\RentalPsBooking::where('status', 'pending')
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(function ($b) {
+                    return [
+                        'id' => 'rental-' . $b->id,
+                        'code' => $b->booking_code,
+                        'title' => 'Booking Rental PS Baru',
+                        'customer' => $b->customer_name,
+                        'detail' => $b->service_name . ' · ' . $b->service_duration,
+                        'time' => $b->created_at->diffForHumans(),
+                        'timestamp' => $b->created_at->timestamp,
+                        'link' => '/admin/booking-rental-ps?search=' . urlencode($b->booking_code),
+                        'type' => 'rental_ps',
+                    ];
+                });
+            foreach ($rental as $item) $list[] = $item;
+
+            // 4. Store Orders (Menunggu Pembayaran / Diterima)
+            $store = \App\Models\StoreOrder::whereIn('progress_status', ['menunggu_pembayaran', 'pending'])
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(function ($o) {
+                    $unitLabel = $o->unit === 'VAPE STORE' ? 'Vape Store' : 'Coffee Shop';
+                    $paymentLabel = strtolower($o->payment_method) === 'qris' ? 'Pembayaran Online' : strtoupper($o->payment_method);
+                    return [
+                        'id' => 'store-' . $o->id,
+                        'code' => $o->order_code ?? (string)$o->id,
+                        'title' => 'Pesanan ' . $unitLabel . ' Baru',
+                        'customer' => $o->customer_name,
+                        'detail' => 'Rp' . number_format($o->total, 0, ',', '.') . ' (' . $paymentLabel . ')',
+                        'time' => $o->created_at ? $o->created_at->diffForHumans() : '',
+                        'timestamp' => $o->created_at ? $o->created_at->timestamp : 0,
+                        'link' => '/admin/pesanan-store?search=' . urlencode($o->order_code ?? (string)$o->id),
+                        'type' => 'store',
+                    ];
+                });
+            foreach ($store as $item) $list[] = $item;
+
+            // Urutkan berdasarkan waktu terbaru
+            usort($list, function ($a, $b) {
+                return $b['timestamp'] <=> $a['timestamp'];
+            });
+
+            // Ambil maksimal 15 notifikasi terbaru
+            return array_slice($list, 0, 15);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     /**

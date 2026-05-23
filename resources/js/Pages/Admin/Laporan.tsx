@@ -195,56 +195,58 @@ export default function Laporan({
                 </div>
 
                 {/* Bar Chart (visual representation) */}
-                <div className="col-span-2 bg-card/80 backdrop-blur-lg border border-border rounded-2xl p-6 shadow-sm flex flex-col">
-                    <div className="flex items-center justify-between mb-8">
+                <div className="lg:col-span-2 bg-card/80 backdrop-blur-lg border border-border rounded-2xl p-4 sm:p-6 shadow-sm flex flex-col">
+                    <div className="flex items-center justify-between mb-6 sm:mb-8">
                         <div className="flex items-center gap-3">
                             <div className="w-2 h-6 bg-gradient-to-b from-secondary to-primary rounded-full" />
-                            <h3 className="text-xl font-extrabold text-super-black tracking-tight">
+                            <h3 className="text-lg sm:text-xl font-extrabold text-super-black tracking-tight">
                                 Tren Transaksi
                             </h3>
                         </div>
-                        <span className="text-xs font-bold text-primary bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
+                        <span className="text-[10px] sm:text-xs font-bold text-primary bg-primary/10 px-2 sm:px-3 py-1 rounded-full border border-primary/20">
                             {activePeriod}
                         </span>
                     </div>
                     
-                    <div className="flex items-end justify-between gap-1 sm:gap-3 h-56 mt-auto">
-                        {chartData.map((d: any, i: number) => {
-                            const heightPct = (d.value / maxChartValue) * 100;
-                            const gradients = [
-                                "from-primary to-primary/80",
-                                "from-secondary to-secondary/80",
-                                "from-primary/70 to-primary/50",
-                                "from-secondary/70 to-secondary/50",
-                            ];
-                            const currentGradient = gradients[i % gradients.length];
-                            
-                            return (
-                                <div
-                                    key={d.label}
-                                    className="flex-1 flex flex-col items-center gap-2 group"
-                                >
+                    <div className="overflow-x-auto -mx-4 sm:-mx-6 px-4 sm:px-6">
+                        <div className="flex items-end gap-1 sm:gap-3 h-48 sm:h-56 mt-auto" style={{ minWidth: chartData.length > 7 ? `${chartData.length * 44}px` : 'auto' }}>
+                            {chartData.map((d: any, i: number) => {
+                                const heightPct = (d.value / maxChartValue) * 100;
+                                const gradients = [
+                                    "from-primary to-primary/80",
+                                    "from-secondary to-secondary/80",
+                                    "from-primary/70 to-primary/50",
+                                    "from-secondary/70 to-secondary/50",
+                                ];
+                                const currentGradient = gradients[i % gradients.length];
+                                
+                                return (
                                     <div
-                                        className="w-full relative flex items-end justify-center"
-                                        style={{ height: "180px" }}
+                                        key={d.label}
+                                        className="flex-1 flex flex-col items-center gap-2 group min-w-[28px] sm:min-w-[36px]"
                                     >
-                                        <div className={`absolute -bottom-2 w-full h-4 bg-gradient-to-r ${currentGradient} blur-md opacity-0 group-hover:opacity-40 transition-opacity`} />
                                         <div
-                                            className={`w-full max-w-[40px] rounded-t-lg bg-gradient-to-t ${currentGradient} opacity-70 group-hover:opacity-100 transition-all duration-300 cursor-pointer relative shadow-inner`}
-                                            style={{ height: `${heightPct || 3}%` }}
-                                            title={`${d.label}: ${d.value} transaksi`}
+                                            className="w-full relative flex items-end justify-center"
+                                            style={{ height: "100%" }}
                                         >
-                                            <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-super-black text-white text-[10px] font-bold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
-                                                {d.value} trx
+                                            <div className={`absolute -bottom-2 w-full h-4 bg-gradient-to-r ${currentGradient} blur-md opacity-0 group-hover:opacity-40 transition-opacity`} />
+                                            <div
+                                                className={`w-full max-w-[32px] sm:max-w-[40px] rounded-t-lg bg-gradient-to-t ${currentGradient} opacity-70 group-hover:opacity-100 transition-all duration-300 cursor-pointer relative shadow-inner`}
+                                                style={{ height: `${heightPct || 3}%` }}
+                                                title={`${d.label}: ${d.value} transaksi`}
+                                            >
+                                                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-super-black text-white text-[10px] font-bold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                                                    {d.value} trx
+                                                </div>
                                             </div>
                                         </div>
+                                        <span className="text-[9px] sm:text-xs font-semibold text-foreground/50 group-hover:text-super-black transition-colors whitespace-nowrap">
+                                            {d.label}
+                                        </span>
                                     </div>
-                                    <span className="text-[10px] sm:text-xs font-semibold text-foreground/50 group-hover:text-super-black transition-colors whitespace-nowrap">
-                                        {d.label}
-                                    </span>
-                                </div>
-                            );
-                        })}
+                                );
+                            })}
+                        </div>
                     </div>
                 </div>
             </div>

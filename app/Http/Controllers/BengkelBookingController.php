@@ -67,7 +67,6 @@ class BengkelBookingController extends Controller
 
         return Inertia::render('Bengkel/tracking', [
             'booking' => $this->formatBooking($booking),
-            'showAd'  => request()->query('new') == 1,
         ]);
     }
 
