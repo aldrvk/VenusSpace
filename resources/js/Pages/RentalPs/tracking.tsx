@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import toast, { Toaster } from 'react-hot-toast';
 import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
@@ -334,6 +334,16 @@ function ProgressStep({
 
 export default function TrackingPage({ booking: initialBooking, showAd: shouldShowAd }: Props) {
     const [booking, setBooking] = useState(initialBooking);
+
+    const handleCancelBooking = () => {
+        if (window.confirm("Apakah Anda yakin ingin membatalkan booking ini?")) {
+            router.post(`/rental-ps/cancel/${booking.id}`, {}, {
+                onSuccess: () => {
+                    toast.success("Booking berhasil dibatalkan");
+                }
+            });
+        }
+    };
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const isTerminal = booking.status === 'done' || booking.status === 'cancelled';
 
@@ -613,6 +623,18 @@ export default function TrackingPage({ booking: initialBooking, showAd: shouldSh
                             {booking.done_at && <p className="text-body-reg text-emerald-600 mt-1">Selesai: {booking.done_at}</p>}
                             {booking.status === 'cancelled' && <p className="text-body-reg text-red-600 mt-1">Dibatalkan</p>}
                         </div>
+
+                        {booking.status === 'pending' && (
+                            <button
+                                onClick={handleCancelBooking}
+                                className="w-full bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-venus py-3 text-label-sm font-bold transition-all text-center flex items-center justify-center gap-2 mb-3"
+                            >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                                </svg>
+                                Batalkan Booking
+                            </button>
+                        )}
 
                         <Link href="/rental-ps/my-bookings" className="block text-center text-label-sm text-primary hover:text-primary/80 font-semibold transition-colors py-2">
                             ← Lihat Semua Booking Saya

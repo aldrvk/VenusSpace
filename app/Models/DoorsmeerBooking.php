@@ -98,9 +98,9 @@ class DoorsmeerBooking extends Model
 
         return match ($this->status) {
             'pending'  => ['verified', 'cancelled'],
-            'verified' => ['in_queue', 'washing', 'cancelled'],
-            'in_queue' => ['washing', 'cancelled'],
-            'washing'  => ['done', 'cancelled'],
+            'verified' => ['in_queue', 'washing'],
+            'in_queue' => ['washing'],
+            'washing'  => ['done'],
             'done'     => [],
             default    => [],
         };

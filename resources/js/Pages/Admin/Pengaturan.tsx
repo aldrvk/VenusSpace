@@ -3,7 +3,7 @@ import { Head, usePage, router } from "@inertiajs/react";
 import AdminLayout from "../../Layouts/AdminLayout";
 import { PageHeader } from "../../Components/AdminUI";
 
-type SettingTab = "Profil" | "Operasional" | "Pembayaran" | "Notifikasi" | "Keamanan";
+type SettingTab = "Profil" | "Operasional" | "Pembayaran" | "Keamanan";
 
 interface DaySchedule {
     open: string;
@@ -74,7 +74,7 @@ export default function Pengaturan() {
         return getDefaultSettings();
     });
 
-    const tabs: SettingTab[] = ["Profil", "Operasional", "Pembayaran", "Notifikasi", "Keamanan"];
+    const tabs: SettingTab[] = ["Profil", "Operasional", "Pembayaran", "Keamanan"];
 
     const currentUnit = operationalSettings[selectedUnit];
 
@@ -462,44 +462,7 @@ export default function Pengaturan() {
                         </div>
                     )}
 
-                    {activeTab === "Notifikasi" && (
-                        <div className="bg-card border border-border rounded-venus p-6">
-                            <h2 className="text-h4 text-super-black mb-5">
-                                Preferensi Notifikasi
-                            </h2>
-                            <div className="space-y-3">
-                                {[
-                                    { label: "Booking baru masuk", desc: "Notifikasi saat ada booking baru dari pelanggan", on: true },
-                                    { label: "Pembayaran diterima", desc: "Notifikasi konfirmasi pembayaran", on: true },
-                                    { label: "Antrean menumpuk", desc: "Peringatan saat antrean > 5 orang", on: true },
-                                    { label: "Stok produk hampir habis", desc: "Peringatan stok di bawah 5 unit", on: false },
-                                    { label: "Laporan harian otomatis", desc: "Kirim ringkasan pendapatan setiap pukul 21:00", on: true },
-                                    { label: "WhatsApp Notifikasi", desc: "Kirim notifikasi via WhatsApp ke admin", on: false },
-                                ].map((n) => (
-                                    <div
-                                        key={n.label}
-                                        className="flex items-center justify-between p-4 border border-border rounded-venus"
-                                    >
-                                        <div>
-                                            <p className="text-body-m text-super-black font-semibold">
-                                                {n.label}
-                                            </p>
-                                            <p className="text-body-reg text-foreground/50">
-                                                {n.desc}
-                                            </p>
-                                        </div>
-                                        <div
-                                            className={`w-12 h-6 rounded-full relative cursor-pointer transition-all ${n.on ? "bg-secondary" : "bg-surface border border-border"}`}
-                                        >
-                                            <div
-                                                className={`w-5 h-5 rounded-full bg-white absolute top-0.5 transition-all shadow ${n.on ? "right-0.5" : "left-0.5"}`}
-                                            />
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
+
 
                     {activeTab === "Keamanan" && (
                         <div className="space-y-5">

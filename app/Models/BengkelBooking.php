@@ -73,9 +73,9 @@ class BengkelBooking extends Model
 
         return match ($this->status) {
             'pending'  => ['verified', 'cancelled'],
-            'verified' => ['in_queue', 'servicing', 'cancelled'],
-            'in_queue' => ['servicing', 'cancelled'],
-            'servicing'=> ['done', 'cancelled'],
+            'verified' => ['in_queue', 'servicing'],
+            'in_queue' => ['servicing'],
+            'servicing'=> ['done'],
             'done'     => [],
             default    => [],
         };

@@ -139,6 +139,7 @@ Route::middleware('auth')->group(function () {
              ->name('doorsmeer.tracking');
         Route::get('/doorsmeer/my-bookings', [DoorsmeerBookingController::class, 'myBookings'])
              ->name('doorsmeer.my_bookings');
+        Route::post('/doorsmeer/cancel/{booking}', [DoorsmeerBookingController::class, 'userCancel'])->name('doorsmeer.cancel');
 
         // Polling AJAX – real-time status tanpa reload halaman
         Route::get('/api/doorsmeer/status/{code}', [DoorsmeerBookingController::class, 'statusPoll'])
@@ -148,12 +149,14 @@ Route::middleware('auth')->group(function () {
         Route::post('/bengkel/booking', [BengkelBookingController::class, 'store'])->name('bengkel.booking.store');
         Route::get('/bengkel/tracking/{code}', [BengkelBookingController::class, 'tracking'])->name('bengkel.tracking');
         Route::get('/bengkel/my-bookings', [BengkelBookingController::class, 'myBookings'])->name('bengkel.my_bookings');
+        Route::post('/bengkel/cancel/{booking}', [BengkelBookingController::class, 'userCancel'])->name('bengkel.cancel');
         Route::get('/api/bengkel/status/{code}', [BengkelBookingController::class, 'statusPoll'])->name('bengkel.status_poll');
 
         // ── Rental PS Booking (user) ──────────────────────────────────────────────
         Route::post('/rental-ps/booking', [RentalPsBookingController::class, 'store'])->name('rental-ps.booking.store');
         Route::get('/rental-ps/tracking/{code}', [RentalPsBookingController::class, 'tracking'])->name('rental-ps.tracking');
         Route::get('/rental-ps/my-bookings', [RentalPsBookingController::class, 'myBookings'])->name('rental-ps.my_bookings');
+        Route::post('/rental-ps/cancel/{booking}', [RentalPsBookingController::class, 'userCancel'])->name('rental-ps.cancel');
         Route::get('/api/rental-ps/status/{code}', [RentalPsBookingController::class, 'statusPoll'])->name('rental-ps.status_poll');
 
         // ── Protected Booking Pages (Redirects to Login if guest) ─────────────────

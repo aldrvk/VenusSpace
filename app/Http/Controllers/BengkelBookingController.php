@@ -206,6 +206,21 @@ class BengkelBookingController extends Controller
         return back()->with('success', "Booking {$booking->booking_code} telah dibatalkan.");
     }
 
+    // USER: Batalkan booking sendiri (hanya jika pending)
+    // POST /bengkel/cancel/{id}
+    public function userCancel(Request $request, BengkelBooking $booking)
+    {
+        abort_if($booking->user_id !== auth()->id(), 403, 'Akses ditolak.');
+        abort_if(!$booking->canTransitionTo('cancelled'), 422, 'Booking tidak dapat dibatalkan karena sudah diproses.');
+
+        $booking->update([
+            'status'      => 'cancelled',
+            'admin_notes' => 'Dibatalkan oleh Pelanggan',
+        ]);
+
+        return back()->with('success', "Booking {$booking->booking_code} berhasil dibatalkan.");
+    }
+
     public function walkIn()
     {
         return Inertia::render('Admin/BengkelWalkIn', [
