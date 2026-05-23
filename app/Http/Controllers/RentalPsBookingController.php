@@ -63,7 +63,6 @@ class RentalPsBookingController extends Controller
 
         return Inertia::render('RentalPs/tracking', [
             'booking' => $this->formatBooking($booking),
-            'showAd'  => request()->query('new') == 1,
         ]);
     }
 

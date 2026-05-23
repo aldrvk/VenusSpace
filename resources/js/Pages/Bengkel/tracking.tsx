@@ -29,182 +29,6 @@ interface Booking {
 
 interface Props {
     booking: Booking;
-    showAd?: boolean;
-}
-
-// ─── Venus Hub Cross-Promo Ads ────────────────────────────────────────────────
-
-interface PromoAd {
-    id: string;
-    emoji: string;
-    badge: string;
-    badgeColor: string;
-    title: string;
-    highlight: string;
-    description: string;
-    cta: string;
-    href: string;
-    bgGradient: string;
-    accentColor: string;
-}
-
-const VENUS_ADS: PromoAd[] = [
-    {
-        id: 'vape',
-        emoji: '💨',
-        badge: 'VAPE STORE',
-        badgeColor: 'bg-violet-500/20 text-violet-300 border-violet-400/30',
-        title: 'Koleksi Premium',
-        highlight: 'Vape & Liquid',
-        description: 'Sambil nunggu mobil diservis, cek koleksi pod system & liquid terbaru di Venus Vape Store.',
-        cta: 'Kunjungi Vape Store',
-        href: '/vape-store',
-        bgGradient: 'from-violet-600 via-purple-700 to-indigo-800',
-        accentColor: 'bg-violet-400 hover:bg-violet-300',
-    },
-    {
-        id: 'coffee',
-        emoji: '☕',
-        badge: 'COFFEE SHOP',
-        badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-400/30',
-        title: 'Ngopi Dulu?',
-        highlight: 'Venus Coffee',
-        description: 'Nikmati segelas espresso artisan sambil menunggu kendaraan Anda selesai diservis.',
-        cta: 'Lihat Menu Coffee',
-        href: '#',
-        bgGradient: 'from-amber-700 via-orange-800 to-red-900',
-        accentColor: 'bg-amber-400 hover:bg-amber-300',
-    },
-    {
-        id: 'bengkel',
-        emoji: '🔧',
-        badge: 'BENGKEL',
-        badgeColor: 'bg-sky-500/20 text-sky-300 border-sky-400/30',
-        title: 'Service Berkala',
-        highlight: 'Venus Bengkel',
-        description: 'Mobil sudah bersih? Yuk lanjut cek kondisi mesin & ganti oli di bengkel kami.',
-        cta: 'Booking Service',
-        href: '#',
-        bgGradient: 'from-sky-600 via-blue-700 to-indigo-800',
-        accentColor: 'bg-sky-400 hover:bg-sky-300',
-    },
-    {
-        id: 'rental-ps',
-        emoji: '🎮',
-        badge: 'RENTAL PS',
-        badgeColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30',
-        title: 'Main PS5 Yuk!',
-        highlight: 'Venus Gaming',
-        description: 'Ajak teman main PS5 sambil nunggu mobil diservis. Tersedia ruangan privat ber-AC.',
-        cta: 'Booking PS Sekarang',
-        href: '#',
-        bgGradient: 'from-emerald-600 via-teal-700 to-cyan-800',
-        accentColor: 'bg-emerald-400 hover:bg-emerald-300',
-    },
-    {
-        id: 'membership',
-        emoji: '⭐',
-        badge: 'MEMBERSHIP',
-        badgeColor: 'bg-primary/20 text-primary border-primary/30',
-        title: 'Cuci ke-5',
-        highlight: 'GRATIS!',
-        description: 'Daftar Venus Membership & dapatkan setiap cuci ke-5 gratis + diskon 15% semua layanan.',
-        cta: 'Daftar Membership',
-        href: '#',
-        bgGradient: 'from-secondary via-teal-800 to-emerald-900',
-        accentColor: 'bg-primary hover:bg-primary/80',
-    },
-];
-
-function getRandomAd(): PromoAd {
-    return VENUS_ADS[Math.floor(Math.random() * VENUS_ADS.length)];
-}
-
-function PromoPopup({
-    ad,
-    onClose,
-    countdown,
-}: {
-    ad: PromoAd;
-    onClose: () => void;
-    countdown: number;
-}) {
-    return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/70 backdrop-blur-md" onClick={countdown <= 0 ? onClose : undefined} />
-            <div className={`relative w-full max-w-lg rounded-venus overflow-hidden shadow-2xl bg-gradient-to-br ${ad.bgGradient}`}
-                 style={{ animation: 'fadeInScale 0.3s ease-out' }}>
-
-                {/* Decorative circles */}
-                <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-white/5" />
-                <div className="absolute -bottom-10 -left-10 w-32 h-32 rounded-full bg-white/5" />
-
-                {/* Content */}
-                <div className="relative p-8 md:p-10">
-                    {/* Top row: badge + close */}
-                    <div className="flex items-center justify-between mb-6">
-                        <span className={`text-xs font-bold tracking-widest px-4 py-1.5 rounded-full border ${ad.badgeColor}`}>
-                            {ad.badge}
-                        </span>
-                        <button
-                            onClick={countdown <= 0 ? onClose : undefined}
-                            className={`w-10 h-10 rounded-full flex items-center justify-center text-white/60 transition-all ${
-                                countdown > 0
-                                    ? 'bg-white/10 cursor-not-allowed'
-                                    : 'bg-white/10 hover:bg-white/20 cursor-pointer shadow-lg'
-                            }`}
-                        >
-                            {countdown > 0 ? (
-                                <span className="text-sm font-bold">{countdown}</span>
-                            ) : (
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-                                </svg>
-                            )}
-                        </button>
-                    </div>
-
-                    {/* Emoji */}
-                    <div className="text-7xl mb-6 transform hover:scale-110 transition-transform duration-300 drop-shadow-lg">{ad.emoji}</div>
-
-                    {/* Title */}
-                    <h3 className="text-white text-3xl md:text-4xl font-extrabold leading-tight">
-                        {ad.title}{' '}
-                        <span className="text-primary">{ad.highlight}</span>
-                    </h3>
-                    <p className="text-white/80 text-base md:text-lg mt-4 leading-relaxed max-w-md">
-                        {ad.description}
-                    </p>
-
-                    {/* CTA */}
-                    <div className="flex flex-col sm:flex-row gap-4 mt-10">
-                        <a
-                            href={ad.href}
-                            className={`flex-1 text-center py-4 rounded-full text-base font-bold text-super-black transition-all shadow-xl active:scale-95 ${ad.accentColor}`}
-                        >
-                            {ad.cta}
-                        </a>
-                        <button
-                            onClick={countdown <= 0 ? onClose : undefined}
-                            className={`flex-1 py-4 rounded-full text-base font-semibold border border-white/20 transition-all active:scale-95 ${
-                                countdown > 0
-                                    ? 'text-white/30 cursor-not-allowed'
-                                    : 'text-white/70 hover:bg-white/10 cursor-pointer'
-                            }`}
-                        >
-                            {countdown > 0 ? `Tunggu ${countdown}s...` : 'Tutup'}
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <style>{`
-                @keyframes fadeInScale {
-                    from { opacity: 0; transform: scale(0.95); }
-                    to   { opacity: 1; transform: scale(1); }
-                }
-            `}</style>
-        </div>
-    );
 }
 
 // ─── Progress Steps ───────────────────────────────────────────────────────────
@@ -334,7 +158,7 @@ function ProgressStep({
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
-export default function TrackingPage({ booking: initialBooking, showAd: shouldShowAd }: Props) {
+export default function TrackingPage({ booking: initialBooking }: Props) {
     const [booking, setBooking] = useState(initialBooking);
 
     const handleCancelBooking = () => {
@@ -348,63 +172,6 @@ export default function TrackingPage({ booking: initialBooking, showAd: shouldSh
     };
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const isTerminal = booking.status === 'done' || booking.status === 'cancelled';
-
-    // Ad state
-    const [adOpen, setAdOpen] = useState(false);
-    const [currentAd, setCurrentAd] = useState<PromoAd | null>(null);
-    const [adCountdown, setAdCountdown] = useState(3);
-    const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
-    const adTriggerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-    // Optimized Ad Logic: 
-    // Now fully random. NO immediate ad on reload or after booking.
-    useEffect(() => {
-        const scheduleFirstAd = () => {
-            // First ad will appear after a random delay of 1.5 to 3 minutes
-            // This prevents "ad on every reload" and "immediate ad after booking"
-            const initialDelay = Math.floor(Math.random() * (180000 - 90000 + 1)) + 90000;
-            
-            adTriggerTimerRef.current = setTimeout(() => {
-                if (isTerminal) return;
-                setCurrentAd(getRandomAd());
-                setAdOpen(true);
-            }, initialDelay);
-        };
-
-        scheduleFirstAd();
-
-        return () => {
-            if (adTriggerTimerRef.current) clearTimeout(adTriggerTimerRef.current);
-        };
-    }, [isTerminal]);
-
-    // Handle ad closure to schedule the NEXT periodic ad
-    const handleAdClose = () => {
-        setAdOpen(false);
-        // Next ads will appear every 2 to 4 minutes randomly while the page is open
-        const nextDelay = Math.floor(Math.random() * (240000 - 120000 + 1)) + 120000;
-        adTriggerTimerRef.current = setTimeout(() => {
-            if (isTerminal) return;
-            setCurrentAd(getRandomAd());
-            setAdOpen(true);
-        }, nextDelay);
-    };
-
-    // Countdown logic for the open ad
-    useEffect(() => {
-        if (!adOpen) return;
-        setAdCountdown(3);
-        countdownRef.current = setInterval(() => {
-            setAdCountdown(prev => {
-                if (prev <= 1) {
-                    if (countdownRef.current) clearInterval(countdownRef.current);
-                    return 0;
-                }
-                return prev - 1;
-            });
-        }, 1000);
-        return () => { if (countdownRef.current) clearInterval(countdownRef.current); };
-    }, [adOpen]);
 
     const STATUS_TOAST: Partial<Record<string, { msg: string; type: 'success' | 'error' | 'loading' | 'default' }>> = {
         verified:  { msg: 'Kedatangan Anda dikonfirmasi! Menunggu pit...', type: 'success' },
@@ -647,14 +414,7 @@ export default function TrackingPage({ booking: initialBooking, showAd: shouldSh
 
             <Footer />
 
-            {/* Ad Popup */}
-            {adOpen && currentAd && (
-                <PromoPopup
-                    ad={currentAd}
-                    onClose={handleAdClose}
-                    countdown={adCountdown}
-                />
-            )}
+
         </div>
     );
 }

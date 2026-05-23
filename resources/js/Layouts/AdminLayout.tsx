@@ -1,7 +1,51 @@
-import React, { ReactNode, useState, useEffect } from 'react';
+import React, { ReactNode, useState, useEffect, useRef } from 'react';
 import { Link, router, usePage } from '@inertiajs/react';
 import { Toaster } from 'react-hot-toast';
 import { useFlashToast } from '../hooks/useFlashToast';
+
+// ── Notification Sound (Web Audio API) ────────────────────────────────────────
+function playNotificationSound() {
+    console.log("playNotificationSound dipicu!");
+    try {
+        const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        
+        // Resume context jika di-suspend oleh kebijakan autoplay browser
+        if (ctx.state === 'suspended') {
+            ctx.resume().then(() => {
+                console.log("AudioContext berhasil di-resume.");
+            });
+        }
+        
+        // Note 1: High ting
+        const osc1 = ctx.createOscillator();
+        const gain1 = ctx.createGain();
+        osc1.connect(gain1);
+        gain1.connect(ctx.destination);
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(880, ctx.currentTime);
+        osc1.frequency.exponentialRampToValueAtTime(1100, ctx.currentTime + 0.1);
+        gain1.gain.setValueAtTime(0.35, ctx.currentTime);
+        gain1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+        osc1.start(ctx.currentTime);
+        osc1.stop(ctx.currentTime + 0.6);
+
+        // Note 2: Lower follow-up note
+        const osc2 = ctx.createOscillator();
+        const gain2 = ctx.createGain();
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(660, ctx.currentTime + 0.15);
+        osc2.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.3);
+        gain2.gain.setValueAtTime(0, ctx.currentTime + 0.15);
+        gain2.gain.setValueAtTime(0.25, ctx.currentTime + 0.16);
+        gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+        osc2.start(ctx.currentTime + 0.15);
+        osc2.stop(ctx.currentTime + 0.8);
+    } catch (e) {
+        console.error("Gagal memutar suara notifikasi:", e);
+    }
+}
 
 // ── Icons ────────────────────────────────────────────────────────────────────
 const IconDashboard = () => (
@@ -107,11 +151,38 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     const initialSearch = new URLSearchParams(url.split('?')[1] || '').get('search') || '';
     const [searchTerm, setSearchTerm] = useState(initialSearch);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+    
+    const notifications = (usePage().props.notifications as any);
+    const currentCount = notifications?.pendingItems?.length ?? 0;
+    const prevCountRef = useRef<number | null>(null);
+
+    // ── Sound notification on new item ────────────────────────────────────────
+    useEffect(() => {
+        console.log("Pengecekan Notifikasi Baru - Sebelumnya:", prevCountRef.current, "| Sekarang:", currentCount);
+        if (prevCountRef.current !== null && currentCount > prevCountRef.current) {
+            playNotificationSound();
+        }
+        prevCountRef.current = currentCount;
+    }, [currentCount]);
 
     useEffect(() => {
         setSearchTerm(new URLSearchParams(url.split('?')[1] || '').get('search') || '');
         setIsMobileMenuOpen(false); // Close menu on route change
+        setIsNotificationOpen(false); // Close notification dropdown on route change
     }, [url]);
+
+    // ── Polling notifications every 15 seconds for real-time sound ────────────
+    useEffect(() => {
+        const interval = setInterval(() => {
+            router.reload({
+                only: ['notifications'],
+            });
+        }, 15000); // 15 detik
+ 
+
+        return () => clearInterval(interval);
+    }, []);
 
     const isActive = (href: string) => url.startsWith(href);
 
@@ -133,6 +204,14 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             <style>{`
                 .hide-scrollbar::-webkit-scrollbar {
                     display: none;
+                }
+                @keyframes bell-ring {
+                    0%, 100% { transform: rotate(0); }
+                    20%, 60% { transform: rotate(12deg); }
+                    40%, 80% { transform: rotate(-12deg); }
+                }
+                .hover-shake:hover svg {
+                    animation: bell-ring 0.6s ease-in-out;
                 }
             `}</style>
 
@@ -258,8 +337,85 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                         <div className="flex-1" />
                     )}
 
-                    <div className="flex items-center gap-3 ml-auto">
-                        <div className="hidden sm:flex items-center gap-2.5 pl-3 border-l border-border">
+                    <div className="flex items-center gap-3 ml-auto relative">
+                        <button 
+                            onClick={() => {
+                                setIsNotificationOpen(!isNotificationOpen);
+                                playNotificationSound();
+                            }}
+                            className={`w-9 h-9 flex items-center justify-center rounded-venus text-foreground/60 hover:bg-card hover:text-foreground hover-shake transition-all border border-border relative ${isNotificationOpen ? 'bg-card text-foreground' : ''}`}
+                        >
+                            <IconBell />
+                            {(((usePage().props.notifications as any)?.pendingItems?.length) > 0) && (
+                                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center border-2 border-background">
+                                    {(usePage().props.notifications as any).pendingItems.length}
+                                </span>
+                            )}
+                        </button>
+                        
+                        {/* Dropdown Overlay (for clicking outside) */}
+                        {isNotificationOpen && (
+                            <div 
+                                className="fixed inset-0 z-40" 
+                                onClick={() => setIsNotificationOpen(false)}
+                            />
+                        )}
+                        
+                        {/* Notification Dropdown */}
+                        <div className={`absolute top-12 right-0 w-[calc(100vw-2rem)] sm:w-80 bg-card/95 backdrop-blur-md border border-border rounded-venus shadow-2xl z-50 overflow-hidden transform origin-top-right transition-all duration-200 ease-out ${
+                            isNotificationOpen 
+                                ? 'opacity-100 translate-y-0 scale-100' 
+                                : 'opacity-0 -translate-y-2 scale-95 pointer-events-none'
+                        }`}>
+                            <div className="px-4 py-3 border-b border-border bg-background flex items-center justify-between">
+                                <h3 className="text-sm font-bold text-super-black">Notifikasi Baru</h3>
+                                <span className="text-[10px] bg-red-100 text-red-600 font-bold px-2 py-0.5 rounded-full uppercase">
+                                    Butuh Tindakan
+                                </span>
+                            </div>
+                            <div className="max-h-[360px] overflow-y-auto">
+                                {((usePage().props.notifications as any)?.pendingItems?.length > 0) ? (
+                                    <div className="flex flex-col">
+                                        {(usePage().props.notifications as any).pendingItems.map((item: any) => (
+                                            <Link 
+                                                key={item.id} 
+                                                href={item.link}
+                                                className="px-4 py-3 border-b border-border/50 hover:bg-background/50 transition-colors block group"
+                                            >
+                                                <div className="flex justify-between items-start mb-1 gap-2">
+                                                    <span className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
+                                                        {item.title}
+                                                    </span>
+                                                    <span className="text-[10px] text-foreground/40 whitespace-nowrap">
+                                                        {item.time}
+                                                    </span>
+                                                </div>
+                                                <p className="text-xs text-super-black font-semibold mb-0.5">
+                                                    {item.customer} <span className="text-foreground/40 font-normal">({item.code})</span>
+                                                </p>
+                                                <p className="text-[10px] text-foreground/60 truncate">
+                                                    {item.detail}
+                                                </p>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="px-6 py-10 flex flex-col items-center justify-center text-center">
+                                        <div className="w-12 h-12 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center mb-3">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                                <polyline points="20 6 9 17 4 12" />
+                                            </svg>
+                                        </div>
+                                        <p className="text-sm font-bold text-super-black">Tidak ada notifikasi</p>
+                                        <p className="text-xs text-foreground/50 mt-1">
+                                            Semua booking dan pesanan telah diproses.
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="hidden sm:flex items-center gap-2.5 pl-3 border-l border-border ml-2">
                             <span className="text-body-m text-foreground font-semibold">Venus Hub</span>
                             <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-white font-bold text-xs">V</div>
                         </div>

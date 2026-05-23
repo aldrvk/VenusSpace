@@ -491,8 +491,18 @@ export default function BookingDoorsmeer({ bookings, stalls, queueCount, pending
                 </div>
 
                 {filteredBookings.length === 0 ? (
-                    <div className="px-6 py-12 text-center text-foreground/40 text-body-reg">
-                        Tidak ada booking yang cocok dengan filter ini.
+                    <div className="px-6 py-16 flex flex-col items-center justify-center text-center">
+                        <div className="w-16 h-16 rounded-full bg-slate-100 text-foreground/30 flex items-center justify-center mb-4">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="12" y1="8" x2="12" y2="12" />
+                                <line x1="12" y1="16" x2="12.01" y2="16" />
+                            </svg>
+                        </div>
+                        <p className="text-base font-bold text-super-black">Tidak Ada Booking</p>
+                        <p className="text-xs text-foreground/50 mt-1 max-w-xs">
+                            Tidak ada data booking doorsmeer yang cocok dengan filter yang Anda pilih saat ini.
+                        </p>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
