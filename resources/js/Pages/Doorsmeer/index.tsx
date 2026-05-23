@@ -173,13 +173,13 @@ export default function DoorsmeerIndex() {
         router.post(
             '/doorsmeer/booking',
             {
-                service_id:       service.id,
-                service_name:     service.name,
+                service_id: service.id,
+                service_name: service.name,
                 service_subtitle: service.subtitle,
-                service_price:    service.price,
+                service_price: service.price,
                 service_duration: service.duration,
-                vehicle_class:    vehicleClass,
-                license_plate:    licensePlate.trim().toUpperCase(),
+                vehicle_class: vehicleClass,
+                license_plate: licensePlate.trim().toUpperCase(),
             },
             {
                 onError: () => setIsSubmitting(false),
@@ -213,7 +213,7 @@ export default function DoorsmeerIndex() {
                                 Elite <span className="text-primary">Car Wash</span> Experience
                             </h1>
                             <p className="text-body-l text-foreground/70 mt-4 max-w-lg">
-                                Manjakan kendaraan Anda dengan ritual perawatan premium. Booking sekarang dan masuk ke antrian realtime — tanpa perlu janji temu.
+                                Berikan perawatan terbaik agar kendaraan Anda kembali bersih mengkilap. Pantau antrian secara realtime dan nikmati layanan tanpa ribet.
                             </p>
                         </div>
 
@@ -225,11 +225,10 @@ export default function DoorsmeerIndex() {
                                     <button
                                         key={svc.id}
                                         onClick={() => setSelectedService(svc.id)}
-                                        className={`relative text-left p-5 rounded-venus border-2 transition-all duration-200 flex flex-col gap-3 h-full ${
-                                            isSelected
+                                        className={`relative text-left p-5 rounded-venus border-2 transition-all duration-200 flex flex-col gap-3 h-full ${isSelected
                                                 ? 'border-primary bg-card shadow-lg shadow-primary/10'
                                                 : 'border-border bg-card hover:border-primary/40 hover:shadow-md'
-                                        }`}
+                                            }`}
                                     >
                                         <div>
                                             <p className="text-h4 text-super-black">{svc.name}</p>
@@ -255,11 +254,10 @@ export default function DoorsmeerIndex() {
 
                                         <button
                                             onClick={(e) => { e.stopPropagation(); setSelectedService(svc.id); }}
-                                            className={`w-full mt-auto py-2.5 rounded-full text-label-sm font-semibold transition-all ${
-                                                isSelected
+                                            className={`w-full mt-auto py-2.5 rounded-full text-label-sm font-semibold transition-all ${isSelected
                                                     ? 'bg-secondary text-secondary-foreground shadow-md'
                                                     : 'bg-surface text-foreground border border-border hover:bg-border'
-                                            }`}
+                                                }`}
                                         >
                                             {isSelected ? 'Dipilih' : 'Pilih'}
                                         </button>
@@ -298,9 +296,8 @@ export default function DoorsmeerIndex() {
                                         placeholder="Contoh: B 1234 ABC"
                                         value={licensePlate}
                                         onChange={e => { setLicensePlate(e.target.value.toUpperCase()); setPlateError(''); }}
-                                        className={`w-full bg-background border rounded-venus px-4 py-3 text-body-m text-foreground placeholder:text-foreground/30 focus:outline-none transition-colors ${
-                                            plateError ? 'border-error focus:border-error' : 'border-border focus:border-primary'
-                                        }`}
+                                        className={`w-full bg-background border rounded-venus px-4 py-3 text-body-m text-foreground placeholder:text-foreground/30 focus:outline-none transition-colors ${plateError ? 'border-error focus:border-error' : 'border-border focus:border-primary'
+                                            }`}
                                     />
                                     {plateError && (
                                         <p className="text-label-sm text-error">{plateError}</p>
@@ -376,11 +373,10 @@ export default function DoorsmeerIndex() {
                             <button
                                 onClick={handleConfirm}
                                 disabled={isSubmitting || !isOpen}
-                                className={`w-full h-14 rounded-full flex items-center justify-center gap-3 transition-all shadow-lg text-label-sm tracking-widest font-bold group ${
-                                    isOpen
+                                className={`w-full h-14 rounded-full flex items-center justify-center gap-3 transition-all shadow-lg text-label-sm tracking-widest font-bold group ${isOpen
                                         ? 'bg-secondary hover:bg-secondary/90 text-secondary-foreground'
                                         : 'bg-surface text-foreground/40 cursor-not-allowed shadow-none'
-                                } disabled:opacity-70`}
+                                    } disabled:opacity-70`}
                             >
                                 {isSubmitting ? (
                                     <>
@@ -449,11 +445,10 @@ export default function DoorsmeerIndex() {
                                                 <p className="text-body-reg text-primary font-semibold">Tersedia</p>
                                             )}
                                         </div>
-                                        <span className={`text-label-sm px-2.5 py-0.5 rounded-full font-semibold ${
-                                            stall.status === 'tersedia'
+                                        <span className={`text-label-sm px-2.5 py-0.5 rounded-full font-semibold ${stall.status === 'tersedia'
                                                 ? 'bg-primary/15 text-primary'
                                                 : 'bg-secondary/15 text-secondary'
-                                        }`}>
+                                            }`}>
                                             {stall.status === 'tersedia' ? 'Kosong' : 'Terisi'}
                                         </span>
                                     </div>

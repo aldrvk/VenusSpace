@@ -255,6 +255,23 @@ class DoorsmeerBookingController extends Controller
     }
 
     // ─────────────────────────────────────────────────────────────────────────
+    // USER: Batalkan booking sendiri (hanya jika pending)
+    // POST /doorsmeer/cancel/{id}
+    // ─────────────────────────────────────────────────────────────────────────
+    public function userCancel(Request $request, DoorsmeerBooking $booking)
+    {
+        abort_if($booking->user_id !== auth()->id(), 403, 'Akses ditolak.');
+        abort_if(!$booking->canTransitionTo('cancelled'), 422, 'Booking tidak dapat dibatalkan karena sudah diproses.');
+
+        $booking->update([
+            'status'      => 'cancelled',
+            'admin_notes' => 'Dibatalkan oleh Pelanggan',
+        ]);
+
+        return back()->with('success', "Booking {$booking->booking_code} berhasil dibatalkan.");
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
     // ADMIN: Halaman Walk-in
     // GET /admin/doorsmeer/walk-in
     // ─────────────────────────────────────────────────────────────────────────

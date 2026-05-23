@@ -8,14 +8,14 @@ export function useFlashToast() {
     useEffect(() => {
         if (flash?.success) {
             toast.success(flash.success, {
-                duration: 4000,
+                duration: 1000,
                 style: { borderRadius: '10px', background: '#333', color: '#fff' },
                 iconTheme: { primary: '#3cdbc0', secondary: '#fff' },
             });
         }
         if (flash?.error) {
             toast.error(flash.error, {
-                duration: 4000,
+                duration: 1000,
                 style: { borderRadius: '10px', background: '#333', color: '#fff' },
             });
         }
