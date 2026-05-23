@@ -30,7 +30,7 @@ class StoreAdminController extends Controller
         }
         
         $products = $query->paginate(10)->withQueryString();
-        $categories = Setting::get('coffee_categories', ['Kopi', 'Non-Kopi', 'Makanan', 'Cemilan']);
+        $categories = Setting::get('coffee_categories', ['Kopi', 'Non-Kopi', 'Makanan']);
         
         return Inertia::render('Admin/KatalogCoffeeShop', [
             'products' => $products,

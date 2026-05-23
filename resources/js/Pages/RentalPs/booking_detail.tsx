@@ -175,17 +175,23 @@ export default function BookingDetail() {
                                 <h2 className="text-h4 text-super-black">Layanan Dipilih</h2>
                             </div>
 
-                            <div className="flex items-start gap-5">
+                            <div className="flex flex-col sm:flex-row sm:items-start gap-4 sm:gap-5">
                                 {/* Icon visual */}
-                                <div className="w-20 h-20 rounded-venus bg-secondary/10 border border-border flex items-center justify-center shrink-0">
-                                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-secondary">
-                                        <path d="M3 12l9-9 9 9" /><path d="M9 21V12h6v9" />
-                                        <path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v9a2 2 0 0 1-2 2h-2" />
-                                        <circle cx="7" cy="17" r="2" /><circle cx="17" cy="17" r="2" />
-                                    </svg>
+                                <div className="flex items-start gap-4">
+                                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-venus bg-secondary/10 border border-border flex items-center justify-center shrink-0">
+                                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-secondary sm:w-[36px] sm:h-[36px]">
+                                            <path d="M3 12l9-9 9 9" /><path d="M9 21V12h6v9" />
+                                            <path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v9a2 2 0 0 1-2 2h-2" />
+                                            <circle cx="7" cy="17" r="2" /><circle cx="17" cy="17" r="2" />
+                                        </svg>
+                                    </div>
+                                    <div className="sm:hidden flex-grow pt-1">
+                                        <h3 className="text-h3 text-primary">{booking.serviceName}</h3>
+                                        <p className="text-body-reg text-foreground/60">{booking.serviceSubtitle}</p>
+                                    </div>
                                 </div>
 
-                                <div className="flex-grow">
+                                <div className="hidden sm:block flex-grow">
                                     <h3 className="text-h3 text-primary">{booking.serviceName}</h3>
                                     <p className="text-body-reg text-foreground/60 mt-1">{booking.serviceSubtitle}</p>
                                     <div className="flex flex-wrap gap-2 mt-3">
@@ -199,8 +205,20 @@ export default function BookingDetail() {
                                         </span>
                                     </div>
                                 </div>
+                                
+                                <div className="sm:hidden flex flex-wrap gap-2 mt-1">
+                                    {booking.serviceFeatures.map(f => (
+                                        <span key={f} className="bg-surface border border-border text-label-sm px-3 py-1 rounded-full text-foreground">
+                                            {f}
+                                        </span>
+                                    ))}
+                                    <span className="bg-surface border border-border text-label-sm px-3 py-1 rounded-full text-foreground">
+                                        {booking.serviceDuration}
+                                    </span>
+                                </div>
 
-                                <div className="text-right shrink-0">
+                                <div className="mt-3 sm:mt-0 pt-3 sm:pt-0 border-t border-border sm:border-0 sm:text-right shrink-0 flex justify-between sm:block items-center">
+                                    <span className="text-body-reg text-foreground/60 sm:hidden">Harga</span>
                                     <p className="text-card-title text-super-black">
                                         Rp{booking.servicePrice.toLocaleString('id-ID')}
                                     </p>

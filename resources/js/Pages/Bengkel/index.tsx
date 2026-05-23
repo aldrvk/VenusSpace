@@ -316,7 +316,7 @@ export default function BengkelIndex() {
                                     <span className="w-2 h-2 rounded-full bg-primary animate-pulse ml-1" />
                                 </div>
 
-                                <div className="grid grid-cols-3 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                     {/* Pit Available */}
                                     <div className="bg-card border border-border rounded-venus p-4 text-center">
                                         <p className={`text-h3 font-extrabold ${availablePits > 0 ? 'text-primary' : 'text-foreground/30'}`}>

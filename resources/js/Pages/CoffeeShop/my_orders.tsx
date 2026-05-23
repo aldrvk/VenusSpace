@@ -106,7 +106,7 @@ export default function MyOrdersPage({ orders }: Props) {
                             </svg>
                         </div>
                         <p className="text-h4 text-super-black">Belum Ada Pesanan</p>
-                        <p className="text-body-reg text-foreground/50 mt-2">Yuk, cobain kopi dan cemilan terbaik kami!</p>
+                        <p className="text-body-reg text-foreground/50 mt-2">Yuk, cobain kopi dan makanan terbaik kami!</p>
                         <Link href="/coffee-shop" className="mt-5 inline-block bg-super-black text-white px-6 py-3 rounded-full text-label-sm font-bold hover:bg-super-black/80 transition-all">
                             Mulai Belanja
                         </Link>

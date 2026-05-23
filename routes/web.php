@@ -68,7 +68,7 @@ Route::group([], function () {
     Route::get('/coffee-shop', function () {
         $query = \App\Models\Product::where('unit', 'COFFEE SHOP');
         
-        $categories = \App\Models\Setting::get('coffee_categories', ['Kopi', 'Non-Kopi', 'Makanan', 'Cemilan']);
+        $categories = \App\Models\Setting::get('coffee_categories', ['Kopi', 'Non-Kopi', 'Makanan']);
         
         if (request('search')) $query->where('name', 'like', '%' . request('search') . '%');
         

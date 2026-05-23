@@ -86,7 +86,6 @@ class DoorsmeerBookingController extends Controller
 
         return Inertia::render('Doorsmeer/tracking', [
             'booking' => $this->formatBooking($booking),
-            'showAd'  => request()->query('new') == 1,
         ]);
     }
 
