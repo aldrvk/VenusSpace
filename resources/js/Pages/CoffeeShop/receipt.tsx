@@ -30,8 +30,12 @@ export default function Receipt({ order }: Props) {
     const [isLoaded, setIsLoaded] = useState(false);
 
     useEffect(() => {
-        setIsLoaded(true);
         const params = new URLSearchParams(window.location.search);
+        if (window.self !== window.top && params.get('print') !== 'true') {
+            window.top.location.href = window.location.href;
+            return;
+        }
+        setIsLoaded(true);
         if (params.get('print') === 'true') {
             setTimeout(() => {
                 window.print();
