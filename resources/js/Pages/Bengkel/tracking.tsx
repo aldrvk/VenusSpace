@@ -47,7 +47,7 @@ const STEPS = [
     {
         key: 'in_queue',
         label: 'Dalam Antrian',
-        desc: 'Menunggu pit pencucian tersedia.',
+        desc: 'Menunggu pit bengkel tersedia.',
         icon: (
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" />
@@ -69,7 +69,7 @@ const STEPS = [
     {
         key: 'done',
         label: 'Selesai!',
-        desc: 'Kendaraan Anda sudah bersih dan siap diambil.',
+        desc: 'Kendaraan Anda sudah diservis dan siap diambil.',
         icon: (
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
@@ -82,37 +82,37 @@ const STEPS = [
 
 function statusColor(status: string): string {
     switch (status) {
-        case 'pending':   return 'text-amber-500 bg-amber-50 border-amber-200';
-        case 'verified':  return 'text-primary bg-primary/10 border-primary/30';
-        case 'in_queue':  return 'text-purple-500 bg-purple-50 border-purple-200';
-        case 'servicing':   return 'text-primary bg-primary/10 border-primary/30';
-        case 'done':      return 'text-emerald-600 bg-emerald-50 border-emerald-200';
+        case 'pending': return 'text-amber-500 bg-amber-50 border-amber-200';
+        case 'verified': return 'text-primary bg-primary/10 border-primary/30';
+        case 'in_queue': return 'text-purple-500 bg-purple-50 border-purple-200';
+        case 'servicing': return 'text-primary bg-primary/10 border-primary/30';
+        case 'done': return 'text-emerald-600 bg-emerald-50 border-emerald-200';
         case 'cancelled': return 'text-red-600 bg-red-50 border-red-200';
-        default:          return 'text-foreground/50 bg-surface border-border';
+        default: return 'text-foreground/50 bg-surface border-border';
     }
 }
 
 function statusDotColor(status: string): string {
     switch (status) {
-        case 'pending':   return 'bg-amber-400';
-        case 'verified':  return 'bg-primary animate-pulse';
-        case 'in_queue':  return 'bg-purple-500';
-        case 'servicing':   return 'bg-primary animate-pulse';
-        case 'done':      return 'bg-emerald-500';
+        case 'pending': return 'bg-amber-400';
+        case 'verified': return 'bg-primary animate-pulse';
+        case 'in_queue': return 'bg-purple-500';
+        case 'servicing': return 'bg-primary animate-pulse';
+        case 'done': return 'bg-emerald-500';
         case 'cancelled': return 'bg-red-500';
-        default:          return 'bg-foreground/30';
+        default: return 'bg-foreground/30';
     }
 }
 
 function getStepIndex(status: string): number {
     switch (status) {
-        case 'pending':   return 0;
-        case 'verified':  return 1;
-        case 'in_queue':  return 1;
-        case 'servicing':   return 2;
-        case 'done':      return 3;
+        case 'pending': return 0;
+        case 'verified': return 1;
+        case 'in_queue': return 1;
+        case 'servicing': return 2;
+        case 'done': return 3;
         case 'cancelled': return -1;
-        default:          return 0;
+        default: return 0;
     }
 }
 
@@ -129,11 +129,10 @@ function ProgressStep({
     return (
         <div className="flex gap-4">
             <div className="flex flex-col items-center">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all shrink-0 ${
-                    isDone   ? 'bg-secondary border-secondary text-white' :
-                    isActive ? 'bg-primary border-primary text-white shadow-lg shadow-primary/30' :
-                               'bg-surface border-border text-foreground/30'
-                }`}>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all shrink-0 ${isDone ? 'bg-secondary border-secondary text-white' :
+                        isActive ? 'bg-primary border-primary text-white shadow-lg shadow-primary/30' :
+                            'bg-surface border-border text-foreground/30'
+                    }`}>
                     {isDone ? (
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                             <polyline points="20 6 9 17 4 12" />
@@ -174,10 +173,10 @@ export default function TrackingPage({ booking: initialBooking }: Props) {
     const isTerminal = booking.status === 'done' || booking.status === 'cancelled';
 
     const STATUS_TOAST: Partial<Record<string, { msg: string; type: 'success' | 'error' | 'loading' | 'default' }>> = {
-        verified:  { msg: 'Kedatangan Anda dikonfirmasi! Menunggu pit...', type: 'success' },
-        in_queue:  { msg: 'Kendaraan Anda masuk ke antrian.', type: 'default' },
-        servicing: { msg: 'Proses pencucian kendaraan Anda dimulai!', type: 'default' },
-        done:      { msg: 'Kendaraan Anda sudah selesai! Silakan ambil.', type: 'success' },
+        verified: { msg: 'Kedatangan Anda dikonfirmasi! Menunggu pit...', type: 'success' },
+        in_queue: { msg: 'Kendaraan Anda masuk ke antrian.', type: 'default' },
+        servicing: { msg: 'Proses servis kendaraan Anda dimulai!', type: 'default' },
+        done: { msg: 'Kendaraan Anda sudah selesai! Silakan ambil.', type: 'success' },
         cancelled: { msg: 'Booking Anda dibatalkan.', type: 'error' },
     };
 
@@ -227,7 +226,7 @@ export default function TrackingPage({ booking: initialBooking }: Props) {
     return (
         <div className="min-h-screen bg-background flex flex-col">
             <Head title={`Tracking ${booking.booking_code} – Bengkel`} />
-            
+
             <Navbar />
 
             <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow w-full">
@@ -240,11 +239,10 @@ export default function TrackingPage({ booking: initialBooking }: Props) {
                     <span className="text-foreground font-semibold">Tracking Booking</span>
                 </div>
 
-                <div className={`rounded-venus p-6 mb-8 border ${
-                    booking.status === 'done' ? 'bg-emerald-50 border-emerald-200' :
-                    booking.status === 'cancelled' ? 'bg-red-50 border-red-200' :
-                    'bg-card border-border'
-                }`}>
+                <div className={`rounded-venus p-6 mb-8 border ${booking.status === 'done' ? 'bg-emerald-50 border-emerald-200' :
+                        booking.status === 'cancelled' ? 'bg-red-50 border-red-200' :
+                            'bg-card border-border'
+                    }`}>
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <div>
                             <p className="text-label-sm text-foreground/50 uppercase mb-1">ID Booking</p>
@@ -267,7 +265,7 @@ export default function TrackingPage({ booking: initialBooking }: Props) {
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2 space-y-4">
-                        
+
                         {/* Cancellation Banner */}
                         {booking.status === 'cancelled' ? (
                             <div className="bg-red-50 border border-red-200 rounded-venus p-8 text-center flex flex-col items-center">
@@ -278,14 +276,14 @@ export default function TrackingPage({ booking: initialBooking }: Props) {
                                 </div>
                                 <h2 className="text-h3 text-red-700 font-bold">Booking Dibatalkan</h2>
                                 <p className="text-body-l text-red-600/80 mt-2">Maaf, booking Anda telah dibatalkan oleh pihak admin.</p>
-                                
+
                                 {booking.admin_notes && (
                                     <div className="mt-6 p-4 bg-white/50 border border-red-200 rounded-venus w-full max-w-md">
                                         <p className="text-label-sm text-red-500 uppercase font-bold mb-1">Alasan Pembatalan:</p>
                                         <p className="text-body-reg text-red-700 italic">"{booking.admin_notes}"</p>
                                     </div>
                                 )}
-                                
+
                                 <Link href="/bengkel" className="mt-8 bg-red-600 text-white px-6 py-3 rounded-full text-label-sm font-bold hover:bg-red-700 transition-all shadow-lg">
                                     Booking Ulang
                                 </Link>
@@ -319,7 +317,7 @@ export default function TrackingPage({ booking: initialBooking }: Props) {
                                             </svg>
                                         </div>
                                         <div>
-                                            <p className="text-label-sm text-foreground/50 uppercase">Pit Pencucian</p>
+                                            <p className="text-label-sm text-foreground/50 uppercase">Pit Bengkel</p>
                                             <p className="text-h4 text-super-black">{booking.stall}</p>
                                         </div>
                                     </div>
@@ -350,7 +348,7 @@ export default function TrackingPage({ booking: initialBooking }: Props) {
                                         </div>
                                         <div>
                                             <p className="text-h4 text-emerald-700 font-bold">Kendaraan Siap Diambil!</p>
-                                            <p className="text-body-reg text-emerald-600 mt-1">Proses pencucian telah selesai. Silakan ambil kendaraan Anda di area bengkel.</p>
+                                            <p className="text-body-reg text-emerald-600 mt-1">Proses servis telah selesai. Silakan ambil kendaraan Anda di area bengkel.</p>
                                         </div>
                                     </div>
                                 )}

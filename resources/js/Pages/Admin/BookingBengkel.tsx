@@ -139,7 +139,7 @@ function ConfirmArrivalModal({
                     <ul className="mt-2 space-y-1.5 text-body-reg text-foreground/70">
                         <li className="flex items-center gap-2">
                             <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
-                            Pit kosong → langsung masuk pencucian
+                            Pit kosong → langsung diservis
                         </li>
                         <li className="flex items-center gap-2">
                             <span className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0" />
@@ -388,7 +388,7 @@ export default function BookingBengkel({ bookings, stalls, queueCount, pendingCo
                 subtitle={
                     pendingCount > 0
                         ? `⚠ ${pendingCount} booking menunggu konfirmasi kedatangan.`
-                        : "Kelola antrean dan pit pencucian kendaraan."
+                        : "Kelola antrean dan pit bengkel kendaraan."
                 }
                 action={
                     <div className="flex items-center gap-3">
