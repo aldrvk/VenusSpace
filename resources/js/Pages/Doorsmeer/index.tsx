@@ -134,8 +134,8 @@ export default function DoorsmeerIndex() {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const service = services.find(s => s.id === selectedService)!;
-    const { isOpen, message: operationalMessage } = useOperationalStatus('Doorsmeer');
-    const operational = { open: isOpen, message: operationalMessage };
+    const { isOpen, message: operationalMessage, openTimeStr, closeTimeStr } = useOperationalStatus('Doorsmeer');
+    const operational = { open: isOpen, message: operationalMessage, openTimeStr, closeTimeStr };
 
     // Estimated wait time based on queue + washing
     const estimatedWait = useMemo(() => {
@@ -363,7 +363,7 @@ export default function DoorsmeerIndex() {
                                     <div>
                                         <p className="text-h4 text-super-black">Di Luar Jam Operasional</p>
                                         <p className="text-body-reg text-foreground/60 mt-0.5">
-                                            Booking hanya tersedia saat jam operasional (08:00 – 17:00 WIB). {operational.message}.
+                                            Booking hanya tersedia saat jam operasional ({operational.openTimeStr} – {operational.closeTimeStr} WIB). {operational.message}.
                                         </p>
                                     </div>
                                 </div>
@@ -412,7 +412,7 @@ export default function DoorsmeerIndex() {
                                         {isOpen ? 'Sedang Beroperasi' : 'Tutup'}
                                     </p>
                                     <p className="text-body-reg text-foreground/60 mt-0.5">
-                                        {operational.message} · 08:00 – 17:00 WIB
+                                        {operational.message} · {operational.openTimeStr} – {operational.closeTimeStr} WIB
                                     </p>
                                 </div>
                             </div>

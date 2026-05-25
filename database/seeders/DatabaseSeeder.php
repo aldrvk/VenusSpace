@@ -18,6 +18,8 @@ class DatabaseSeeder extends Seeder
         // Seed admin users
         $this->call(AdminSeeder::class);
         $this->call(SettingSeeder::class);
+        $this->call(ProductSeeder::class);
+        $this->call(StoreSeeder::class);
 
         // User::factory(10)->create();
 

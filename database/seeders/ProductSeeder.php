@@ -12,7 +12,9 @@ class ProductSeeder extends Seeder
      */
     public function run(): void
     {
+        \Illuminate\Support\Facades\Schema::disableForeignKeyConstraints();
         \App\Models\Product::truncate();
+        \Illuminate\Support\Facades\Schema::enableForeignKeyConstraints();
 
         $vapeProducts = [
             [
