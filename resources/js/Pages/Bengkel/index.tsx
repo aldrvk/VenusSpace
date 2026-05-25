@@ -426,7 +426,7 @@ export default function BengkelIndex() {
                         <div className="bg-card border border-border rounded-venus p-5">
                             <div className="flex items-center gap-2 mb-5">
                                 <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
-                                <p className="text-h4 text-super-black">Pit Pencucian</p>
+                                <p className="text-h4 text-super-black">Pit Bengkel</p>
                             </div>
                             <div className="space-y-3">
                                 {stalls.map(stall => (
