@@ -144,15 +144,17 @@ function ActionButton({
                 </>
             )}
 
-            <button
-                onClick={onCancel}
-                title="Tolak/Batalkan Pesanan"
-                className="w-8 h-8 flex items-center justify-center rounded-venus border border-red-200 text-red-500 hover:bg-red-50 active:scale-90 transition-all"
-            >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-            </button>
+            {!(order.unit === 'COFFEE SHOP' && order.progress_status !== 'menunggu_pembayaran') && (
+                <button
+                    onClick={onCancel}
+                    title="Tolak/Batalkan Pesanan"
+                    className="w-8 h-8 flex items-center justify-center rounded-venus border border-red-200 text-red-500 hover:bg-red-50 active:scale-90 transition-all"
+                >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+            )}
         </div>
     );
 }

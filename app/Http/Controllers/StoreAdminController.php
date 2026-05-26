@@ -222,6 +222,10 @@ class StoreAdminController extends Controller
             'reason' => 'required|string|max:255',
         ]);
 
+        if ($order->unit === 'COFFEE SHOP' && $order->progress_status !== 'menunggu_pembayaran') {
+            return back()->with('error', 'Pesanan Coffee Shop yang sudah dikonfirmasi tidak dapat dibatalkan.');
+        }
+
         $oldStatus = $order->progress_status;
 
         $order->update([

@@ -126,7 +126,6 @@ export default function ProductDetail({ product, recommendations }: Props) {
                             </p>
                             <div className="flex items-baseline gap-3 mb-10">
                                 <span className="text-h2 text-super-black">{formatPrice(product.price)}</span>
-                                <span className="text-label-sm text-foreground/60">/ SUMBER TERPERCAYA</span>
                             </div>
                         </div>
 
