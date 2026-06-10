@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
 import CoffeeCategoryTabs from '../../Components/CoffeeCategoryTabs';
@@ -38,11 +38,9 @@ interface Product {
     name: string;
     category: string;
     price: number;
-    stock: string;
+    stock: number;
     description: string;
     image: string;
-    tag: string;
-    tag_icon: string;
 }
 
 interface PaginatedData {
@@ -59,6 +57,8 @@ interface Props {
 export default function AllItems({ products, categories, filters }: Props) {
     const [searchTerm, setSearchTerm] = useState(filters?.search || '');
     const { isOpen, message } = useOperationalStatus('Coffee Shop');
+    const { display_settings } = usePage().props as any;
+    const showStock = display_settings?.show_stock_coffee_shop || false;
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -67,7 +67,7 @@ export default function AllItems({ products, categories, filters }: Props) {
 
     return (
         <div className="min-h-screen bg-background">
-            <Head title="Coffee Shop - Semua Menu" />
+            <Head title="Coffee Shop - Menu" />
             <Navbar />
             
             {!isOpen && <StoreClosedBanner message={message} />}
@@ -79,10 +79,10 @@ export default function AllItems({ products, categories, filters }: Props) {
                     <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                         <div className="max-w-2xl">
                             <h1 className="text-h1 text-super-black mb-4">
-                                Crafted for <span className="text-primary">Perfection</span>
+                                Experience the Perfect <span className="text-primary">Brew</span>
                             </h1>
                             <p className="text-body-l text-foreground">
-                                Temukan racikan kopi terbaik, minuman segar, dan hidangan pendamping yang dibuat sepenuh hati.
+                                Nikmati pilihan kopi premium dan makanan pendamping yang disiapkan dengan penuh dedikasi.
                             </p>
                         </div>
 
@@ -96,7 +96,10 @@ export default function AllItems({ products, categories, filters }: Props) {
                 </div>
 
                 {/* Categories */}
-                <CoffeeCategoryTabs activeCategory={filters?.category || 'all'} categories={categories} />
+                <CoffeeCategoryTabs 
+                    activeCategory={filters?.category || 'all'} 
+                    categories={categories}
+                />
 
                 {/* Product Grid */}
                 {products.data.length > 0 ? (
@@ -108,9 +111,11 @@ export default function AllItems({ products, categories, filters }: Props) {
                                     id={product.id}
                                     name={product.name}
                                     price={`Rp${product.price.toLocaleString('id-ID')}`}
-                                    description={product.description}
+                                    description={product.description || ''}
                                     image={product.image}
                                     href={`/coffee-shop/product/${product.id}`}
+                                    stock={product.stock}
+                                    showStock={showStock}
                                 />
                             ))}
                         </div>

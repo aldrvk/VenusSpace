@@ -29,6 +29,18 @@ class StoreOrderController extends Controller
 
         $total = collect($validated['items'])->sum(fn ($item) => $item['price'] * $item['quantity']);
 
+        foreach ($validated['items'] as $item) {
+            $product = \App\Models\Product::where('name', $item['name'])
+                ->where('unit', $validated['unit'])
+                ->first();
+            
+            if (!$product || $product->stock < $item['quantity']) {
+                return response()->json([
+                    'message' => 'Stok tidak mencukupi untuk ' . $item['name']
+                ], 422);
+            }
+        }
+
         $order = StoreOrder::create([
             'user_id'        => auth()->id(),
             'order_code'     => $orderCode,
@@ -47,6 +59,13 @@ class StoreOrderController extends Controller
                 'quantity'       => $item['quantity'],
                 'price'          => $item['price'],
             ]);
+            
+            $product = \App\Models\Product::where('name', $item['name'])
+                ->where('unit', $validated['unit'])
+                ->first();
+            if ($product) {
+                $product->decrement('stock', $item['quantity']);
+            }
         }
 
         return response()->json([

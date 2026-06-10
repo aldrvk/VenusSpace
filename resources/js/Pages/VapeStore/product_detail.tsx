@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import toast from 'react-hot-toast';
 import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
@@ -12,6 +12,7 @@ interface Product {
     name: string;
     category: string;
     price: number;
+    stock: number;
     description: string;
     image: string;
     tag: string;
@@ -30,6 +31,8 @@ export default function ProductDetail({ product, recommendations }: Props) {
     const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
     const { isFavorited, toggleFavorite } = useFavorites();
     const [favAnimating, setFavAnimating] = useState(false);
+    const { display_settings } = usePage().props as any;
+    const showStock = display_settings?.show_stock_vape_store || false;
 
     // Initialize default options
     useEffect(() => {
@@ -165,28 +168,46 @@ export default function ProductDetail({ product, recommendations }: Props) {
                                     <button 
                                         className="w-14 h-full flex items-center justify-center text-super-black hover:text-primary transition-colors text-h4"
                                         onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                                        disabled={product.stock === 0}
                                     >
                                         -
                                     </button>
                                     <span className="w-12 text-center text-card-title">{quantity}</span>
                                     <button 
                                         className="w-14 h-full flex items-center justify-center text-super-black hover:text-primary transition-colors text-h4"
-                                        onClick={() => setQuantity(quantity + 1)}
+                                        onClick={() => setQuantity(Math.min(quantity + 1, product.stock))}
+                                        disabled={product.stock === 0}
                                     >
                                         +
                                     </button>
                                 </div>
+                                {showStock && product.stock > 0 && (
+                                    <span className="text-label-sm text-foreground/60 tracking-wider">
+                                        Tersedia: {product.stock}
+                                    </span>
+                                )}
                             </div>
                         </div>
 
                         <div className="flex items-center gap-3 sm:gap-4 mt-4">
                             <button 
                                 onClick={handleAddToCart}
-                                className="flex-1 bg-secondary hover:bg-secondary/90 !text-white h-12 sm:h-14 rounded-full flex items-center justify-center gap-2 sm:gap-3 transition-all shadow-lg text-[10px] sm:text-label-sm tracking-widest font-bold group"
+                                disabled={product.stock === 0}
+                                className={`flex-1 !text-white h-12 sm:h-14 rounded-full flex items-center justify-center gap-2 sm:gap-3 transition-all shadow-lg text-[10px] sm:text-label-sm tracking-widest font-bold group ${
+                                    product.stock === 0 
+                                    ? 'bg-red-500 cursor-not-allowed opacity-80 hover:bg-red-500' 
+                                    : 'bg-secondary hover:bg-secondary/90'
+                                }`}
                             >
-                                <span className="hidden sm:inline">TAMBAHKAN KE PESANAN — {formatPrice(product.price * quantity)}</span>
-                                <span className="sm:hidden">TAMBAH — {formatPrice(product.price * quantity)}</span>
-                                <svg className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                                <span className="hidden sm:inline">
+                                    {product.stock === 0 ? 'STOK HABIS' : `TAMBAHKAN KE PESANAN — ${formatPrice(product.price * quantity)}`}
+                                </span>
+                                <span className="sm:hidden">
+                                    {product.stock === 0 ? 'HABIS' : `TAMBAH — ${formatPrice(product.price * quantity)}`}
+                                </span>
+                                {product.stock > 0 && (
+                                    <svg className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                                )}
                             </button>
                             <button 
                                 onClick={() => {

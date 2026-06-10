@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
 import CategoryTabs from '../../Components/CategoryTabs';
@@ -47,7 +47,7 @@ interface Product {
     name: string;
     category: string;
     price: number;
-    stock: string;
+    stock: number;
     description: string;
     image: string;
     tag: string;
@@ -68,6 +68,8 @@ interface Props {
 export default function AllItems({ products, categories, filters }: Props) {
     const [searchTerm, setSearchTerm] = useState(filters?.search || '');
     const { isOpen, message } = useOperationalStatus('Vape Store');
+    const { display_settings } = usePage().props as any;
+    const showStock = display_settings?.show_stock_vape_store || false;
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -120,6 +122,8 @@ export default function AllItems({ products, categories, filters }: Props) {
                                     description={product.description}
                                     image={product.image}
                                     href={`/vape-store/product/${product.id}`}
+                                    stock={product.stock}
+                                    showStock={showStock}
                                 />
                             ))}
                         </div>

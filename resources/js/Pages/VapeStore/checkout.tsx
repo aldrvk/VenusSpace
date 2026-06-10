@@ -103,9 +103,18 @@ export default function Checkout() {
             localStorage.removeItem('venus_cart');
             window.dispatchEvent(new Event('cart_updated'));
             window.location.href = `/vape-store/receipt?order_code=${orderCode}&method=${paymentMethod}`;
-        } catch (error) {
+        } catch (error: any) {
             console.error("Failed to submit order", error);
             setIsSubmitting(false);
+            if (error.response && error.response.data && error.response.data.message) {
+                import('react-hot-toast').then(({ default: toast }) => {
+                    toast.error(error.response.data.message);
+                });
+            } else {
+                import('react-hot-toast').then(({ default: toast }) => {
+                    toast.error("Gagal memproses pesanan. Silakan coba lagi.");
+                });
+            }
         }
     };
 

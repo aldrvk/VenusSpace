@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Head, useForm, router } from "@inertiajs/react";
+import { Head, useForm, router, usePage, Link } from "@inertiajs/react";
 import AdminLayout from "../../Layouts/AdminLayout";
 import {
     PageHeader,
@@ -19,7 +19,7 @@ interface Product {
     name: string;
     category: string;
     price: number;
-    stock: "Tersedia" | "Habis" | "Terbatas";
+    stock: number;
     sold: number;
     description?: string;
     image?: string;
@@ -28,11 +28,6 @@ interface Product {
 
 type FilterTab = "Semua" | "Device" | "Liquid" | "Accessories";
 
-const statusBadge: Record<Product["stock"], string> = {
-    Tersedia: "bg-primary/15 text-secondary border border-primary/30",
-    Terbatas: "bg-orange-100 text-orange-600 border border-orange-200",
-    Habis: "bg-red-100 text-red-600 border border-red-200",
-};
 
 interface PaginatedProducts {
     data: Product[];
@@ -54,8 +49,6 @@ interface Props {
     };
 }
 
-import { Link } from "@inertiajs/react";
-
 export default function KatalogVapeStore({ products, categories = [], filters: urlFilters, stats }: Props) {
     const [activeFilter, setActiveFilter] = useState<FilterTab>((urlFilters?.category as FilterTab) || "Semua");
     const [search, setSearch] = useState(urlFilters?.search || "");
@@ -63,6 +56,16 @@ export default function KatalogVapeStore({ products, categories = [], filters: u
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
+
+    const { display_settings } = usePage().props as any;
+    const showStock = display_settings?.show_stock_vape_store || false;
+
+    const toggleStockDisplay = () => {
+        router.post('/admin/store/display-settings', {
+            unit: 'VAPE STORE',
+            show_stock: !showStock
+        }, { preserveScroll: true });
+    };
 
     const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
     
@@ -80,7 +83,8 @@ export default function KatalogVapeStore({ products, categories = [], filters: u
         name: "",
         category: categories.length > 0 ? categories[0] : "",
         price: 0 as number | string,
-        stock: "Tersedia",
+        stock: 0 as number | string,
+        add_stock: 0 as number | string,
         description: "",
         image: null as File | null,
         options: null as Record<string, string[]> | null,
@@ -89,6 +93,8 @@ export default function KatalogVapeStore({ products, categories = [], filters: u
     const openAddModal = () => {
         reset();
         setData("unit", "VAPE STORE");
+        setData("stock", 0);
+        setData("add_stock", 0);
         setOptionsList([]);
         setEditingProduct(null);
         setIsProductModalOpen(true);
@@ -113,6 +119,7 @@ export default function KatalogVapeStore({ products, categories = [], filters: u
             category: product.category,
             price: product.price,
             stock: product.stock,
+            add_stock: 0,
             description: product.description || "",
             image: null,
             options: product.options || null,
@@ -187,6 +194,23 @@ export default function KatalogVapeStore({ products, categories = [], filters: u
                 subtitle="Kelola produk, stok, dan harga item di Vape Store."
                 action={
                     <div className="flex items-center gap-3">
+                        <button 
+                            onClick={toggleStockDisplay}
+                            className={`px-4 py-2 rounded-venus text-label-sm font-semibold transition-all flex items-center gap-2 border ${
+                                showStock 
+                                    ? 'bg-primary/10 border-primary/20 text-primary' 
+                                    : 'bg-surface border-border text-foreground hover:bg-card'
+                            }`}
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                {showStock ? (
+                                    <><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></>
+                                ) : (
+                                    <><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></>
+                                )}
+                            </svg>
+                            {showStock ? 'Sembunyikan Stok' : 'Tampilkan Stok'}
+                        </button>
                         <button 
                             onClick={() => {
                                 setCatData('categories', categories);
@@ -341,11 +365,16 @@ export default function KatalogVapeStore({ products, categories = [], filters: u
                                         {p.sold} pcs
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span
-                                            className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold tracking-widest ${statusBadge[p.stock]}`}
-                                        >
-                                            {p.stock}
-                                        </span>
+                                        <Badge
+                                            text={p.stock > 0 ? `${p.stock}` : 'Habis'}
+                                            variant={
+                                                p.stock > 10
+                                                    ? "default"
+                                                    : p.stock > 0
+                                                      ? "warning"
+                                                      : "danger"
+                                            }
+                                        />
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-2">
@@ -468,19 +497,42 @@ export default function KatalogVapeStore({ products, categories = [], filters: u
                                     className="w-full bg-background border border-border rounded-venus px-4 py-2 mt-1 text-body-m text-foreground focus:outline-none focus:border-primary transition-colors"
                                 />
                             </div>
-                            <div>
-                                <label className="text-label-sm text-foreground/60 uppercase">Stok</label>
-                                <select
-                                    required
-                                    value={data.stock}
-                                    onChange={e => setData('stock', e.target.value)}
-                                    className="w-full bg-background border border-border rounded-venus px-4 py-2 mt-1 text-body-m text-foreground focus:outline-none focus:border-primary transition-colors"
-                                >
-                                    <option value="Tersedia">Tersedia</option>
-                                    <option value="Terbatas">Terbatas</option>
-                                    <option value="Habis">Habis</option>
-                                </select>
-                            </div>
+                            {!editingProduct ? (
+                                <div>
+                                    <label className="text-label-sm text-foreground/60 uppercase">Stok Awal</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        required
+                                        value={data.stock}
+                                        onChange={e => setData('stock', parseInt(e.target.value) || 0)}
+                                        className="w-full bg-background border border-border rounded-venus px-4 py-2 mt-1 text-body-m text-foreground focus:outline-none focus:border-primary transition-colors"
+                                    />
+                                </div>
+                            ) : (
+                                <div className="flex gap-4">
+                                    <div className="flex-1">
+                                        <label className="text-label-sm text-foreground/60 uppercase">Stok Saat Ini</label>
+                                        <input
+                                            type="number"
+                                            disabled
+                                            value={data.stock}
+                                            className="w-full bg-surface border border-border rounded-venus px-4 py-2 mt-1 text-body-m text-foreground/50 cursor-not-allowed"
+                                        />
+                                    </div>
+                                    <div className="flex-1">
+                                        <label className="text-label-sm text-primary uppercase font-bold">Tambah Stok</label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            value={data.add_stock}
+                                            onChange={e => setData('add_stock', parseInt(e.target.value) || 0)}
+                                            className="w-full bg-background border border-primary/30 rounded-venus px-4 py-2 mt-1 text-body-m text-foreground focus:outline-none focus:border-primary transition-colors"
+                                            placeholder="Contoh: 10"
+                                        />
+                                    </div>
+                                </div>
+                            )}
                             <div>
                                 <label className="text-label-sm text-foreground/60 uppercase">Gambar Produk (Opsional)</label>
                                 <input

@@ -53,6 +53,10 @@ class HandleInertiaRequests extends Middleware
                 'pendingItems' => fn () => ($request->user() && $request->user()->role === 'admin') ? $this->getPendingItems() : [],
             ],
             'settings' => fn () => $this->getOperationalSettings(),
+            'display_settings' => fn () => [
+                'show_stock_coffee_shop' => (bool) \App\Models\Setting::get('show_stock_coffee_shop', false),
+                'show_stock_vape_store'  => (bool) \App\Models\Setting::get('show_stock_vape_store', false),
+            ],
             'payment_settings' => function () use ($request) {
                 $settings = \App\Models\Setting::get('payment_settings', []);
                 if ($request->user() && $request->user()->role === 'admin') {

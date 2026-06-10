@@ -85,7 +85,7 @@ class StoreAdminController extends Controller
             'name'        => 'required|string|max:255',
             'category'    => 'required|string|max:255',
             'price'       => 'required|integer|min:0',
-            'stock'       => 'required|in:Tersedia,Habis,Terbatas',
+            'stock'       => 'required|integer|min:0',
             'image'       => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'description' => 'nullable|string',
             'options'     => 'nullable|array',
@@ -118,13 +118,17 @@ class StoreAdminController extends Controller
             'name'        => 'required|string|max:255',
             'category'    => 'required|string|max:255',
             'price'       => 'required|integer|min:0',
-            'stock'       => 'required|in:Tersedia,Habis,Terbatas',
+            'add_stock'   => 'nullable|integer|min:0',
             'image'       => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'description' => 'nullable|string',
             'options'     => 'nullable|array',
         ]);
 
-        $data = $request->except('image');
+        $data = $request->except(['image', 'add_stock']);
+
+        if ($request->has('add_stock') && $request->add_stock > 0) {
+            $data['stock'] = $product->stock + $request->add_stock;
+        }
 
         if ($request->hasFile('image')) {
             $folder = $product->unit === 'VAPE STORE' ? 'Vape Store' : 'Coffee Shop';
@@ -234,13 +238,14 @@ class StoreAdminController extends Controller
             'done_at' => now(),
         ]);
 
-        // If it was completed, decrement the sold count
-        if ($oldStatus === 'completed') {
-            foreach ($order->items as $item) {
-                $product = Product::where('name', $item->name)
-                    ->where('unit', $order->unit)
-                    ->first();
-                if ($product) {
+        // Refund stock and update sold count
+        foreach ($order->items as $item) {
+            $product = Product::where('name', $item->name)
+                ->where('unit', $order->unit)
+                ->first();
+            if ($product) {
+                $product->increment('stock', $item->quantity);
+                if ($oldStatus === 'completed') {
                     $product->decrement('sold', $item->quantity);
                 }
             }
@@ -261,5 +266,18 @@ class StoreAdminController extends Controller
         Setting::set($key, $request->categories);
 
         return back()->with('success', 'Kategori berhasil diperbarui.');
+    }
+
+    public function updateDisplaySettings(Request $request)
+    {
+        $request->validate([
+            'unit' => 'required|in:VAPE STORE,COFFEE SHOP',
+            'show_stock' => 'required|boolean',
+        ]);
+
+        $key = $request->unit === 'VAPE STORE' ? 'show_stock_vape_store' : 'show_stock_coffee_shop';
+        Setting::set($key, (bool) $request->show_stock);
+
+        return back()->with('success', 'Pengaturan tampilan stok berhasil diperbarui.');
     }
 }

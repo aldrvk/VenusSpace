@@ -234,6 +234,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/store/product', [StoreAdminController::class, 'storeProduct'])->name('store.product.store');
         Route::put('/store/product/{product}', [StoreAdminController::class, 'updateProduct'])->name('store.product.update');
         Route::delete('/store/product/{product}', [StoreAdminController::class, 'destroyProduct'])->name('store.product.destroy');
+        Route::post('/store/display-settings', [StoreAdminController::class, 'updateDisplaySettings'])->name('store.display_settings.update');
         Route::post('/store/categories', [StoreAdminController::class, 'updateCategories'])->name('store.categories.update');
         Route::post('/pesanan-store/{order}/confirm', [StoreAdminController::class, 'confirmPayment'])->name('store.order.confirm');
         Route::post('/pesanan-store/{order}/progress', [StoreAdminController::class, 'updateProgress'])->name('store.order.progress');
