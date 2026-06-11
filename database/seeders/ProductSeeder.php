@@ -26,7 +26,7 @@ class ProductSeeder extends Seeder
                 'image' => '/images/Vape Store/xmax v3 pro.jpg',
                 'tag' => 'KUALITAS TINGGI',
                 'tag_icon' => 'StarIcon',
-                'stock' => 'Tersedia',
+                'stock' => 50,
                 'sold' => 0,
             ],
             [
@@ -38,7 +38,7 @@ class ProductSeeder extends Seeder
                 'image' => '/images/Vape Store/arctic menthol.jpg',
                 'tag' => 'RASA MENYEGARKAN',
                 'tag_icon' => 'DropIcon',
-                'stock' => 'Tersedia',
+                'stock' => 50,
                 'sold' => 0,
             ],
             [
@@ -50,7 +50,7 @@ class ProductSeeder extends Seeder
                 'image' => '/images/Vape Store/blueberry ice.jpg',
                 'tag' => 'RASA MANIS',
                 'tag_icon' => 'StarIcon',
-                'stock' => 'Tersedia',
+                'stock' => 50,
                 'sold' => 0,
             ],
             [
@@ -62,7 +62,7 @@ class ProductSeeder extends Seeder
                 'image' => '/images/Vape Store/nitecore battery.png',
                 'tag' => 'KAPASITAS TINGGI',
                 'tag_icon' => 'BatteryIcon',
-                'stock' => 'Tersedia',
+                'stock' => 50,
                 'sold' => 0,
             ],
             [
@@ -70,11 +70,11 @@ class ProductSeeder extends Seeder
                 'name' => 'Apex Titanium',
                 'category' => 'Device',
                 'price' => 400000,
-                'description' => 'Sasis titanium kelas kedirgantaraan dengan Omni-Chip 4.0 revolusioner untuk presisi yang tak tertandingi.',
+                'description' => 'Sasis titanium kelas kedirgantaraan dengan Omni-Chip 4.0 revolusioner untuk presisi yang tak terpandingi.',
                 'image' => '/images/Vape Store/apex titanium.jpg',
                 'tag' => 'KONSTRUKSI PREMIUM',
                 'tag_icon' => 'ShieldIcon',
-                'stock' => 'Tersedia',
+                'stock' => 50,
                 'sold' => 0,
             ],
             [
@@ -86,7 +86,7 @@ class ProductSeeder extends Seeder
                 'image' => '/images/Vape Store/nano pod s ii.jpg',
                 'tag' => 'PORTABLE POWER',
                 'tag_icon' => 'BatteryIcon',
-                'stock' => 'Tersedia',
+                'stock' => 50,
                 'sold' => 0,
             ]
         ];
@@ -101,7 +101,7 @@ class ProductSeeder extends Seeder
                 'image' => 'https://images.unsplash.com/photo-1485808191679-5f86510681a2?q=80&w=600&auto=format&fit=crop',
                 'tag' => 'BEST SELLER',
                 'tag_icon' => 'StarIcon',
-                'stock' => 'Tersedia',
+                'stock' => 50,
                 'sold' => 0,
             ],
             [
@@ -113,7 +113,7 @@ class ProductSeeder extends Seeder
                 'image' => 'https://images.unsplash.com/photo-1497935586351-b67a49e012bf?q=80&w=600&auto=format&fit=crop',
                 'tag' => 'PREMIUM BEANS',
                 'tag_icon' => 'BeanIcon',
-                'stock' => 'Tersedia',
+                'stock' => 50,
                 'sold' => 0,
             ],
             [
@@ -125,7 +125,7 @@ class ProductSeeder extends Seeder
                 'image' => 'https://images.unsplash.com/photo-1515823662972-da6a2e4d3002?q=80&w=600&auto=format&fit=crop',
                 'tag' => 'FAVORITE',
                 'tag_icon' => 'CupIcon',
-                'stock' => 'Tersedia',
+                'stock' => 50,
                 'sold' => 0,
             ],
             [
@@ -137,7 +137,7 @@ class ProductSeeder extends Seeder
                 'image' => 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?q=80&w=600&auto=format&fit=crop',
                 'tag' => 'FRESH BAKED',
                 'tag_icon' => 'FoodIcon',
-                'stock' => 'Tersedia',
+                'stock' => 50,
                 'sold' => 0,
             ],
             [
@@ -149,7 +149,7 @@ class ProductSeeder extends Seeder
                 'image' => 'https://images.unsplash.com/photo-1528735602780-2552fd46c7af?q=80&w=600&auto=format&fit=crop',
                 'tag' => 'HEARTY MEAL',
                 'tag_icon' => 'StarIcon',
-                'stock' => 'Tersedia',
+                'stock' => 50,
                 'sold' => 0,
             ],
             [
@@ -161,7 +161,7 @@ class ProductSeeder extends Seeder
                 'image' => 'https://images.unsplash.com/photo-1576107232684-1279f3908594?q=80&w=600&auto=format&fit=crop',
                 'tag' => 'SNACK',
                 'tag_icon' => 'FoodIcon',
-                'stock' => 'Tersedia',
+                'stock' => 50,
                 'sold' => 0,
             ]
         ];

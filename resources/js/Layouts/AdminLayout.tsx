@@ -278,6 +278,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
     // ── Polling notifications every 15 seconds for real-time sound ────────────
     useEffect(() => {
+        if (role === 'owner') return;
+
         const interval = setInterval(() => {
             router.reload({
                 only: ['notifications'],
@@ -286,7 +288,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
  
 
         return () => clearInterval(interval);
-    }, []);
+    }, [role]);
 
     const isActive = (href: string) => url.startsWith(href);
 
@@ -444,82 +446,86 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     )}
 
                     <div className="flex items-center gap-3 ml-auto relative">
-                        <button 
-                            onClick={() => {
-                                setIsNotificationOpen(!isNotificationOpen);
-                                playNotificationSound();
-                            }}
-                            className={`w-9 h-9 flex items-center justify-center rounded-venus text-foreground/60 hover:bg-card hover:text-foreground hover-shake transition-all border border-border relative ${isNotificationOpen ? 'bg-card text-foreground' : ''}`}
-                        >
-                            <IconBell />
-                            {(((usePage().props.notifications as any)?.pendingItems?.length) > 0) && (
-                                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center border-2 border-background">
-                                    {(usePage().props.notifications as any).pendingItems.length}
-                                </span>
-                            )}
-                        </button>
-                        
-                        {/* Dropdown Overlay (for clicking outside) */}
-                        {isNotificationOpen && (
-                            <div 
-                                className="fixed inset-0 z-40" 
-                                onClick={() => setIsNotificationOpen(false)}
-                            />
-                        )}
-                        
-                        {/* Notification Dropdown */}
-                        <div className={`absolute top-12 right-0 w-[calc(100vw-2rem)] sm:w-80 bg-card/95 backdrop-blur-md border border-border rounded-venus shadow-2xl z-50 overflow-hidden transform origin-top-right transition-all duration-200 ease-out ${
-                            isNotificationOpen 
-                                ? 'opacity-100 translate-y-0 scale-100' 
-                                : 'opacity-0 -translate-y-2 scale-95 pointer-events-none'
-                        }`}>
-                            <div className="px-4 py-3 border-b border-border bg-background flex items-center justify-between">
-                                <h3 className="text-sm font-bold text-super-black">Notifikasi Baru</h3>
-                                <span className="text-[10px] bg-red-100 text-red-600 font-bold px-2 py-0.5 rounded-full uppercase">
-                                    Butuh Tindakan
-                                </span>
-                            </div>
-                            <div className="max-h-[360px] overflow-y-auto">
-                                {((usePage().props.notifications as any)?.pendingItems?.length > 0) ? (
-                                    <div className="flex flex-col">
-                                        {(usePage().props.notifications as any).pendingItems.map((item: any) => (
-                                            <Link 
-                                                key={item.id} 
-                                                href={item.link}
-                                                className="px-4 py-3 border-b border-border/50 hover:bg-background/50 transition-colors block group"
-                                            >
-                                                <div className="flex justify-between items-start mb-1 gap-2">
-                                                    <span className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
-                                                        {item.title}
-                                                    </span>
-                                                    <span className="text-[10px] text-foreground/40 whitespace-nowrap">
-                                                        {item.time}
-                                                    </span>
-                                                </div>
-                                                <p className="text-xs text-super-black font-semibold mb-0.5">
-                                                    {item.customer} <span className="text-foreground/40 font-normal">({item.code})</span>
-                                                </p>
-                                                <p className="text-[10px] text-foreground/60 truncate">
-                                                    {item.detail}
-                                                </p>
-                                            </Link>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="px-6 py-10 flex flex-col items-center justify-center text-center">
-                                        <div className="w-12 h-12 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center mb-3">
-                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                                <polyline points="20 6 9 17 4 12" />
-                                            </svg>
-                                        </div>
-                                        <p className="text-sm font-bold text-super-black">Tidak ada notifikasi</p>
-                                        <p className="text-xs text-foreground/50 mt-1">
-                                            Semua booking dan pesanan telah diproses.
-                                        </p>
-                                    </div>
+                        {role !== 'owner' && (
+                            <>
+                                <button 
+                                    onClick={() => {
+                                        setIsNotificationOpen(!isNotificationOpen);
+                                        playNotificationSound();
+                                    }}
+                                    className={`w-9 h-9 flex items-center justify-center rounded-venus text-foreground/60 hover:bg-card hover:text-foreground hover-shake transition-all border border-border relative ${isNotificationOpen ? 'bg-card text-foreground' : ''}`}
+                                >
+                                    <IconBell />
+                                    {(((usePage().props.notifications as any)?.pendingItems?.length) > 0) && (
+                                        <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center border-2 border-background">
+                                            {(usePage().props.notifications as any).pendingItems.length}
+                                        </span>
+                                    )}
+                                </button>
+                                
+                                {/* Dropdown Overlay (for clicking outside) */}
+                                {isNotificationOpen && (
+                                    <div 
+                                        className="fixed inset-0 z-40" 
+                                        onClick={() => setIsNotificationOpen(false)}
+                                    />
                                 )}
-                            </div>
-                        </div>
+                                
+                                {/* Notification Dropdown */}
+                                <div className={`absolute top-12 right-0 w-[calc(100vw-2rem)] sm:w-80 bg-card/95 backdrop-blur-md border border-border rounded-venus shadow-2xl z-50 overflow-hidden transform origin-top-right transition-all duration-200 ease-out ${
+                                    isNotificationOpen 
+                                        ? 'opacity-100 translate-y-0 scale-100' 
+                                        : 'opacity-0 -translate-y-2 scale-95 pointer-events-none'
+                                }`}>
+                                    <div className="px-4 py-3 border-b border-border bg-background flex items-center justify-between">
+                                        <h3 className="text-sm font-bold text-super-black">Notifikasi Baru</h3>
+                                        <span className="text-[10px] bg-red-100 text-red-600 font-bold px-2 py-0.5 rounded-full uppercase">
+                                            Butuh Tindakan
+                                        </span>
+                                    </div>
+                                    <div className="max-h-[360px] overflow-y-auto">
+                                        {((usePage().props.notifications as any)?.pendingItems?.length > 0) ? (
+                                            <div className="flex flex-col">
+                                                {(usePage().props.notifications as any).pendingItems.map((item: any) => (
+                                                    <Link 
+                                                        key={item.id} 
+                                                        href={item.link}
+                                                        className="px-4 py-3 border-b border-border/50 hover:bg-background/50 transition-colors block group"
+                                                    >
+                                                        <div className="flex justify-between items-start mb-1 gap-2">
+                                                            <span className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
+                                                                {item.title}
+                                                            </span>
+                                                            <span className="text-[10px] text-foreground/40 whitespace-nowrap">
+                                                                {item.time}
+                                                            </span>
+                                                        </div>
+                                                        <p className="text-xs text-super-black font-semibold mb-0.5">
+                                                            {item.customer} <span className="text-foreground/40 font-normal">({item.code})</span>
+                                                        </p>
+                                                        <p className="text-[10px] text-foreground/60 truncate">
+                                                            {item.detail}
+                                                        </p>
+                                                    </Link>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="px-6 py-10 flex flex-col items-center justify-center text-center">
+                                                <div className="w-12 h-12 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center mb-3">
+                                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                                        <polyline points="20 6 9 17 4 12" />
+                                                    </svg>
+                                                </div>
+                                                <p className="text-sm font-bold text-super-black">Tidak ada notifikasi</p>
+                                                <p className="text-xs text-foreground/50 mt-1">
+                                                    Semua booking dan pesanan telah diproses.
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </>
+                        )}
 
                         <div className="hidden sm:flex items-center gap-2.5 pl-3 border-l border-border ml-2">
                             <div className="flex flex-col items-end">

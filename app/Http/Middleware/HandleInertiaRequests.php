@@ -54,10 +54,10 @@ class HandleInertiaRequests extends Middleware
             ],
             'notifications' => [
                 'pendingCount' => fn () => $this->getPendingCountForUnit($role, $unit),
-                'doorsmeerCount' => fn () => $this->getDoorsmeerCount(),
-                'bengkelCount' => fn () => $this->getBengkelCount(),
-                'rentalCount' => fn () => $this->getRentalCount(),
-                'storeCount' => fn () => $this->getStoreCount(),
+                'doorsmeerCount' => fn () => $this->getDoorsmeerCount($role, $unit),
+                'bengkelCount' => fn () => $this->getBengkelCount($role, $unit),
+                'rentalCount' => fn () => $this->getRentalCount($role, $unit),
+                'storeCount' => fn () => $this->getStoreCount($role, $unit),
                 'pendingItems' => fn () => $isStaff ? $this->getPendingItemsForUnit($role, $unit) : [],
             ],
             'settings' => fn () => $this->getOperationalSettings(),
@@ -76,74 +76,56 @@ class HandleInertiaRequests extends Middleware
         ];
     }
 
-    private function getDoorsmeerCount(): int
+    private function getDoorsmeerCount(?string $role, ?string $unit): int
     {
+        if ($role !== 'admin' || $unit !== 'doorsmeer') return 0;
         try {
             return \App\Models\DoorsmeerBooking::whereNotIn('status', ['done', 'cancelled'])->count();
         } catch (\Exception $e) { return 0; }
     }
 
-    private function getBengkelCount(): int
+    private function getBengkelCount(?string $role, ?string $unit): int
     {
+        if ($role !== 'admin' || $unit !== 'bengkel') return 0;
         try {
             return \App\Models\BengkelBooking::whereNotIn('status', ['done', 'cancelled'])->count();
         } catch (\Exception $e) { return 0; }
     }
 
-    private function getRentalCount(): int
+    private function getRentalCount(?string $role, ?string $unit): int
     {
+        if ($role !== 'admin' || $unit !== 'rental_ps') return 0;
         try {
             return \App\Models\RentalPsBooking::whereNotIn('status', ['done', 'cancelled'])->count();
         } catch (\Exception $e) { return 0; }
     }
 
-    private function getStoreCount(): int
+    private function getStoreCount(?string $role, ?string $unit): int
     {
+        if (!in_array($role, ['admin', 'kasir']) || !in_array($unit, ['vape_store', 'coffee_shop'])) return 0;
         try {
-            return \App\Models\StoreOrder::whereNotIn('progress_status', ['completed', 'cancelled'])->count();
+            $query = \App\Models\StoreOrder::whereNotIn('progress_status', ['completed', 'cancelled']);
+            if ($unit === 'vape_store') $query->where('unit', 'VAPE STORE');
+            if ($unit === 'coffee_shop') $query->where('unit', 'COFFEE SHOP');
+            return $query->count();
         } catch (\Exception $e) { return 0; }
     }
 
-    private function getPendingCount(): int
-    {
-        return $this->getDoorsmeerCount() + $this->getBengkelCount() + $this->getRentalCount() + $this->getStoreCount();
-    }
-
-    /**
-     * Hitung pending count yang relevan berdasarkan role & business_unit.
-     */
     private function getPendingCountForUnit(?string $role, ?string $unit): int
     {
-        if ($role === 'owner') {
-            return $this->getPendingCount();
-        }
-
-        return match ($unit) {
-            'doorsmeer' => $this->getDoorsmeerCount(),
-            'bengkel' => $this->getBengkelCount(),
-            'rental_ps' => $this->getRentalCount(),
-            'vape_store', 'coffee_shop' => $this->getStoreCount(),
-            default => $this->getPendingCount(),
-        };
+        return $this->getDoorsmeerCount($role, $unit)
+            + $this->getBengkelCount($role, $unit)
+            + $this->getRentalCount($role, $unit)
+            + $this->getStoreCount($role, $unit);
     }
 
-    private function getPendingItems(): array
-    {
-        return $this->getPendingItemsForUnit(null, null);
-    }
-
-    /**
-     * Ambil pending items yang relevan berdasarkan role & business_unit.
-     */
     private function getPendingItemsForUnit(?string $role, ?string $unit): array
     {
         try {
             $list = [];
-            $showBooking = $role === 'owner' || $unit === null || in_array($unit, ['doorsmeer', 'bengkel', 'rental_ps']);
-            $showStore = $role === 'owner' || $unit === null || in_array($unit, ['vape_store', 'coffee_shop']);
 
             // 1. Doorsmeer Bookings
-            if ($showBooking && ($role === 'owner' || $unit === null || $unit === 'doorsmeer')) {
+            if ($role === 'admin' && $unit === 'doorsmeer') {
                 $doorsmeer = \App\Models\DoorsmeerBooking::where('status', 'pending')
                     ->orderBy('created_at', 'desc')
                     ->get()
@@ -164,7 +146,7 @@ class HandleInertiaRequests extends Middleware
             }
 
             // 2. Bengkel Bookings
-            if ($showBooking && ($role === 'owner' || $unit === null || $unit === 'bengkel')) {
+            if ($role === 'admin' && $unit === 'bengkel') {
                 $bengkel = \App\Models\BengkelBooking::where('status', 'pending')
                     ->orderBy('created_at', 'desc')
                     ->get()
@@ -185,7 +167,7 @@ class HandleInertiaRequests extends Middleware
             }
 
             // 3. Rental PS Bookings
-            if ($showBooking && ($role === 'owner' || $unit === null || $unit === 'rental_ps')) {
+            if ($role === 'admin' && $unit === 'rental_ps') {
                 $rental = \App\Models\RentalPsBooking::where('status', 'pending')
                     ->orderBy('created_at', 'desc')
                     ->get()
@@ -206,7 +188,7 @@ class HandleInertiaRequests extends Middleware
             }
 
             // 4. Store Orders
-            if ($showStore) {
+            if (in_array($role, ['admin', 'kasir']) && in_array($unit, ['vape_store', 'coffee_shop'])) {
                 $storeQuery = \App\Models\StoreOrder::whereIn('progress_status', ['menunggu_pembayaran', 'pending'])
                     ->orderBy('created_at', 'desc');
 
