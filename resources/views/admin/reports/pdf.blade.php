@@ -156,6 +156,7 @@
             <thead>
                 <tr>
                     <th>ID</th>
+                    <th>Tanggal</th>
                     <th>Waktu</th>
                     <th>Pelanggan</th>
                     <th>Unit</th>
@@ -168,6 +169,7 @@
                 @foreach($allTransactions as $t)
                 <tr>
                     <td style="font-family: monospace;">{{ $t['id'] }}</td>
+                    <td>{{ $t['date'] }}</td>
                     <td>{{ $t['time'] }}</td>
                     <td>{{ $t['customer'] }}</td>
                     <td>{{ $t['unit'] }}</td>

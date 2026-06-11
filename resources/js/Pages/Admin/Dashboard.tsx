@@ -1,11 +1,9 @@
-import React, { useState } from "react";
+import React from "react";
 import { Head, Link } from "@inertiajs/react";
 import AdminLayout from "../../Layouts/AdminLayout";
 import {
     PageHeader,
     StatCard,
-    PrimaryButton,
-    IconButton,
     Badge,
     TableResponsive,
 } from "../../Components/AdminUI";
@@ -19,8 +17,6 @@ interface Booking {
     time: string;
     status: "PENDING" | "SELESAI" | "IN PROGRESS" | "BATAL";
 }
-
-// Mock data sudah dihapus karena menggunakan data dari database (dbStats & dbRecentBookings)
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 const unitBadgeVariant: Record<
@@ -47,38 +43,6 @@ const StatusBadge = ({ status }: { status: Booking["status"] }) => {
     return <Badge text={status} variant={variants[status] || "default"} />;
 };
 
-const IconEdit = () => (
-    <svg
-        width="14"
-        height="14"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-    >
-        <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
-        <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
-    </svg>
-);
-
-const IconX = () => (
-    <svg
-        width="14"
-        height="14"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-    >
-        <line x1="18" y1="6" x2="6" y2="18" />
-        <line x1="6" y1="6" x2="18" y2="18" />
-    </svg>
-);
-
 const IconRevenue = () => (
     <svg
         width="22"
@@ -95,27 +59,26 @@ const IconRevenue = () => (
     </svg>
 );
 
-const IconPlus = () => (
-    <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-    >
-        <line x1="12" y1="5" x2="12" y2="19" />
-        <line x1="5" y1="12" x2="19" y2="12" />
-    </svg>
-);
-
 // ── Page ─────────────────────────────────────────────────────────────────────
-export default function Dashboard({ stats: dbStats, recentBookings: dbRecentBookings }: any) {
+export default function Dashboard({ stats: dbStats, recentBookings: dbRecentBookings, roleInfo }: any) {
+    const role = roleInfo?.role || 'admin';
+    const unit = roleInfo?.unit || null;
+    const roleLabel = roleInfo?.roleLabel || 'Admin';
+    const unitLabel = roleInfo?.unitLabel || 'Venus Hub';
+    const userName = roleInfo?.userName || 'User';
+
+    // Sesuaikan Header & Judul Halaman
+    const pageTitle = role === 'owner' 
+        ? "Dashboard Owner" 
+        : (role === 'kasir' ? `Dashboard Kasir ${unitLabel}` : `Dashboard Admin ${unitLabel}`);
+
+    const welcomeSubtitle = role === 'owner'
+        ? "Ringkasan aktivitas global seluruh unit usaha hari ini."
+        : `Ringkasan aktivitas unit ${unitLabel} hari ini.`;
+
     const displayStats = [
         {
-            label: "TOTAL BOOKING",
+            label: "TOTAL TRANSAKSI",
             title: "Semua Transaksi",
             value: dbStats?.totalAllTime || "0",
             icon: (
@@ -136,8 +99,8 @@ export default function Dashboard({ stats: dbStats, recentBookings: dbRecentBook
             iconBg: "bg-primary/10 text-primary",
         },
         {
-            label: "PENDING",
-            title: "Booking Pending",
+            label: "PENDING HARI INI",
+            title: "Proses Pending",
             value: dbStats?.pendingToday || "0",
             icon: (
                 <svg
@@ -157,8 +120,8 @@ export default function Dashboard({ stats: dbStats, recentBookings: dbRecentBook
             iconBg: "bg-orange-100 text-orange-500",
         },
         {
-            label: "SELESAI",
-            title: "Booking Selesai",
+            label: "SELESAI HARI INI",
+            title: "Transaksi Selesai",
             value: dbStats?.completedToday || "0",
             icon: (
                 <svg
@@ -181,14 +144,18 @@ export default function Dashboard({ stats: dbStats, recentBookings: dbRecentBook
 
     const bookingsToDisplay: Booking[] = dbRecentBookings || [];
 
+    // Tentukan link mana saja yang tampil di tabel berdasarkan unit/role
+    const showBookingLink = role === 'owner' || ['doorsmeer', 'bengkel', 'rental_ps'].includes(unit || '');
+    const showStoreLink = role === 'owner' || ['vape_store', 'coffee_shop'].includes(unit || '');
+
     return (
         <AdminLayout>
-            <Head title="Dashboard – Venus Hub Admin" />
+            <Head title={`${pageTitle} – Venus Space`} />
 
             {/* Header */}
             <PageHeader
-                title="Selamat Datang!"
-                subtitle="Berikut adalah ringkasan aktivitas hari ini."
+                title={`Halo, ${userName}!`}
+                subtitle={welcomeSubtitle}
             />
 
             {/* Stats Grid */}
@@ -219,7 +186,7 @@ export default function Dashboard({ stats: dbStats, recentBookings: dbRecentBook
                     </div>
                     <div className="relative">
                         <p className="text-xs md:text-body-reg text-white/60">
-                            Total Pendapatan (Selesai)
+                            Total Pendapatan ({unit ? unitLabel : 'Global'})
                         </p>
                         <p className="text-lg md:text-card-title text-white font-bold mt-1">
                             Rp {(dbStats?.revenueAllTime || 0).toLocaleString("id-ID")}
@@ -232,21 +199,25 @@ export default function Dashboard({ stats: dbStats, recentBookings: dbRecentBook
             <div className="bg-card border border-border rounded-venus overflow-hidden flex flex-col">
                 <div className="flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-b border-border">
                     <h2 className="text-lg md:text-h4 text-super-black font-bold">
-                        Booking Terbaru (Semua Unit)
+                        Aktivitas Terbaru {unit ? `(${unitLabel})` : '(Semua Unit)'}
                     </h2>
                     <div className="flex gap-4">
-                        <Link
-                            href="/admin/booking-doorsmeer"
-                            className="text-xs md:text-label-sm text-primary hover:text-primary/80 transition-colors flex items-center gap-1 font-semibold"
-                        >
-                            Booking Unit →
-                        </Link>
-                        <Link
-                            href="/admin/pesanan-store"
-                            className="text-xs md:text-label-sm text-secondary hover:text-secondary/80 transition-colors flex items-center gap-1 font-semibold"
-                        >
-                            Pesanan Store →
-                        </Link>
+                        {showBookingLink && (
+                            <Link
+                                href={unit === 'bengkel' ? '/admin/booking-bengkel' : (unit === 'rental_ps' ? '/admin/booking-rental-ps' : '/admin/booking-doorsmeer')}
+                                className="text-xs md:text-label-sm text-primary hover:text-primary/80 transition-colors flex items-center gap-1 font-semibold"
+                            >
+                                Booking Unit →
+                            </Link>
+                        )}
+                        {showStoreLink && (
+                            <Link
+                                href="/admin/pesanan-store"
+                                className="text-xs md:text-label-sm text-secondary hover:text-secondary/80 transition-colors flex items-center gap-1 font-semibold"
+                            >
+                                Pesanan Store →
+                            </Link>
+                        )}
                     </div>
                 </div>
                 <TableResponsive>
@@ -256,7 +227,7 @@ export default function Dashboard({ stats: dbStats, recentBookings: dbRecentBook
                                 {[
                                     "NO",
                                     "NAMA PELANGGAN",
-                                    "LAYANAN",
+                                    "LAYANAN / ITEM",
                                     "UNIT USAHA",
                                     "WAKTU",
                                     "STATUS",
@@ -321,7 +292,7 @@ export default function Dashboard({ stats: dbStats, recentBookings: dbRecentBook
                             ) : (
                                 <tr>
                                     <td colSpan={6} className="px-6 py-10 text-center text-foreground/40 italic">
-                                        Belum ada data booking atau pesanan terbaru.
+                                        Belum ada data aktivitas atau pesanan terbaru untuk unit ini.
                                     </td>
                                 </tr>
                             )}
@@ -330,7 +301,7 @@ export default function Dashboard({ stats: dbStats, recentBookings: dbRecentBook
                 </TableResponsive>
                 <div className="px-4 md:px-6 py-3 border-t border-border">
                     <p className="text-foreground/40 text-xs md:text-body-reg">
-                        Menampilkan 10 booking terbaru
+                        Menampilkan hingga 10 aktivitas terbaru
                     </p>
                 </div>
             </div>

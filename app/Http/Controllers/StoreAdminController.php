@@ -163,6 +163,14 @@ class StoreAdminController extends Controller
     {
         $query = StoreOrder::with('items')->orderBy('created_at', 'desc');
 
+        // Filter berdasarkan unit kasir
+        $user = auth()->user();
+        if ($user->business_unit === 'vape_store') {
+            $query->where('unit', 'VAPE STORE');
+        } elseif ($user->business_unit === 'coffee_shop') {
+            $query->where('unit', 'COFFEE SHOP');
+        }
+
         if ($request->has('search') && $request->search != '') {
             $search = $request->search;
             $query->where(function($q) use ($search) {

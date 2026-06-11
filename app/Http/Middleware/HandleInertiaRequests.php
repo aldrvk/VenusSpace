@@ -35,31 +35,39 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $user = $request->user();
+        $role = $user?->role;
+        $unit = $user?->business_unit;
+        $isStaff = in_array($role, ['admin', 'kasir', 'owner']);
+
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $user,
             ],
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error'   => fn () => $request->session()->get('error'),
+                'otp_sent' => fn () => $request->session()->get('otp_sent'),
+                'otp_email' => fn () => $request->session()->get('otp_email'),
+                'otp_remember' => fn () => $request->session()->get('otp_remember'),
             ],
             'notifications' => [
-                'pendingCount' => fn () => $this->getPendingCount(),
+                'pendingCount' => fn () => $this->getPendingCountForUnit($role, $unit),
                 'doorsmeerCount' => fn () => $this->getDoorsmeerCount(),
                 'bengkelCount' => fn () => $this->getBengkelCount(),
                 'rentalCount' => fn () => $this->getRentalCount(),
                 'storeCount' => fn () => $this->getStoreCount(),
-                'pendingItems' => fn () => ($request->user() && $request->user()->role === 'admin') ? $this->getPendingItems() : [],
+                'pendingItems' => fn () => $isStaff ? $this->getPendingItemsForUnit($role, $unit) : [],
             ],
             'settings' => fn () => $this->getOperationalSettings(),
             'display_settings' => fn () => [
                 'show_stock_coffee_shop' => (bool) \App\Models\Setting::get('show_stock_coffee_shop', false),
                 'show_stock_vape_store'  => (bool) \App\Models\Setting::get('show_stock_vape_store', false),
             ],
-            'payment_settings' => function () use ($request) {
+            'payment_settings' => function () use ($request, $isStaff) {
                 $settings = \App\Models\Setting::get('payment_settings', []);
-                if ($request->user() && $request->user()->role === 'admin') {
+                if ($isStaff) {
                     return $settings;
                 }
                 // Exclude sensitive keys for public/customers
@@ -101,88 +109,132 @@ class HandleInertiaRequests extends Middleware
         return $this->getDoorsmeerCount() + $this->getBengkelCount() + $this->getRentalCount() + $this->getStoreCount();
     }
 
+    /**
+     * Hitung pending count yang relevan berdasarkan role & business_unit.
+     */
+    private function getPendingCountForUnit(?string $role, ?string $unit): int
+    {
+        if ($role === 'owner') {
+            return $this->getPendingCount();
+        }
+
+        return match ($unit) {
+            'doorsmeer' => $this->getDoorsmeerCount(),
+            'bengkel' => $this->getBengkelCount(),
+            'rental_ps' => $this->getRentalCount(),
+            'vape_store', 'coffee_shop' => $this->getStoreCount(),
+            default => $this->getPendingCount(),
+        };
+    }
+
     private function getPendingItems(): array
+    {
+        return $this->getPendingItemsForUnit(null, null);
+    }
+
+    /**
+     * Ambil pending items yang relevan berdasarkan role & business_unit.
+     */
+    private function getPendingItemsForUnit(?string $role, ?string $unit): array
     {
         try {
             $list = [];
+            $showBooking = $role === 'owner' || $unit === null || in_array($unit, ['doorsmeer', 'bengkel', 'rental_ps']);
+            $showStore = $role === 'owner' || $unit === null || in_array($unit, ['vape_store', 'coffee_shop']);
 
-            // 1. Doorsmeer Bookings (Menunggu Konfirmasi)
-            $doorsmeer = \App\Models\DoorsmeerBooking::where('status', 'pending')
-                ->orderBy('created_at', 'desc')
-                ->get()
-                ->map(function ($b) {
-                    return [
-                        'id' => 'doorsmeer-' . $b->id,
-                        'code' => $b->booking_code,
-                        'title' => 'Booking Doorsmeer Baru',
-                        'customer' => $b->customer_name,
-                        'detail' => $b->vehicle_class . ' · ' . $b->license_plate,
-                        'time' => $b->created_at->diffForHumans(),
-                        'timestamp' => $b->created_at->timestamp,
-                        'link' => '/admin/booking-doorsmeer?search=' . urlencode($b->booking_code),
-                        'type' => 'doorsmeer',
-                    ];
-                });
-            foreach ($doorsmeer as $item) $list[] = $item;
+            // 1. Doorsmeer Bookings
+            if ($showBooking && ($role === 'owner' || $unit === null || $unit === 'doorsmeer')) {
+                $doorsmeer = \App\Models\DoorsmeerBooking::where('status', 'pending')
+                    ->orderBy('created_at', 'desc')
+                    ->get()
+                    ->map(function ($b) {
+                        return [
+                            'id' => 'doorsmeer-' . $b->id,
+                            'code' => $b->booking_code,
+                            'title' => 'Booking Doorsmeer Baru',
+                            'customer' => $b->customer_name,
+                            'detail' => $b->vehicle_class . ' · ' . $b->license_plate,
+                            'time' => $b->created_at->diffForHumans(),
+                            'timestamp' => $b->created_at->timestamp,
+                            'link' => '/admin/booking-doorsmeer?search=' . urlencode($b->booking_code),
+                            'type' => 'doorsmeer',
+                        ];
+                    });
+                foreach ($doorsmeer as $item) $list[] = $item;
+            }
 
-            // 2. Bengkel Bookings (Menunggu Konfirmasi)
-            $bengkel = \App\Models\BengkelBooking::where('status', 'pending')
-                ->orderBy('created_at', 'desc')
-                ->get()
-                ->map(function ($b) {
-                    return [
-                        'id' => 'bengkel-' . $b->id,
-                        'code' => $b->booking_code,
-                        'title' => 'Booking Bengkel Baru',
-                        'customer' => $b->customer_name,
-                        'detail' => $b->vehicle_class . ' · ' . $b->license_plate,
-                        'time' => $b->created_at->diffForHumans(),
-                        'timestamp' => $b->created_at->timestamp,
-                        'link' => '/admin/booking-bengkel?search=' . urlencode($b->booking_code),
-                        'type' => 'bengkel',
-                    ];
-                });
-            foreach ($bengkel as $item) $list[] = $item;
+            // 2. Bengkel Bookings
+            if ($showBooking && ($role === 'owner' || $unit === null || $unit === 'bengkel')) {
+                $bengkel = \App\Models\BengkelBooking::where('status', 'pending')
+                    ->orderBy('created_at', 'desc')
+                    ->get()
+                    ->map(function ($b) {
+                        return [
+                            'id' => 'bengkel-' . $b->id,
+                            'code' => $b->booking_code,
+                            'title' => 'Booking Bengkel Baru',
+                            'customer' => $b->customer_name,
+                            'detail' => $b->vehicle_class . ' · ' . $b->license_plate,
+                            'time' => $b->created_at->diffForHumans(),
+                            'timestamp' => $b->created_at->timestamp,
+                            'link' => '/admin/booking-bengkel?search=' . urlencode($b->booking_code),
+                            'type' => 'bengkel',
+                        ];
+                    });
+                foreach ($bengkel as $item) $list[] = $item;
+            }
 
-            // 3. Rental PS Bookings (Menunggu Konfirmasi)
-            $rental = \App\Models\RentalPsBooking::where('status', 'pending')
-                ->orderBy('created_at', 'desc')
-                ->get()
-                ->map(function ($b) {
-                    return [
-                        'id' => 'rental-' . $b->id,
-                        'code' => $b->booking_code,
-                        'title' => 'Booking Rental PS Baru',
-                        'customer' => $b->customer_name,
-                        'detail' => $b->service_name . ' · ' . $b->service_duration,
-                        'time' => $b->created_at->diffForHumans(),
-                        'timestamp' => $b->created_at->timestamp,
-                        'link' => '/admin/booking-rental-ps?search=' . urlencode($b->booking_code),
-                        'type' => 'rental_ps',
-                    ];
-                });
-            foreach ($rental as $item) $list[] = $item;
+            // 3. Rental PS Bookings
+            if ($showBooking && ($role === 'owner' || $unit === null || $unit === 'rental_ps')) {
+                $rental = \App\Models\RentalPsBooking::where('status', 'pending')
+                    ->orderBy('created_at', 'desc')
+                    ->get()
+                    ->map(function ($b) {
+                        return [
+                            'id' => 'rental-' . $b->id,
+                            'code' => $b->booking_code,
+                            'title' => 'Booking Rental PS Baru',
+                            'customer' => $b->customer_name,
+                            'detail' => $b->service_name . ' · ' . $b->service_duration,
+                            'time' => $b->created_at->diffForHumans(),
+                            'timestamp' => $b->created_at->timestamp,
+                            'link' => '/admin/booking-rental-ps?search=' . urlencode($b->booking_code),
+                            'type' => 'rental_ps',
+                        ];
+                    });
+                foreach ($rental as $item) $list[] = $item;
+            }
 
-            // 4. Store Orders (Menunggu Pembayaran / Diterima)
-            $store = \App\Models\StoreOrder::whereIn('progress_status', ['menunggu_pembayaran', 'pending'])
-                ->orderBy('created_at', 'desc')
-                ->get()
-                ->map(function ($o) {
-                    $unitLabel = $o->unit === 'VAPE STORE' ? 'Vape Store' : 'Coffee Shop';
-                    $paymentLabel = strtolower($o->payment_method) === 'qris' ? 'Pembayaran Online' : strtoupper($o->payment_method);
-                    return [
-                        'id' => 'store-' . $o->id,
-                        'code' => $o->order_code ?? (string)$o->id,
-                        'title' => 'Pesanan ' . $unitLabel . ' Baru',
-                        'customer' => $o->customer_name,
-                        'detail' => 'Rp' . number_format($o->total, 0, ',', '.') . ' (' . $paymentLabel . ')',
-                        'time' => $o->created_at ? $o->created_at->diffForHumans() : '',
-                        'timestamp' => $o->created_at ? $o->created_at->timestamp : 0,
-                        'link' => '/admin/pesanan-store?search=' . urlencode($o->order_code ?? (string)$o->id),
-                        'type' => 'store',
-                    ];
-                });
-            foreach ($store as $item) $list[] = $item;
+            // 4. Store Orders
+            if ($showStore) {
+                $storeQuery = \App\Models\StoreOrder::whereIn('progress_status', ['menunggu_pembayaran', 'pending'])
+                    ->orderBy('created_at', 'desc');
+
+                // Filter per unit toko untuk kasir
+                if ($unit === 'vape_store') {
+                    $storeQuery->where('unit', 'VAPE STORE');
+                } elseif ($unit === 'coffee_shop') {
+                    $storeQuery->where('unit', 'COFFEE SHOP');
+                }
+
+                $store = $storeQuery->get()
+                    ->map(function ($o) {
+                        $unitLabel = $o->unit === 'VAPE STORE' ? 'Vape Store' : 'Coffee Shop';
+                        $paymentLabel = strtolower($o->payment_method) === 'qris' ? 'Pembayaran Online' : strtoupper($o->payment_method);
+                        return [
+                            'id' => 'store-' . $o->id,
+                            'code' => $o->order_code ?? (string)$o->id,
+                            'title' => 'Pesanan ' . $unitLabel . ' Baru',
+                            'customer' => $o->customer_name,
+                            'detail' => 'Rp' . number_format($o->total, 0, ',', '.') . ' (' . $paymentLabel . ')',
+                            'time' => $o->created_at ? $o->created_at->diffForHumans() : '',
+                            'timestamp' => $o->created_at ? $o->created_at->timestamp : 0,
+                            'link' => '/admin/pesanan-store?search=' . urlencode($o->order_code ?? (string)$o->id),
+                            'type' => 'store',
+                        ];
+                    });
+                foreach ($store as $item) $list[] = $item;
+            }
 
             // Urutkan berdasarkan waktu terbaru
             usort($list, function ($a, $b) {

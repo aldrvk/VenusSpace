@@ -124,19 +124,114 @@ const IconCalendar = () => (
         <line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
     </svg>
 );
+const IconPesanan = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+        <line x1="3" y1="6" x2="21" y2="6" />
+        <path d="M16 10a4 4 0 01-8 0" />
+    </svg>
+);
+const IconWalkIn = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+        <circle cx="8.5" cy="7" r="4" />
+        <line x1="20" y1="8" x2="20" y2="14" />
+        <line x1="23" y1="11" x2="17" y2="11" />
+    </svg>
+);
 
-// ── Nav Items Definition ──────────────────────────────────────────────────────
-const navItems = [
-    { href: '/admin/dashboard', label: 'Dashboard', icon: <IconDashboard /> },
-    { href: '/admin/booking-doorsmeer', label: 'Booking Doorsmeer', icon: <IconDoorsmeer /> },
-    { href: '/admin/booking-bengkel', label: 'Booking Bengkel', icon: <IconBengkel /> },
-    { href: '/admin/booking-rental-ps', label: 'Booking Rental PS', icon: <IconPS /> },
-    { href: '/admin/katalog-coffee', label: 'Katalog Coffee Shop', icon: <IconCoffee /> },
-    { href: '/admin/katalog-vape', label: 'Katalog Vape Store', icon: <IconVape /> },
-    { href: '/admin/pesanan-store', label: 'Daftar Pesanan', icon: <IconLaporan /> },
-    // { href: '/admin/jadwal', label: 'Jadwal', icon: <IconJadwal /> },
-    { href: '/admin/laporan', label: 'Laporan', icon: <IconLaporan /> },
-];
+// ── Nav Items Definition per Role ────────────────────────────────────────────
+
+interface NavItem {
+    href: string;
+    label: string;
+    icon: React.ReactNode;
+    notificationKey?: string;
+}
+
+function getNavItemsForRole(role: string, unit: string | null): NavItem[] {
+    const dashboard: NavItem = { href: '/admin/dashboard', label: 'Dashboard', icon: <IconDashboard /> };
+    const laporan: NavItem = { href: '/admin/laporan', label: 'Laporan', icon: <IconLaporan /> };
+
+    // Owner: Hanya Dashboard, Laporan, Pengaturan
+    if (role === 'owner') {
+        return [dashboard, laporan];
+    }
+
+    // Admin Doorsmeer
+    if (unit === 'doorsmeer') {
+        return [
+            dashboard,
+            { href: '/admin/booking-doorsmeer', label: 'Booking Doorsmeer', icon: <IconDoorsmeer />, notificationKey: 'doorsmeerCount' },
+            { href: '/admin/doorsmeer/walk-in', label: 'Walk-in Doorsmeer', icon: <IconWalkIn /> },
+            laporan,
+        ];
+    }
+
+    // Admin Bengkel
+    if (unit === 'bengkel') {
+        return [
+            dashboard,
+            { href: '/admin/booking-bengkel', label: 'Booking Bengkel', icon: <IconBengkel />, notificationKey: 'bengkelCount' },
+            { href: '/admin/bengkel/walk-in', label: 'Walk-in Bengkel', icon: <IconWalkIn /> },
+            laporan,
+        ];
+    }
+
+    // Admin Rental PS
+    if (unit === 'rental_ps') {
+        return [
+            dashboard,
+            { href: '/admin/booking-rental-ps', label: 'Booking Rental PS', icon: <IconPS />, notificationKey: 'rentalCount' },
+            { href: '/admin/rental-ps/walk-in', label: 'Walk-in Rental PS', icon: <IconWalkIn /> },
+            laporan,
+        ];
+    }
+
+    // Kasir Vape Store
+    if (unit === 'vape_store') {
+        return [
+            dashboard,
+            { href: '/admin/katalog-vape', label: 'Katalog Vape Store', icon: <IconVape /> },
+            { href: '/admin/pesanan-store', label: 'Pesanan Vape', icon: <IconPesanan />, notificationKey: 'storeCount' },
+            laporan,
+        ];
+    }
+
+    // Kasir Coffee Shop
+    if (unit === 'coffee_shop') {
+        return [
+            dashboard,
+            { href: '/admin/katalog-coffee', label: 'Katalog Coffee Shop', icon: <IconCoffee /> },
+            { href: '/admin/pesanan-store', label: 'Pesanan Coffee', icon: <IconPesanan />, notificationKey: 'storeCount' },
+            laporan,
+        ];
+    }
+
+    // Fallback (jika admin tanpa unit / tidak dikenal, hanya tampilkan dashboard & laporan saja)
+    return [
+        dashboard,
+        laporan,
+    ];
+}
+
+function getRoleLabel(role: string, unit: string | null): { title: string; subtitle: string } {
+    if (role === 'owner') {
+        return { title: 'Venus Hub', subtitle: 'Pemilik' };
+    }
+    if (role === 'kasir') {
+        const unitName = unit === 'vape_store' ? 'Vape Store' : 'Coffee Shop';
+        return { title: 'Venus Hub', subtitle: `Kasir ${unitName}` };
+    }
+    // Admin
+    const unitMap: Record<string, string> = {
+        doorsmeer: 'Doorsmeer',
+        bengkel: 'Bengkel',
+        rental_ps: 'Rental PS',
+    };
+    const unitName = unit ? unitMap[unit] || unit : '';
+    return { title: 'Venus Hub', subtitle: `Admin ${unitName}` };
+}
 
 interface AdminLayoutProps {
     children: ReactNode;
@@ -147,6 +242,15 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     const { url } = usePage();
     const currentPath = url.split('?')[0];
     
+    // Get role & unit from auth
+    const authUser = (usePage().props.auth as any)?.user;
+    const role = authUser?.role || 'admin';
+    const unit = authUser?.business_unit || null;
+
+    // Dynamic nav & label
+    const navItems = getNavItemsForRole(role, unit);
+    const { title: sidebarTitle, subtitle: sidebarSubtitle } = getRoleLabel(role, unit);
+
     // Controlled search input
     const initialSearch = new URLSearchParams(url.split('?')[1] || '').get('search') || '';
     const [searchTerm, setSearchTerm] = useState(initialSearch);
@@ -198,6 +302,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         searchPlaceholder = "Cari Nama Produk / Kategori...";
     }
 
+    // Header display name
+    const headerName = authUser?.name || sidebarTitle;
+
     return (
         <div className="flex h-screen bg-background overflow-hidden font-sans">
             
@@ -228,8 +335,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 {/* Logo */}
                 <div className="px-4 py-5 border-b border-white/10 flex items-center justify-between">
                     <div>
-                        <p className="font-heading font-bold text-white text-[15px] leading-tight">Venus Hub</p>
-                        <p className="text-white/50 text-[10px] mt-0.5 leading-tight">Admin Dashboard</p>
+                        <p className="font-heading font-bold text-white text-[15px] leading-tight">{sidebarTitle}</p>
+                        <p className="text-white/50 text-[10px] mt-0.5 leading-tight">{sidebarSubtitle}</p>
                     </div>
                 </div>
 
@@ -238,12 +345,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     <div className="pt-3">
                         {navItems.map((item) => {
                             const active = isActive(item.href);
-                            const notifications = (usePage().props.notifications as any) || {};
+                            const notifData = (usePage().props.notifications as any) || {};
                             let count = 0;
-                            if (item.href === '/admin/booking-doorsmeer') count = notifications.doorsmeerCount || 0;
-                            else if (item.href === '/admin/booking-bengkel') count = notifications.bengkelCount || 0;
-                            else if (item.href === '/admin/booking-rental-ps') count = notifications.rentalCount || 0;
-                            else if (item.href === '/admin/pesanan-store') count = notifications.storeCount || 0;
+                            if (item.notificationKey) {
+                                count = notifData[item.notificationKey] || 0;
+                            }
                             
                             const displayCount = count >= 10 ? '9+' : count;
 
@@ -416,8 +522,13 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                         </div>
 
                         <div className="hidden sm:flex items-center gap-2.5 pl-3 border-l border-border ml-2">
-                            <span className="text-body-m text-foreground font-semibold">Venus Hub</span>
-                            <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-white font-bold text-xs">V</div>
+                            <div className="flex flex-col items-end">
+                                <span className="text-body-m text-foreground font-semibold">{headerName}</span>
+                                <span className="text-[10px] text-foreground/50">{sidebarSubtitle}</span>
+                            </div>
+                            <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-white font-bold text-xs">
+                                {headerName.charAt(0).toUpperCase()}
+                            </div>
                         </div>
                     </div>
                 </header>

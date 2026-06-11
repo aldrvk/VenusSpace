@@ -15,8 +15,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Seed admin users
-        $this->call(AdminSeeder::class);
+        // Hapus admin lama agar tidak bisa diakses
+        User::where('email', 'admin@gmail.com')->delete();
+
+        // Seed new role-based users
+        $this->call(UserRoleSeeder::class);
         $this->call(SettingSeeder::class);
         $this->call(ProductSeeder::class);
         $this->call(StoreSeeder::class);
