@@ -1,5 +1,5 @@
 import { Head, Link, useForm, usePage } from "@inertiajs/react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import axios from "axios";
 
@@ -161,6 +161,10 @@ export default function ForgotPassword({
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
     const [strength, setStrength] = useState<StrengthResult>(checkStrength(""));
+    const [otpValues, setOtpValues] = useState(["", "", "", "", "", ""]);
+    const [countdown, setCountdown] = useState(0);
+    const [resending, setResending] = useState(false);
+    const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
     const { data, setData, post, processing, errors, clearErrors } = useForm({
         identifier: "", // Email
@@ -183,9 +187,18 @@ export default function ForgotPassword({
     useEffect(() => {
         if (flash?.success && step === 1) {
             toast.success(flash.success, { duration: 1000 });
+            setCountdown(60);
             setStep(2);
+            setTimeout(() => inputRefs.current[0]?.focus(), 300);
         }
     }, [flash, step]);
+
+    // Countdown timer untuk kirim ulang OTP
+    useEffect(() => {
+        if (countdown <= 0) return;
+        const timer = setTimeout(() => setCountdown(c => c - 1), 1000);
+        return () => clearTimeout(timer);
+    }, [countdown]);
 
     const handlePasswordChange = (val: string) => {
         setData("password", val);
@@ -208,12 +221,42 @@ export default function ForgotPassword({
 
             if (response.data.success) {
                 toast.success("Kode OTP telah berhasil dikirim!", { duration: 1000 });
-                setTimeout(() => setStep(2), 500);
+                setCountdown(60);
+                setOtpValues(["", "", "", "", "", ""]);
+                setData("otp", "");
+                setTimeout(() => {
+                    setStep(2);
+                    setTimeout(() => inputRefs.current[0]?.focus(), 300);
+                }, 500);
             }
         } catch (error: any) {
             const errorMsg =
                 error.response?.data?.message || "Gagal mengirim OTP";
             toast.error(errorMsg);
+        }
+    };
+
+    const handleResendOtp = async () => {
+        if (countdown > 0) return;
+        setResending(true);
+        try {
+            const response = await axios.post("/forgot-password/otp", {
+                identifier: data.identifier,
+            });
+
+            if (response.data.success) {
+                toast.success("Kode OTP baru telah berhasil dikirim!");
+                setCountdown(60);
+                setOtpValues(["", "", "", "", "", ""]);
+                setData("otp", "");
+                inputRefs.current[0]?.focus();
+            }
+        } catch (error: any) {
+            const errorMsg =
+                error.response?.data?.message || "Gagal mengirim ulang OTP";
+            toast.error(errorMsg);
+        } finally {
+            setResending(false);
         }
     };
 
@@ -250,6 +293,37 @@ export default function ForgotPassword({
         });
     };
 
+    // ── OTP input handling ──
+    const handleOtpChange = (index: number, value: string) => {
+        if (!/^\d*$/.test(value)) return;
+        const newValues = [...otpValues];
+        newValues[index] = value.slice(-1);
+        setOtpValues(newValues);
+        setData("otp", newValues.join(""));
+
+        // Auto-focus next input
+        if (value && index < 5) {
+            inputRefs.current[index + 1]?.focus();
+        }
+    };
+
+    const handleOtpKeyDown = (index: number, e: React.KeyboardEvent) => {
+        if (e.key === "Backspace" && !otpValues[index] && index > 0) {
+            inputRefs.current[index - 1]?.focus();
+        }
+    };
+
+    const handleOtpPaste = (e: React.ClipboardEvent) => {
+        e.preventDefault();
+        const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+        if (pasted.length === 6) {
+            const newValues = pasted.split("");
+            setOtpValues(newValues);
+            setData("otp", pasted);
+            inputRefs.current[5]?.focus();
+        }
+    };
+
     const cfg = strengthConfig[strength.level];
 
     if (!isOpen) return null;
@@ -257,7 +331,6 @@ export default function ForgotPassword({
     return (
         <>
             <Head title="Lupa Kata Sandi" />
-
 
             {/* Modal Overlay */}
             <div
@@ -328,7 +401,7 @@ export default function ForgotPassword({
                                                 }
                                             />
                                             {errors.identifier && (
-                                                <p className="text-error text-bodyM mt-1 ml-1">
+                                                <p className="text-error text-body mt-1 ml-1">
                                                     {errors.identifier}
                                                 </p>
                                             )}
@@ -353,27 +426,54 @@ export default function ForgotPassword({
                                         <div
                                             className={`transition-all duration-700 delay-300 ${isLoaded ? "opacity-100 translate-x-0" : "opacity-0 translate-x-8"}`}
                                         >
-                                            <FloatingInput
-                                                id="otp"
-                                                label="KODE OTP (6 DIGIT)"
-                                                type="text"
-                                                value={data.otp}
-                                                onChange={(v) =>
-                                                    setData(
-                                                        "otp",
-                                                        v.replace(
-                                                            /[^0-9]/g,
-                                                            "",
-                                                        ),
-                                                    )
-                                                }
-                                                maxLength={6}
-                                            />
+                                            <label className="block text-labelSm text-primary mb-3">
+                                                KODE OTP (6 DIGIT)
+                                            </label>
+                                            
+                                            {/* OTP Input Boxes */}
+                                            <div className="flex justify-center gap-2 sm:gap-3 mb-4" onPaste={handleOtpPaste}>
+                                                {otpValues.map((value, index) => (
+                                                    <input
+                                                        key={index}
+                                                        ref={(el) => { inputRefs.current[index] = el; }}
+                                                        type="text"
+                                                        inputMode="numeric"
+                                                        maxLength={1}
+                                                        value={value}
+                                                        onChange={(e) => handleOtpChange(index, e.target.value)}
+                                                        onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                                                        className={`w-11 h-14 sm:w-13 sm:h-16 text-center text-h3 font-bold bg-surface border-2 rounded-venus focus:outline-none focus:ring-2 focus:ring-primary transition-all duration-200 ${
+                                                            value ? 'border-primary text-primary' : 'border-border text-foreground'
+                                                        }`}
+                                                    />
+                                                ))}
+                                            </div>
                                             {errors.otp && (
-                                                <p className="text-error text-bodyM mt-1 ml-1">
+                                                <p className="text-error text-body mt-1 ml-1 mb-4">
                                                     {errors.otp}
                                                 </p>
                                             )}
+
+                                            {/* Kirim ulang + countdown */}
+                                            <div className="mt-2 mb-6 text-center">
+                                                <p className="text-body text-foreground/50 mb-1">
+                                                    Tidak menerima kode?
+                                                </p>
+                                                {countdown > 0 ? (
+                                                    <p className="text-bodyM text-foreground/40">
+                                                        Kirim ulang dalam <span className="font-bold text-primary">{countdown}s</span>
+                                                    </p>
+                                                ) : (
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleResendOtp}
+                                                        disabled={resending}
+                                                        className="text-primary font-bold text-bodyM hover:opacity-80 transition-opacity disabled:opacity-50"
+                                                    >
+                                                        {resending ? 'Mengirim...' : 'Kirim Ulang Kode'}
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
 
                                         <div
@@ -397,7 +497,7 @@ export default function ForgotPassword({
                                                 }
                                             />
                                             {errors.password && (
-                                                <p className="text-error text-bodyM mt-1 ml-1">
+                                                <p className="text-error text-body mt-1 ml-1">
                                                     {errors.password}
                                                 </p>
                                             )}
@@ -524,6 +624,23 @@ export default function ForgotPassword({
                                                 </p>
                                             )}
                                         </div>
+
+                                        {/* Ubah alamat email (Kembali ke step 1) */}
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setStep(1);
+                                                setCountdown(0);
+                                                setOtpValues(["", "", "", "", "", ""]);
+                                                setData("otp", "");
+                                            }}
+                                            className="w-full flex items-center justify-center gap-2 text-body text-foreground/50 hover:text-foreground transition-colors pt-2"
+                                        >
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                                            </svg>
+                                            Ubah alamat email
+                                        </button>
 
                                         <div
                                             className={`pt-2 transition-all duration-700 delay-600 ${isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}

@@ -3,11 +3,15 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
+    /**
+     * Tangani permintaan autentikasi masuk langsung (tanpa OTP).
+     */
     public function store(Request $request)
     {
         $request->validate([
@@ -17,29 +21,30 @@ class LoginController extends Controller
 
         $credentials = $request->only('email', 'password');
 
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
-            $request->session()->regenerate();
-            $user = Auth::user();
-
-            // Redirect ke admin dashboard jika user adalah admin
-            if ($user->role === 'admin') {
-                return redirect('/admin/dashboard')->with('success', 'Masuk berhasil! Selamat datang admin.');
-            }
-
-            // Validasi email @gmail.com untuk user biasa
-            if (!str_ends_with($user->email, '@gmail.com')) {
-                Auth::logout();
-                return back()->withErrors([
-                    'email' => 'Email harus menggunakan alamat @gmail.com.',
-                ])->onlyInput('email');
-            }
-
-            return redirect()->intended('/')->with('success', 'Masuk berhasil! Selamat datang kembali.');
+        if (!Auth::attempt($credentials, $request->boolean('remember'))) {
+            return back()->withErrors([
+                'email' => 'Email atau kata sandi yang Anda masukkan salah.',
+            ])->onlyInput('email');
         }
 
-        return back()->withErrors([
-            'email' => 'Email atau kata sandi yang Anda masukkan salah.',
-        ])->onlyInput('email');
+        $user = Auth::user();
+
+        // Validasi email @gmail.com untuk user biasa
+        if ($user->role !== 'admin' && !str_ends_with($user->email, '@gmail.com')) {
+            Auth::logout();
+            return back()->withErrors([
+                'email' => 'Email harus menggunakan alamat @gmail.com.',
+            ])->onlyInput('email');
+        }
+
+        $request->session()->regenerate();
+
+        $redirect = $user->role === 'admin' ? '/admin/dashboard' : '/';
+        $message = $user->role === 'admin'
+            ? 'Masuk berhasil! Selamat datang admin.'
+            : 'Masuk berhasil! Selamat datang kembali.';
+
+        return redirect()->intended($redirect)->with('success', $message);
     }
 
     public function destroy(Request $request)

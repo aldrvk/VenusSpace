@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Head, usePage, router } from "@inertiajs/react";
 import AdminLayout from "../../Layouts/AdminLayout";
 import { PageHeader } from "../../Components/AdminUI";
@@ -29,6 +29,14 @@ const UNIT_DESCRIPTIONS: Record<string, string> = {
     "Vape Store": "Penjualan produk vape",
 };
 
+const UNIT_KEY_MAP: Record<string, string> = {
+    'doorsmeer': 'Doorsmeer',
+    'bengkel': 'Bengkel',
+    'rental_ps': 'Rental PS',
+    'vape_store': 'Vape Store',
+    'coffee_shop': 'Coffee Shop',
+};
+
 function getDefaultSchedule(unit: string): Record<string, DaySchedule> {
     const closeTime = (unit === "Doorsmeer" || unit === "Bengkel") ? "17:00" : "23:00";
     const schedule: Record<string, DaySchedule> = {};
@@ -50,17 +58,39 @@ function getDefaultSettings(): OperationalSettings {
 }
 
 export default function Pengaturan() {
-    const { settings: sharedSettings, payment_settings: sharedPayment } = usePage().props as any;
-    const [activeTab, setActiveTab] = useState<SettingTab>("Profil");
+    const { settings: sharedSettings, payment_settings: sharedPayment, auth } = usePage().props as any;
+    const user = auth?.user;
+    const role = user?.role || 'admin';
+    const userUnit = user?.business_unit;
+    const isOwner = role === 'owner';
+
+    // Filter tab
+    const tabs: SettingTab[] = isOwner
+        ? ["Profil", "Operasional", "Pembayaran", "Keamanan"]
+        : ["Operasional", "Keamanan"];
+
+    const [activeTab, setActiveTab] = useState<SettingTab>(isOwner ? "Profil" : "Operasional");
     const [saved, setSaved] = useState(false);
     const [saving, setSaving] = useState(false);
-    const [selectedUnit, setSelectedUnit] = useState<string>("Doorsmeer");
+
+    // Default selected unit based on role/unit
+    const initialUnit = !isOwner && userUnit && UNIT_KEY_MAP[userUnit]
+        ? UNIT_KEY_MAP[userUnit]
+        : "Doorsmeer";
+
+    const [selectedUnit, setSelectedUnit] = useState<string>(initialUnit);
+
+    // Keep unit locked/updated for admin/kasir if user info changes
+    useEffect(() => {
+        if (!isOwner && userUnit && UNIT_KEY_MAP[userUnit]) {
+            setSelectedUnit(UNIT_KEY_MAP[userUnit]);
+        }
+    }, [userUnit, isOwner]);
 
     // Initialize payment settings
     const [paymentSettings, setPaymentSettings] = useState(() => ({
         qris_merchant_name: sharedPayment?.qris_merchant_name || "Venus Hub Store",
         qris_payload: sharedPayment?.qris_payload || "00020101021226660011ID.CO.GPN.WWW011893600522000001234502150001020345678900303ID51440014ID1234567890123520459995303360540505802ID5916VenusHub6006Jakarta6304ABCD",
-        // Midtrans Keys
         midtrans_client_key: sharedPayment?.midtrans_client_key || "",
         midtrans_server_key: sharedPayment?.midtrans_server_key || "",
         midtrans_is_sandbox: sharedPayment?.midtrans_is_sandbox ?? true,
@@ -74,11 +104,8 @@ export default function Pengaturan() {
         return getDefaultSettings();
     });
 
-    const tabs: SettingTab[] = ["Profil", "Operasional", "Pembayaran", "Keamanan"];
-
     const currentUnit = operationalSettings[selectedUnit];
 
-    // Toggle the master is_active for the selected unit
     const toggleUnitActive = () => {
         setOperationalSettings((prev) => ({
             ...prev,
@@ -89,7 +116,6 @@ export default function Pengaturan() {
         }));
     };
 
-    // Toggle a specific day's is_open
     const toggleDayOpen = (day: string) => {
         setOperationalSettings((prev) => {
             if (!prev[selectedUnit] || !prev[selectedUnit].schedule[day]) return prev;
@@ -109,7 +135,6 @@ export default function Pengaturan() {
         });
     };
 
-    // Update a specific day's open or close time
     const updateDayTime = (day: string, field: "open" | "close", value: string) => {
         setOperationalSettings((prev) => {
             if (!prev[selectedUnit] || !prev[selectedUnit].schedule[day]) return prev;
@@ -170,7 +195,7 @@ export default function Pengaturan() {
 
     return (
         <AdminLayout>
-            <Head title="Pengaturan – Venus Hub Admin" />
+            <Head title="Pengaturan – Venus Space" />
 
             <PageHeader
                 title="Pengaturan"
@@ -199,7 +224,7 @@ export default function Pengaturan() {
 
                 {/* Content */}
                 <div className="col-span-3 space-y-5">
-                    {activeTab === "Profil" && (
+                    {isOwner && activeTab === "Profil" && (
                         <div className="bg-card border border-border rounded-venus p-6">
                             <h2 className="text-h4 text-super-black mb-5">
                                 Informasi Bisnis
@@ -244,36 +269,37 @@ export default function Pengaturan() {
 
                     {activeTab === "Operasional" && (
                         <div className="space-y-5">
-                            {/* Unit Selector */}
-                            <div className="bg-card border border-border rounded-venus p-4">
-                                <p className="text-label-sm text-foreground/50 uppercase tracking-widest mb-3">Pilih Unit Usaha</p>
-                                <div className="flex flex-wrap gap-2">
-                                    {UNIT_NAMES.map((unit) => {
-                                        const isSelected = selectedUnit === unit;
-                                        const unitData = operationalSettings[unit];
-                                        const isActive = unitData?.is_active ?? true;
-                                        return (
-                                            <button
-                                                key={unit}
-                                                onClick={() => setSelectedUnit(unit)}
-                                                className={`px-4 py-2.5 rounded-venus text-body-m font-semibold transition-all relative ${
-                                                    isSelected
-                                                        ? "bg-secondary text-white shadow-lg"
-                                                        : "bg-surface text-foreground hover:bg-border"
-                                                }`}
-                                            >
-                                                {unit}
-                                                {/* Active indicator dot */}
-                                                <span
-                                                    className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-card ${
-                                                        isActive ? "bg-primary" : "bg-foreground/30"
+                            {/* Unit Selector (Hanya Tampil untuk Owner/Pemilik) */}
+                            {isOwner && (
+                                <div className="bg-card border border-border rounded-venus p-4">
+                                    <p className="text-label-sm text-foreground/50 uppercase tracking-widest mb-3">Pilih Unit Usaha</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {UNIT_NAMES.map((unit) => {
+                                            const isSelected = selectedUnit === unit;
+                                            const unitData = operationalSettings[unit];
+                                            const isActive = unitData?.is_active ?? true;
+                                            return (
+                                                <button
+                                                    key={unit}
+                                                    onClick={() => setSelectedUnit(unit)}
+                                                    className={`px-4 py-2.5 rounded-venus text-body-m font-semibold transition-all relative ${
+                                                        isSelected
+                                                            ? "bg-secondary text-white shadow-lg"
+                                                            : "bg-surface text-foreground hover:bg-border"
                                                     }`}
-                                                />
-                                            </button>
-                                        );
-                                    })}
+                                                >
+                                                    {unit}
+                                                    <span
+                                                        className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-card ${
+                                                            isActive ? "bg-primary" : "bg-foreground/30"
+                                                        }`}
+                                                    />
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
                                 </div>
-                            </div>
+                            )}
 
                             {/* Master Toggle + Unit Info */}
                             <div className="bg-card border border-border rounded-venus p-6">
@@ -294,7 +320,6 @@ export default function Pengaturan() {
                                                 : "bg-red-100 text-red-800 hover:bg-red-200"
                                         }`}
                                     >
-                                        {/* Toggle knob icon */}
                                         <div className={`w-10 h-5 rounded-full relative transition-all ${
                                             currentUnit?.is_active ? "bg-white/30" : "bg-red-300"
                                         }`}>
@@ -337,7 +362,6 @@ export default function Pengaturan() {
                                                     }`}
                                                 >
                                                     <div className="flex items-center gap-4">
-                                                        {/* Day toggle */}
                                                         <button
                                                             onClick={() => toggleDayOpen(day)}
                                                             className={`w-10 h-6 rounded-full relative cursor-pointer transition-all ${
@@ -388,7 +412,7 @@ export default function Pengaturan() {
                         </div>
                     )}
 
-                    {activeTab === "Pembayaran" && (
+                    {isOwner && activeTab === "Pembayaran" && (
                         <div className="bg-card border border-border rounded-venus p-6">
                             <h2 className="text-h4 text-super-black mb-5">
                                 Pengaturan Pembayaran (QRIS & Bank)
@@ -456,13 +480,9 @@ export default function Pengaturan() {
                                         <p className="text-[10px] text-foreground/40 italic">*Dapatkan string ini dari dashboard merchant bank atau gateway Anda.</p>
                                     </div>
                                 </div>
-
-
                             </div>
                         </div>
                     )}
-
-
 
                     {activeTab === "Keamanan" && (
                         <div className="space-y-5">

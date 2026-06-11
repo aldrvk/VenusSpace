@@ -1,6 +1,7 @@
 import { Head, Link, useForm } from '@inertiajs/react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
+import axios from 'axios';
 
 // ── Logika kekuatan kata sandi ───────────────────────────────────────────────
 type StrengthLevel = 'empty' | 'weak' | 'strong' | 'very-strong';
@@ -83,7 +84,6 @@ const FloatingInput = ({ id, label, type, value, onChange, eye, onToggleEye }: F
         )}
     </div>
 );
-// ─────────────────────────────────────────────────────────────────────────────
 
 interface AuthModalProps {
     isOpen?: boolean;
@@ -97,6 +97,13 @@ export default function Register({ isOpen = true, onClose, onSwitch }: AuthModal
     const [showConfirm, setShowConfirm]   = useState(false);
     const [agree, setAgree]               = useState(false);
     const [strength, setStrength]         = useState<StrengthResult>(checkStrength(''));
+    const [step, setStep]                 = useState<'credentials' | 'otp'>('credentials');
+    const [otpEmail, setOtpEmail]         = useState('');
+    const [otpValues, setOtpValues]       = useState(['', '', '', '', '', '']);
+    const [verifying, setVerifying]       = useState(false);
+    const [resending, setResending]       = useState(false);
+    const [countdown, setCountdown]       = useState(0);
+    const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
     const { data, setData, post, processing, errors } = useForm({
         name:                  '',
@@ -112,6 +119,13 @@ export default function Register({ isOpen = true, onClose, onSwitch }: AuthModal
             setIsLoaded(false);
         }
     }, [isOpen]);
+
+    // Countdown timer untuk kirim ulang OTP
+    useEffect(() => {
+        if (countdown <= 0) return;
+        const timer = setTimeout(() => setCountdown(c => c - 1), 1000);
+        return () => clearTimeout(timer);
+    }, [countdown]);
 
     if (!isOpen) return null;
 
@@ -143,8 +157,16 @@ export default function Register({ isOpen = true, onClose, onSwitch }: AuthModal
         post('/register', {
             preserveState: true,
             preserveScroll: true,
-            onSuccess: () => {
-                if (onClose) onClose();
+            onSuccess: (page: any) => {
+                const flash = page.props?.flash || {};
+                if (flash.otp_sent) {
+                    setOtpEmail(flash.otp_email || data.email);
+                    setStep('otp');
+                    setCountdown(60);
+                    setOtpValues(['', '', '', '', '', '']);
+                    toast.success('Kode verifikasi pendaftaran telah dikirim ke email Anda!');
+                    setTimeout(() => inputRefs.current[0]?.focus(), 300);
+                }
             },
             onError: (errs) => {
                 const first = Object.values(errs)[0];
@@ -153,12 +175,101 @@ export default function Register({ isOpen = true, onClose, onSwitch }: AuthModal
         });
     };
 
+    // ── OTP input handling ──
+    const handleOtpChange = (index: number, value: string) => {
+        if (!/^\d*$/.test(value)) return;
+        const newValues = [...otpValues];
+        newValues[index] = value.slice(-1);
+        setOtpValues(newValues);
+
+        // Auto-focus next input
+        if (value && index < 5) {
+            inputRefs.current[index + 1]?.focus();
+        }
+
+        // Auto-submit when all 6 digits entered
+        if (value && index === 5 && newValues.every(v => v !== '')) {
+            handleVerifyOtp(newValues.join(''));
+        }
+    };
+
+    const handleOtpKeyDown = (index: number, e: React.KeyboardEvent) => {
+        if (e.key === 'Backspace' && !otpValues[index] && index > 0) {
+            inputRefs.current[index - 1]?.focus();
+        }
+    };
+
+    const handleOtpPaste = (e: React.ClipboardEvent) => {
+        e.preventDefault();
+        const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+        if (pasted.length === 6) {
+            const newValues = pasted.split('');
+            setOtpValues(newValues);
+            inputRefs.current[5]?.focus();
+            handleVerifyOtp(pasted);
+        }
+    };
+
+    // ── Step 2: Verifikasi OTP ──
+    const handleVerifyOtp = async (otp?: string) => {
+        const code = otp || otpValues.join('');
+        if (code.length !== 6) {
+            toast.error('Masukkan 6 digit kode verifikasi.');
+            return;
+        }
+
+        setVerifying(true);
+        try {
+            const res = await axios.post('/register/verify-otp', {
+                email: otpEmail,
+                otp: code,
+            });
+
+            if (res.data.success) {
+                toast.success(res.data.message);
+                if (onClose) onClose();
+                window.location.href = res.data.redirect || '/';
+            }
+        } catch (err: any) {
+            const msg = err.response?.data?.message || 'Verifikasi gagal.';
+            toast.error(msg);
+            setOtpValues(['', '', '', '', '', '']);
+            inputRefs.current[0]?.focus();
+        } finally {
+            setVerifying(false);
+        }
+    };
+
+    // ── Kirim ulang OTP ──
+    const handleResendOtp = async () => {
+        if (countdown > 0) return;
+        setResending(true);
+        try {
+            const res = await axios.post('/register/resend-otp', { email: otpEmail });
+            toast.success(res.data.message || 'Kode OTP baru telah dikirim!');
+            setCountdown(60);
+            setOtpValues(['', '', '', '', '', '']);
+            inputRefs.current[0]?.focus();
+        } catch (err: any) {
+            const msg = err.response?.data?.message || 'Gagal mengirim ulang OTP.';
+            toast.error(msg);
+        } finally {
+            setResending(false);
+        }
+    };
+
+    // ── Kembali ke step credentials ──
+    const handleBackToRegister = () => {
+        setStep('credentials');
+        setOtpValues(['', '', '', '', '', '']);
+        setCountdown(0);
+    };
+
     const cfg = strengthConfig[strength.level];
 
     return (
         <>
-            <Head title="Daftar" />
-
+            <Head title={step === 'otp' ? 'Verifikasi OTP Pendaftaran' : 'Daftar'} />
 
             {/* Modal Overlay */}
             <div className={`fixed inset-0 z-[100] flex items-center justify-center overflow-hidden bg-super-black/20 backdrop-blur-3xl p-3 sm:p-6 lg:p-8 transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} onClick={onClose}>
@@ -177,10 +288,12 @@ export default function Register({ isOpen = true, onClose, onSwitch }: AuthModal
                         <div className="relative z-10 px-6 py-8 sm:px-10 sm:py-10">
                             <p className="text-labelSm text-primary mb-1">Venus</p>
                             <h1 className="text-h3 text-super-black">
-                                Ayo pergi ke Venus!
+                                {step === 'otp' ? 'Verifikasi Email Anda' : 'Ayo pergi ke Venus!'}
                             </h1>
                             <p className="text-body text-foreground mt-2">
-                                Kami memiliki lima unit bisnis yang menarik.
+                                {step === 'otp'
+                                    ? 'Kami telah mengirim kode verifikasi pendaftaran ke email Anda.'
+                                    : 'Kami memiliki lima unit bisnis yang menarik.'}
                             </p>
                         </div>
                     </div>
@@ -189,137 +302,229 @@ export default function Register({ isOpen = true, onClose, onSwitch }: AuthModal
                     <div className="w-full flex flex-col bg-background max-h-[60vh] sm:max-h-[70vh] overflow-y-auto">
                         <div className="flex-1 flex items-start justify-center p-6 sm:p-10">
                             <div className="w-full py-2">
-                            <h2 className={`text-h3 text-super-black mb-6 transition-all duration-700 delay-300 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-                                Buat Akun Baru
-                            </h2>
 
-                            <form onSubmit={handleRegister} className="space-y-4">
-                                {/* Nama Lengkap */}
-                                <div className={`transition-all duration-700 delay-[350ms] ${isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'}`}>
-                                    <FloatingInput
-                                        id="name" label="NAMA LENGKAP" type="text"
-                                        value={data.name} onChange={(v) => setData('name', v)}
-                                    />
-                                    {errors.name && <p className="text-error text-bodyM mt-1 ml-1">{errors.name}</p>}
-                                </div>
+                            {step === 'credentials' ? (
+                                <>
+                                    <h2 className={`text-h3 text-super-black mb-6 transition-all duration-700 delay-300 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+                                        Buat Akun Baru
+                                    </h2>
 
-                                {/* Email */}
-                                <div className={`transition-all duration-700 delay-[450ms] ${isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'}`}>
-                                    <FloatingInput
-                                        id="email" label="ALAMAT EMAIL (@gmail.com)" type="email"
-                                        value={data.email} onChange={(v) => setData('email', v)}
-                                    />
-                                    {errors.email && <p className="text-error text-bodyM mt-1 ml-1">{errors.email}</p>}
-                                </div>
-
-                                {/* Kata Sandi */}
-                                <div className={`transition-all duration-700 delay-[550ms] ${isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'}`}>
-                                    <FloatingInput
-                                        id="password" label="KATA SANDI"
-                                        type={showPassword ? 'text' : 'password'}
-                                        value={data.password} onChange={handlePasswordChange}
-                                        eye onToggleEye={() => setShowPassword(!showPassword)}
-                                    />
-                                    {errors.password && <p className="text-error text-bodyM mt-1 ml-1">{errors.password}</p>}
-
-                                    {/* Bar kekuatan */}
-                                    {data.password.length > 0 && (
-                                        <div className="mt-2 px-1">
-                                            <div className="flex gap-1.5 mb-1">
-                                                {[1, 2, 3].map((bar) => (
-                                                    <div
-                                                        key={bar}
-                                                        className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${cfg.bars >= bar ? cfg.color : 'bg-surface'}`}
-                                                    />
-                                                ))}
-                                            </div>
-                                            <p className={`text-labelSm ${cfg.text}`}>{cfg.label}</p>
+                                    <form onSubmit={handleRegister} className="space-y-4">
+                                        {/* Nama Lengkap */}
+                                        <div className={`transition-all duration-700 delay-[350ms] ${isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'}`}>
+                                            <FloatingInput
+                                                id="name" label="NAMA LENGKAP" type="text"
+                                                value={data.name} onChange={(v) => setData('name', v)}
+                                            />
+                                            {errors.name && <p className="text-error text-body mt-1 ml-1">{errors.name}</p>}
                                         </div>
-                                    )}
 
-                                    {/* Checklist ketentuan */}
-                                    {data.password.length > 0 && (
-                                        <ul className="mt-2 px-1 space-y-0.5">
-                                            {[
-                                                { key: 'length',    text: 'Minimal 8 karakter' },
-                                                { key: 'uppercase', text: 'Huruf besar (A-Z)' },
-                                                { key: 'lowercase', text: 'Huruf kecil (a-z)' },
-                                                { key: 'number',    text: 'Angka (0-9)' },
-                                                { key: 'symbol',    text: 'Karakter khusus (!@#$...)' },
-                                            ].map(({ key, text }) => {
-                                                const ok = strength.checks[key as keyof typeof strength.checks];
-                                                return (
-                                                    <li key={key} className={`flex items-center gap-1.5 text-body transition-colors ${ok ? 'text-primary' : 'text-foreground opacity-50'}`}>
-                                                        <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            {ok
-                                                                ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
-                                                                : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                                                            }
-                                                        </svg>
-                                                        {text}
-                                                    </li>
-                                                );
-                                            })}
-                                        </ul>
-                                    )}
-                                </div>
+                                        {/* Email */}
+                                        <div className={`transition-all duration-700 delay-[450ms] ${isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'}`}>
+                                            <FloatingInput
+                                                id="email" label="ALAMAT EMAIL (@gmail.com)" type="email"
+                                                value={data.email} onChange={(v) => setData('email', v)}
+                                            />
+                                            {errors.email && <p className="text-error text-body mt-1 ml-1">{errors.email}</p>}
+                                        </div>
 
-                                {/* Konfirmasi Kata Sandi */}
-                                <div className={`transition-all duration-700 delay-[650ms] ${isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'}`}>
-                                    <FloatingInput
-                                        id="password_confirmation" label="KONFIRMASI KATA SANDI"
-                                        type={showConfirm ? 'text' : 'password'}
-                                        value={data.password_confirmation}
-                                        onChange={(v) => setData('password_confirmation', v)}
-                                        eye onToggleEye={() => setShowConfirm(!showConfirm)}
-                                    />
-                                    {data.password_confirmation.length > 0 && (
-                                        <p className={`text-labelSm mt-1 ml-1 transition-colors ${data.password === data.password_confirmation ? 'text-primary' : 'text-foreground'}`}>
-                                            {data.password === data.password_confirmation ? '✓ Kata sandi cocok' : '✗ Kata sandi tidak cocok'}
-                                        </p>
-                                    )}
-                                </div>
+                                        {/* Kata Sandi */}
+                                        <div className={`transition-all duration-700 delay-[550ms] ${isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'}`}>
+                                            <FloatingInput
+                                                id="password" label="KATA SANDI"
+                                                type={showPassword ? 'text' : 'password'}
+                                                value={data.password} onChange={handlePasswordChange}
+                                                eye onToggleEye={() => setShowPassword(!showPassword)}
+                                            />
+                                            {errors.password && <p className="text-error text-body mt-1 ml-1">{errors.password}</p>}
 
-                                {/* Persetujuan */}
-                                <div className={`flex items-start pt-1 transition-all duration-700 delay-[750ms] ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
-                                    <input
-                                        id="terms" type="checkbox"
-                                        checked={agree} onChange={(e) => setAgree(e.target.checked)}
-                                        className="mt-0.5 w-4 h-4 bg-surface border-border rounded focus:ring-primary focus:ring-2 text-primary cursor-pointer"
-                                    />
-                                    <label htmlFor="terms" className="ml-2 text-bodyM text-foreground cursor-pointer">
-                                        Saya menyetujui{' '}
-                                        <a href="#" className="text-primary hover:opacity-80 transition-opacity">Syarat & Ketentuan</a>
-                                        {' '}dan{' '}
-                                        <a href="#" className="text-primary hover:opacity-80 transition-opacity">Kebijakan Privasi</a>
-                                    </label>
-                                </div>
+                                            {/* Bar kekuatan */}
+                                            {data.password.length > 0 && (
+                                                <div className="mt-2 px-1">
+                                                    <div className="flex gap-1.5 mb-1">
+                                                        {[1, 2, 3].map((bar) => (
+                                                            <div
+                                                                key={bar}
+                                                                className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${cfg.bars >= bar ? cfg.color : 'bg-surface'}`}
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                    <p className={`text-labelSm ${cfg.text}`}>{cfg.label}</p>
+                                                </div>
+                                            )}
 
-                                <button
-                                    type="submit"
-                                    disabled={processing}
-                                    className={`w-full bg-primary text-primary-foreground text-labelSm uppercase font-bold py-4 rounded-venus transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
-                                >
-                                    {processing ? 'Memproses...' : 'Daftar Sekarang'}
-                                </button>
-                            </form>
+                                            {/* Checklist ketentuan */}
+                                            {data.password.length > 0 && (
+                                                <ul className="mt-2 px-1 space-y-0.5">
+                                                    {[
+                                                        { key: 'length',    text: 'Minimal 8 karakter' },
+                                                        { key: 'uppercase', text: 'Huruf besar (A-Z)' },
+                                                        { key: 'lowercase', text: 'Huruf kecil (a-z)' },
+                                                        { key: 'number',    text: 'Angka (0-9)' },
+                                                        { key: 'symbol',    text: 'Karakter khusus (!@#$...)' },
+                                                    ].map(({ key, text }) => {
+                                                        const ok = strength.checks[key as keyof typeof strength.checks];
+                                                        return (
+                                                            <li key={key} className={`flex items-center gap-1.5 text-body transition-colors ${ok ? 'text-primary' : 'text-foreground opacity-50'}`}>
+                                                                <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    {ok
+                                                                        ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                                                                        : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                                                    }
+                                                                </svg>
+                                                                {text}
+                                                            </li>
+                                                        );
+                                                    })}
+                                                </ul>
+                                            )}
+                                        </div>
 
-                            <p className={`mt-6 text-center text-body text-foreground transition-all duration-700 delay-[950ms] ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
-                                Sudah punya akun?{' '}
-                                {onSwitch ? (
+                                        {/* Konfirmasi Kata Sandi */}
+                                        <div className={`transition-all duration-700 delay-[650ms] ${isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'}`}>
+                                            <FloatingInput
+                                                id="password_confirmation" label="KONFIRMASI KATA SANDI"
+                                                type={showConfirm ? 'text' : 'password'}
+                                                value={data.password_confirmation}
+                                                onChange={(v) => setData('password_confirmation', v)}
+                                                eye onToggleEye={() => setShowConfirm(!showConfirm)}
+                                            />
+                                            {data.password_confirmation.length > 0 && (
+                                                <p className={`text-labelSm mt-1 ml-1 transition-colors ${data.password === data.password_confirmation ? 'text-primary' : 'text-foreground'}`}>
+                                                    {data.password === data.password_confirmation ? '✓ Kata sandi cocok' : '✗ Kata sandi tidak cocok'}
+                                                </p>
+                                            )}
+                                        </div>
+
+                                        {/* Persetujuan */}
+                                        <div className={`flex items-start pt-1 transition-all duration-700 delay-[750ms] ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
+                                            <input
+                                                id="terms" type="checkbox"
+                                                checked={agree} onChange={(e) => setAgree(e.target.checked)}
+                                                className="mt-0.5 w-4 h-4 bg-surface border-border rounded focus:ring-primary focus:ring-2 text-primary cursor-pointer"
+                                            />
+                                            <label htmlFor="terms" className="ml-2 text-bodyM text-foreground cursor-pointer">
+                                                Saya menyetujui{' '}
+                                                <a href="#" className="text-primary hover:opacity-80 transition-opacity">Syarat & Ketentuan</a>
+                                                {' '}dan{' '}
+                                                <a href="#" className="text-primary hover:opacity-80 transition-opacity">Kebijakan Privasi</a>
+                                            </label>
+                                        </div>
+
+                                        <button
+                                            type="submit"
+                                            disabled={processing}
+                                            className={`w-full bg-primary text-primary-foreground text-labelSm uppercase font-bold py-4 rounded-venus transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+                                        >
+                                            {processing ? 'Memproses...' : 'Daftar Sekarang'}
+                                        </button>
+                                    </form>
+
+                                    <p className={`mt-6 text-center text-body text-foreground transition-all duration-700 delay-[950ms] ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
+                                        Sudah punya akun?{' '}
+                                        {onSwitch ? (
+                                            <button
+                                                type="button"
+                                                onClick={() => onSwitch('login')}
+                                                className="text-primary hover:opacity-80 transition-opacity font-bold"
+                                            >
+                                                Masuk di sini
+                                            </button>
+                                        ) : (
+                                            <Link href="/login" className="text-primary hover:opacity-80 transition-opacity font-bold">
+                                                Masuk di sini
+                                            </Link>
+                                        )}
+                                    </p>
+                                </>
+                            ) : (
+                                /* ══════════════════════════════════════════════════
+                                   STEP 2: REGISTER OTP VERIFICATION
+                                   ══════════════════════════════════════════════════ */
+                                <div className="animate-in fade-in slide-in-from-right-4 duration-500">
+                                    {/* Ikon email */}
+                                    <div className="flex justify-center mb-6">
+                                        <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                                            <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                            </svg>
+                                        </div>
+                                    </div>
+
+                                    <h2 className="text-h3 text-super-black text-center mb-2">
+                                        Masukkan Kode Verifikasi
+                                    </h2>
+                                    <p className="text-body text-foreground/60 text-center mb-8">
+                                        Kode 6 digit telah dikirim ke{' '}
+                                        <span className="font-bold text-primary">{otpEmail}</span>
+                                    </p>
+
+                                    {/* OTP Input Boxes */}
+                                    <div className="flex justify-center gap-2 sm:gap-3 mb-8" onPaste={handleOtpPaste}>
+                                        {otpValues.map((value, index) => (
+                                            <input
+                                                key={index}
+                                                ref={(el) => { inputRefs.current[index] = el; }}
+                                                type="text"
+                                                inputMode="numeric"
+                                                maxLength={1}
+                                                value={value}
+                                                onChange={(e) => handleOtpChange(index, e.target.value)}
+                                                onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                                                className={`w-11 h-14 sm:w-13 sm:h-16 text-center text-h3 font-bold bg-surface border-2 rounded-venus focus:outline-none focus:ring-2 focus:ring-primary transition-all duration-200 ${
+                                                    value ? 'border-primary text-primary' : 'border-border text-foreground'
+                                                }`}
+                                            />
+                                        ))}
+                                    </div>
+
+                                    {/* Tombol Verifikasi */}
                                     <button
-                                        type="button"
-                                        onClick={() => onSwitch('login')}
-                                        className="text-primary hover:opacity-80 transition-opacity font-bold"
+                                        onClick={() => handleVerifyOtp()}
+                                        disabled={verifying || otpValues.some(v => v === '')}
+                                        className="w-full bg-primary text-primary-foreground text-labelSm uppercase font-bold py-4 rounded-venus transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
                                     >
-                                        Masuk di sini
+                                        {verifying ? (
+                                            <span className="flex items-center justify-center gap-2">
+                                                <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" /></svg>
+                                                Memverifikasi...
+                                            </span>
+                                        ) : 'Verifikasi'}
                                     </button>
-                                ) : (
-                                    <Link href="/login" className="text-primary hover:opacity-80 transition-opacity font-bold">
-                                        Masuk di sini
-                                    </Link>
-                                )}
-                            </p>
+
+                                    {/* Kirim ulang + countdown */}
+                                    <div className="mt-6 text-center">
+                                        <p className="text-body text-foreground/50 mb-2">
+                                            Tidak menerima kode?
+                                        </p>
+                                        {countdown > 0 ? (
+                                            <p className="text-bodyM text-foreground/40">
+                                                Kirim ulang dalam <span className="font-bold text-primary">{countdown}s</span>
+                                            </p>
+                                        ) : (
+                                            <button
+                                                onClick={handleResendOtp}
+                                                disabled={resending}
+                                                className="text-primary font-bold text-bodyM hover:opacity-80 transition-opacity disabled:opacity-50"
+                                            >
+                                                {resending ? 'Mengirim...' : 'Kirim Ulang Kode'}
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {/* Kembali */}
+                                    <button
+                                        onClick={handleBackToRegister}
+                                        className="mt-6 w-full flex items-center justify-center gap-2 text-body text-foreground/50 hover:text-foreground transition-colors"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                                        </svg>
+                                        Kembali ke formulir pendaftaran
+                                    </button>
+                                </div>
+                            )}
+
                             </div> {/* max-w-420 */}
                         </div> {/* flex-1 */}
                     </div> {/* panel kanan */}

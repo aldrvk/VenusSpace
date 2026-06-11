@@ -14,28 +14,46 @@ class AdminController extends Controller
 {
     public function dashboard()
     {
+        $user = auth()->user();
+        $role = $user->role;
+        $unit = $user->business_unit;
+
         $todayStart = Carbon::now()->startOfDay();
         $todayEnd = Carbon::now()->endOfDay();
 
+        // Tentukan data apa saja yang dimuat berdasarkan role & unit
+        $showDoorsmeer = $role === 'owner' || $unit === 'doorsmeer';
+        $showBengkel = $role === 'owner' || $unit === 'bengkel';
+        $showRental = $role === 'owner' || $unit === 'rental_ps';
+        $showVape = $role === 'owner' || $unit === 'vape_store';
+        $showCoffee = $role === 'owner' || $unit === 'coffee_shop';
+        $showStore = $showVape || $showCoffee;
+
         // 1. Fetch Doorsmeer
-        $doorsmeer = DoorsmeerBooking::with('user')
-            ->whereBetween('created_at', [$todayStart, $todayEnd])
-            ->get();
+        $doorsmeer = $showDoorsmeer
+            ? DoorsmeerBooking::with('user')->whereBetween('created_at', [$todayStart, $todayEnd])->get()
+            : collect();
             
         // 2. Fetch Bengkel
-        $bengkel = BengkelBooking::with('user')
-            ->whereBetween('created_at', [$todayStart, $todayEnd])
-            ->get();
+        $bengkel = $showBengkel
+            ? BengkelBooking::with('user')->whereBetween('created_at', [$todayStart, $todayEnd])->get()
+            : collect();
             
         // 3. Fetch Rental PS
-        $rental = RentalPsBooking::with('user')
-            ->whereBetween('created_at', [$todayStart, $todayEnd])
-            ->get();
+        $rental = $showRental
+            ? RentalPsBooking::with('user')->whereBetween('created_at', [$todayStart, $todayEnd])->get()
+            : collect();
             
-        // 4. Fetch Store Orders
-        $storeOrders = StoreOrder::with('items')
-            ->whereBetween('created_at', [$todayStart, $todayEnd])
-            ->get();
+        // 4. Fetch Store Orders (filter by unit for kasir)
+        $storeQuery = StoreOrder::with('items')->whereBetween('created_at', [$todayStart, $todayEnd]);
+        if ($unit === 'vape_store') {
+            $storeQuery->where('unit', 'VAPE STORE');
+        } elseif ($unit === 'coffee_shop') {
+            $storeQuery->where('unit', 'COFFEE SHOP');
+        } elseif (!$showStore) {
+            $storeQuery->whereRaw('1 = 0'); // empty result for booking admin
+        }
+        $storeOrders = $storeQuery->get();
 
         // Calculate Stats
         $allBookings = collect()
@@ -67,21 +85,42 @@ class AdminController extends Controller
             ->concat($storeOrders->where('status', 'BERHASIL')->map(fn($i) => $i->total))
             ->sum();
 
-        // 5. Overall Totals (All Time)
-        $totalAllTime = DoorsmeerBooking::count() + BengkelBooking::count() + RentalPsBooking::count() + StoreOrder::count();
-        $revenueAllTime = DoorsmeerBooking::where('status', 'done')->sum('service_price') + 
-                         BengkelBooking::where('status', 'done')->sum('service_price') + 
-                         RentalPsBooking::where('status', 'done')->sum('service_price') + 
-                         StoreOrder::where('status', 'BERHASIL')->sum('total');
+        // 5. Overall Totals (All Time) — scoped by unit
+        $totalAllTime = 0;
+        $revenueAllTime = 0;
 
-        // Recent Bookings (All time)
-        $recentDoorsmeer = DoorsmeerBooking::with('user')->latest()->limit(10)->get();
-        $recentBengkel = BengkelBooking::with('user')->latest()->limit(10)->get();
-        $recentRental = RentalPsBooking::with('user')->latest()->limit(10)->get();
-        $recentStore = StoreOrder::with('items')->latest()->limit(10)->get();
+        if ($showDoorsmeer) {
+            $totalAllTime += DoorsmeerBooking::count();
+            $revenueAllTime += DoorsmeerBooking::where('status', 'done')->sum('service_price');
+        }
+        if ($showBengkel) {
+            $totalAllTime += BengkelBooking::count();
+            $revenueAllTime += BengkelBooking::where('status', 'done')->sum('service_price');
+        }
+        if ($showRental) {
+            $totalAllTime += RentalPsBooking::count();
+            $revenueAllTime += RentalPsBooking::where('status', 'done')->sum('service_price');
+        }
+        if ($showStore) {
+            $storeAllTimeQuery = StoreOrder::query();
+            $storeRevenueQuery = StoreOrder::where('status', 'BERHASIL');
+            if ($unit === 'vape_store') {
+                $storeAllTimeQuery->where('unit', 'VAPE STORE');
+                $storeRevenueQuery->where('unit', 'VAPE STORE');
+            } elseif ($unit === 'coffee_shop') {
+                $storeAllTimeQuery->where('unit', 'COFFEE SHOP');
+                $storeRevenueQuery->where('unit', 'COFFEE SHOP');
+            }
+            $totalAllTime += $storeAllTimeQuery->count();
+            $revenueAllTime += $storeRevenueQuery->sum('total');
+        }
 
-        $recent = collect()
-            ->concat($recentDoorsmeer->map(function($item) {
+        // Recent Bookings — scoped by unit
+        $recent = collect();
+
+        if ($showDoorsmeer) {
+            $recentDoorsmeer = DoorsmeerBooking::with('user')->latest()->limit(10)->get();
+            $recent = $recent->concat($recentDoorsmeer->map(function($item) {
                 return [
                     'id' => $item->id,
                     'customer' => $item->booking_type === 'walkin' ? $item->walkin_name : ($item->user ? $item->user->name : 'Unknown'),
@@ -91,8 +130,12 @@ class AdminController extends Controller
                     'status' => $item->status === 'done' ? 'SELESAI' : ($item->status === 'cancelled' ? 'BATAL' : 'PENDING'),
                     'created_at' => $item->created_at,
                 ];
-            }))
-            ->concat($recentBengkel->map(function($item) {
+            }));
+        }
+
+        if ($showBengkel) {
+            $recentBengkel = BengkelBooking::with('user')->latest()->limit(10)->get();
+            $recent = $recent->concat($recentBengkel->map(function($item) {
                 return [
                     'id' => $item->id,
                     'customer' => $item->booking_type === 'walkin' ? $item->walkin_name : ($item->user ? $item->user->name : 'Unknown'),
@@ -102,8 +145,12 @@ class AdminController extends Controller
                     'status' => $item->status === 'done' ? 'SELESAI' : ($item->status === 'cancelled' ? 'BATAL' : 'PENDING'),
                     'created_at' => $item->created_at,
                 ];
-            }))
-            ->concat($recentRental->map(function($item) {
+            }));
+        }
+
+        if ($showRental) {
+            $recentRental = RentalPsBooking::with('user')->latest()->limit(10)->get();
+            $recent = $recent->concat($recentRental->map(function($item) {
                 return [
                     'id' => $item->id,
                     'customer' => $item->booking_type === 'walkin' ? $item->walkin_name : ($item->user ? $item->user->name : 'Unknown'),
@@ -113,8 +160,18 @@ class AdminController extends Controller
                     'status' => $item->status === 'done' ? 'SELESAI' : ($item->status === 'cancelled' ? 'BATAL' : 'PENDING'),
                     'created_at' => $item->created_at,
                 ];
-            }))
-            ->concat($recentStore->map(function($item) {
+            }));
+        }
+
+        if ($showStore) {
+            $storeRecentQuery = StoreOrder::with('items')->latest()->limit(10);
+            if ($unit === 'vape_store') {
+                $storeRecentQuery->where('unit', 'VAPE STORE');
+            } elseif ($unit === 'coffee_shop') {
+                $storeRecentQuery->where('unit', 'COFFEE SHOP');
+            }
+            $recentStore = $storeRecentQuery->get();
+            $recent = $recent->concat($recentStore->map(function($item) {
                 $serviceName = 'Pesanan';
                 if ($item->items && $item->items->count() > 0) {
                     $firstItem = $item->items->first();
@@ -129,10 +186,29 @@ class AdminController extends Controller
                     'status' => $item->progress_status === 'cancelled' ? 'BATAL' : ($item->progress_status === 'completed' ? 'SELESAI' : (in_array($item->progress_status, ['pending', 'processing', 'ready']) ? 'IN PROGRESS' : 'PENDING')),
                     'created_at' => $item->created_at,
                 ];
-            }))
+            }));
+        }
+
+        $recent = $recent
             ->sortByDesc('created_at')
             ->take(10)
             ->values();
+
+        // Label berdasarkan role
+        $roleLabel = match ($role) {
+            'owner' => 'Pemilik',
+            'kasir' => 'Kasir',
+            default => 'Admin',
+        };
+
+        $unitLabel = match ($unit) {
+            'doorsmeer' => 'Doorsmeer',
+            'bengkel' => 'Bengkel',
+            'rental_ps' => 'Rental PS',
+            'vape_store' => 'Vape Store',
+            'coffee_shop' => 'Coffee Shop',
+            default => 'Venus Hub',
+        };
 
         return Inertia::render('Admin/Dashboard', [
             'stats' => [
@@ -143,7 +219,14 @@ class AdminController extends Controller
                 'totalAllTime' => $totalAllTime,
                 'revenueAllTime' => $revenueAllTime,
             ],
-            'recentBookings' => $recent
+            'recentBookings' => $recent,
+            'roleInfo' => [
+                'role' => $role,
+                'roleLabel' => $roleLabel,
+                'unit' => $unit,
+                'unitLabel' => $unitLabel,
+                'userName' => $user->name,
+            ],
         ]);
     }
 }

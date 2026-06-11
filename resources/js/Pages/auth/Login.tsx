@@ -1,6 +1,6 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 
 interface AuthModalProps {
     isOpen?: boolean;
@@ -57,7 +57,6 @@ export default function Login({ isOpen = true, onClose, onSwitch }: AuthModalPro
         <>
             <Head title="Masuk" />
 
-
             {/* Modal Overlay */}
             <div className={`fixed inset-0 z-[100] flex items-center justify-center overflow-hidden bg-super-black/20 backdrop-blur-3xl p-3 sm:p-6 lg:p-8 transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} onClick={onClose}>
 
@@ -88,6 +87,7 @@ export default function Login({ isOpen = true, onClose, onSwitch }: AuthModalPro
                     {/* ── Form Bawah ── */}
                     <div className="w-full flex items-center justify-center p-6 sm:p-10 bg-background">
                         <div className="w-full">
+
                             <h2 className={`text-h3 text-super-black mb-8 transition-all duration-700 delay-300 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
                                 Masuk ke akun Anda
                             </h2>
@@ -109,7 +109,7 @@ export default function Login({ isOpen = true, onClose, onSwitch }: AuthModalPro
                                     >
                                         ALAMAT EMAIL
                                     </label>
-                                    {errors.email && <p className="text-error text-bodyM mt-1 ml-1">{errors.email}</p>}
+                                    {errors.email && <p className="text-error text-body mt-1 ml-1">{errors.email}</p>}
                                 </div>
 
                                 {/* Password */}
@@ -152,7 +152,7 @@ export default function Login({ isOpen = true, onClose, onSwitch }: AuthModalPro
                                             )}
                                         </button>
                                     </div>
-                                    {errors.password && <p className="text-error text-bodyM mt-1 ml-1">{errors.password}</p>}
+                                    {errors.password && <p className="text-error text-body mt-1 ml-1">{errors.password}</p>}
                                 </div>
 
                                 {/* Ingat Saya */}
@@ -197,6 +197,7 @@ export default function Login({ isOpen = true, onClose, onSwitch }: AuthModalPro
                                     </Link>
                                 )}
                             </p>
+
                         </div>
                     </div>
                 </div>

@@ -106,6 +106,8 @@ Route::middleware('guest')->group(function () {
     // Register
     Route::get('/register', fn () => Inertia::render('auth/Register'))->name('register');
     Route::post('/register', [RegisterController::class, 'store']);
+    Route::post('/register/verify-otp', [RegisterController::class, 'verifyOtp'])->name('register.verify-otp');
+    Route::post('/register/resend-otp', [RegisterController::class, 'resendOtp'])->name('register.resend-otp');
 
     // Lupa Kata Sandi
     Route::get('/forgot-password', [ForgotPasswordController::class, 'index'])->name('password.request');
