@@ -18,7 +18,7 @@ class StoreAdminController extends Controller
         
         $totalProducts = Product::where('unit', 'COFFEE SHOP')->count();
         $totalSold = Product::where('unit', 'COFFEE SHOP')->sum('sold');
-        $outOfStock = Product::where('unit', 'COFFEE SHOP')->where('stock', 'Habis')->count();
+        $outOfStock = Product::where('unit', 'COFFEE SHOP')->where('stock', 0)->count();
         $estRevenue = Product::where('unit', 'COFFEE SHOP')->selectRaw('SUM(price * sold) as total')->value('total') ?? 0;
 
         if ($request->has('search') && $request->search != '') {
@@ -51,7 +51,7 @@ class StoreAdminController extends Controller
         
         $totalProducts = Product::where('unit', 'VAPE STORE')->count();
         $totalSold = Product::where('unit', 'VAPE STORE')->sum('sold');
-        $outOfStock = Product::where('unit', 'VAPE STORE')->where('stock', 'Habis')->count();
+        $outOfStock = Product::where('unit', 'VAPE STORE')->where('stock', 0)->count();
         $estRevenue = Product::where('unit', 'VAPE STORE')->selectRaw('SUM(price * sold) as total')->value('total') ?? 0;
 
         if ($request->has('search') && $request->search != '') {

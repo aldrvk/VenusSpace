@@ -360,6 +360,8 @@ class DoorsmeerBookingController extends Controller
         return [
             'id'              => $b->id,
             'booking_code'    => $b->booking_code,
+            'booking_type'    => $b->booking_type ?? 'online',
+            'walkin_name'     => $b->walkin_name,
             'service_name'    => $b->service_name,
             'service_subtitle'=> $b->service_subtitle,
             'service_price'   => $b->service_price,
@@ -382,7 +384,7 @@ class DoorsmeerBookingController extends Controller
     private function formatBookingAdmin(DoorsmeerBooking $b): array
     {
         return array_merge($this->formatBooking($b), [
-            'customer_name'  => $b->user?->name ?? 'GUEST',
+            'customer_name'  => $b->booking_type === 'walk_in' ? $b->walkin_name : ($b->user?->name ?? 'GUEST'),
             'customer_email' => $b->user?->email ?? '-',
         ]);
     }

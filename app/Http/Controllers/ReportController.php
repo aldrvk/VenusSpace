@@ -144,7 +144,7 @@ class ReportController extends Controller
                 $serviceName = 'Pesanan';
                 if ($item->items && $item->items->count() > 0) {
                     $firstItem = $item->items->first();
-                    $serviceName = $firstItem->product_name . ($item->items->count() > 1 ? ' + lainnya' : ' x ' . $firstItem->quantity);
+                    $serviceName = $firstItem->name . ($item->items->count() > 1 ? ' + lainnya' : ' x ' . $firstItem->quantity);
                 }
                 
                 return [
