@@ -22,7 +22,9 @@ try {
     $controller = new App\Http\Controllers\ReportController();
     
     // Simulate setting options
-    $data = $this_data = (new \ReflectionMethod($controller, 'getReportData'))->invoke($controller, 'Bulan Ini', $user->role, null, null, null, null, null);
+    $rm = new \ReflectionMethod($controller, 'getReportData');
+    $rm->setAccessible(true);
+    $data = $rm->invoke($controller, 'Bulan Ini', $user->role, null, null, null, null, null);
     $data['period'] = 'Bulan Ini';
     $data['start_date'] = null;
     $data['end_date'] = null;
