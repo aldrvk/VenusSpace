@@ -85,13 +85,13 @@ function DonutChart({ data, total }: { data: { unit: string; amount: number; pct
                     {hovered !== null && segments[hovered] ? (
                         <>
                             <span className="text-[9px] font-bold text-foreground/50 uppercase">{segments[hovered].unit}</span>
-                            <span className="text-sm font-extrabold text-super-black">Rp {formatCompact(segments[hovered].amount)}</span>
+                            <span className="text-xs font-extrabold text-super-black">Rp {segments[hovered].amount.toLocaleString('id-ID')}</span>
                             <span className="text-[10px] font-bold text-foreground/40">{Math.round(segments[hovered].pct)}%</span>
                         </>
                     ) : (
                         <>
                             <span className="text-[9px] font-bold text-foreground/50 uppercase">Total</span>
-                            <span className="text-sm font-extrabold text-super-black">Rp {formatCompact(total)}</span>
+                            <span className="text-xs font-extrabold text-super-black">Rp {total.toLocaleString('id-ID')}</span>
                         </>
                     )}
                 </div>
@@ -321,6 +321,9 @@ export default function Laporan({
     // Download dropdown
     const [showDownloadMenu, setShowDownloadMenu] = useState(false);
 
+    // Unit comparison
+    const [compareUnits, setCompareUnits] = useState<string[]>([]);
+
     const periods: PeriodTab[] = ["Hari Ini", "Minggu Ini", "Bulan Ini"];
 
     const totalRevenue = kpi?.totalRevenue || 0;
@@ -509,14 +512,14 @@ export default function Laporan({
                         value: totalBookings > 0 ? `Rp ${Math.round(totalRevenue / totalBookings).toLocaleString("id-ID")}` : 'Rp 0',
                         sub: "Per transaksi",
                         icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>,
-                        gradient: "from-primary/60 to-primary", glow: "group-hover:shadow-primary/20", positive: true,
+                        gradient: "from-emerald-400 to-emerald-600", glow: "group-hover:shadow-emerald-500/20", positive: true,
                     },
                     {
                         label: "Pending Pembayaran",
                         value: `Rp ${(kpi?.pendingAmount || 0).toLocaleString("id-ID")}`,
                         sub: `${kpi?.pendingCount || 0} transaksi menunggu`,
                         icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
-                        gradient: "from-rose-500 to-red-600", glow: "group-hover:shadow-rose-500/20", positive: false,
+                        gradient: "from-orange-400 to-rose-500", glow: "group-hover:shadow-rose-500/20", positive: false,
                     },
                 ].map((k, i) => (
                     <div key={i} className={`group relative bg-card/80 backdrop-blur-lg border border-border rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${k.glow} overflow-hidden`}>
@@ -592,6 +595,132 @@ export default function Laporan({
                         gradientId="hour" primaryColor="hsl(var(--secondary))" secondaryColor="hsl(var(--primary))" />
                 </div>
             </div>
+
+            {/* Row 4: Perbandingan Unit */}
+            {initialRevenueByUnit.length > 1 && (
+                <div className="bg-card/80 backdrop-blur-lg border border-border rounded-2xl p-6 shadow-sm mb-8">
+                    <div className="flex items-center gap-3 mb-5">
+                        <div className="w-2 h-6 bg-gradient-to-b from-primary to-secondary rounded-full" />
+                        <h3 className="text-xl font-extrabold text-super-black tracking-tight">Perbandingan Unit</h3>
+                        <span className="ml-auto text-[10px] font-bold bg-surface text-foreground/40 px-2 py-0.5 rounded-full border border-border">
+                            {compareUnits.length > 0 ? `${compareUnits.length} dipilih` : 'Pilih unit'}
+                        </span>
+                    </div>
+
+                    {/* Unit Toggle Pills */}
+                    <div className="flex flex-wrap gap-2 mb-6">
+                        {initialRevenueByUnit.map((u: any) => {
+                            const isSelected = compareUnits.includes(u.unit);
+                            const unitGradients: Record<string, string> = {
+                                'Doorsmeer': 'from-primary to-primary/80',
+                                'Bengkel': 'from-orange-400 to-orange-500',
+                                'Coffee Shop': 'from-amber-400 to-amber-500',
+                                'Rental PS': 'from-purple-400 to-purple-500',
+                                'Vape Store': 'from-indigo-400 to-indigo-500',
+                            };
+                            return (
+                                <button
+                                    key={u.unit}
+                                    onClick={() => {
+                                        setCompareUnits(prev =>
+                                            prev.includes(u.unit)
+                                                ? prev.filter(x => x !== u.unit)
+                                                : [...prev, u.unit]
+                                        );
+                                    }}
+                                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${
+                                        isSelected
+                                            ? `bg-gradient-to-r ${unitGradients[u.unit] || 'from-gray-400 to-gray-500'} text-white shadow-md scale-105`
+                                            : 'bg-surface border border-border text-foreground/60 hover:text-foreground hover:border-foreground/30'
+                                    }`}
+                                >
+                                    {!isSelected && <span className="w-2 h-2 rounded-full" style={{ backgroundColor: ({'bg-primary': 'hsl(var(--primary))', 'bg-orange-400': '#fb923c', 'bg-amber-400': '#fbbf24', 'bg-purple-400': '#c084fc', 'bg-indigo-400': '#818cf8'} as Record<string,string>)[u.color] || '#94a3b8' }} />}
+                                    {isSelected && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>}
+                                    {u.unit}
+                                </button>
+                            );
+                        })}
+                        {compareUnits.length > 0 && (
+                            <button
+                                onClick={() => setCompareUnits([])}
+                                className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-bold text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 transition-colors"
+                            >
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                                Reset
+                            </button>
+                        )}
+                    </div>
+
+                    {/* Comparison Bars */}
+                    {compareUnits.length >= 2 ? (() => {
+                        const selectedData = initialRevenueByUnit.filter((u: any) => compareUnits.includes(u.unit));
+                        const maxRevenue = Math.max(...selectedData.map((u: any) => u.amount), 1);
+                        const maxBookings = Math.max(...selectedData.map((u: any) => u.bookings), 1);
+                        const barColors: Record<string, string> = {
+                            'Doorsmeer': 'hsl(var(--primary))',
+                            'Bengkel': '#fb923c',
+                            'Coffee Shop': '#fbbf24',
+                            'Rental PS': '#c084fc',
+                            'Vape Store': '#818cf8',
+                        };
+
+                        const metrics = [
+                            { label: 'Pendapatan', key: 'revenue', format: (v: number) => `Rp ${v.toLocaleString('id-ID')}` },
+                            { label: 'Total Transaksi', key: 'bookings', format: (v: number) => `${v} trx` },
+                            { label: 'Rata-rata / Trx', key: 'avg', format: (v: number) => `Rp ${v.toLocaleString('id-ID')}` },
+                        ];
+
+                        return (
+                            <div className="space-y-6">
+                                {metrics.map(metric => {
+                                    const values = selectedData.map((u: any) => {
+                                        const val = metric.key === 'revenue' ? u.amount
+                                            : metric.key === 'bookings' ? u.bookings
+                                            : u.bookings > 0 ? Math.round(u.amount / u.bookings) : 0;
+                                        return { unit: u.unit, value: val };
+                                    });
+                                    const maxVal = Math.max(...values.map((v: { unit: string; value: number }) => v.value), 1);
+
+                                    return (
+                                        <div key={metric.key}>
+                                            <p className="text-xs font-bold text-foreground/50 uppercase tracking-wider mb-3">{metric.label}</p>
+                                            <div className="space-y-2.5">
+                                                {values.map((v: { unit: string; value: number }) => (
+                                                    <div key={v.unit} className="flex items-center gap-3">
+                                                        <span className="text-xs font-semibold text-foreground/60 w-24 truncate">{v.unit}</span>
+                                                        <div className="flex-1 bg-surface rounded-full h-7 overflow-hidden relative">
+                                                            <div
+                                                                className="h-full rounded-full transition-all duration-700 ease-out"
+                                                                style={{
+                                                                    width: `${Math.max((v.value / maxVal) * 100, 2)}%`,
+                                                                    backgroundColor: barColors[v.unit] || '#94a3b8',
+                                                                    opacity: 0.85,
+                                                                }}
+                                                            />
+                                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-foreground/70">
+                                                                {metric.format(v.value)}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        );
+                    })() : (
+                        <div className="text-center py-8">
+                            <div className="w-12 h-12 rounded-full bg-foreground/5 text-foreground/30 flex items-center justify-center mx-auto mb-3">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /></svg>
+                            </div>
+                            <p className="text-sm font-medium text-foreground/40">
+                                {compareUnits.length === 0 ? 'Pilih minimal 2 unit untuk membandingkan performa.' : 'Pilih 1 unit lagi untuk mulai membandingkan.'}
+                            </p>
+                        </div>
+                    )}
+                </div>
+            )}
 
             {/* Rincian Transaksi */}
             <div className="bg-card border border-border rounded-2xl overflow-hidden flex flex-col shadow-sm">
