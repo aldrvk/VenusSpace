@@ -376,9 +376,7 @@ class ReportController extends Controller
         if ($diffDays <= 1) {
             for ($i = 8; $i <= 22; $i++) {
                 $hour = str_pad($i, 2, '0', STR_PAD_LEFT);
-                $transactionsInHour = $allPeriodTransactions->filter(function($item) use ($hour) {
-                    return Carbon::parse($item['created_at'])->format('H') == $hour;
-                });
+                $transactionsInHour = $allPeriodTransactions->filter(fn($item) => $item['created_at']->format('H') === $hour);
                 
                 $count = $transactionsInHour->count();
                 $revenue = $transactionsInHour->filter(fn($item) => $item['status'] === 'Lunas')->sum('amount');
