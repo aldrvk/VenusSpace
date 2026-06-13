@@ -161,7 +161,7 @@ function getNavItemsForRole(role: string, unit: string | null): NavItem[] {
     const dashboard: NavItem = { href: '/admin/dashboard', label: 'Dashboard', icon: <IconDashboard /> };
     const laporan: NavItem = { href: '/admin/laporan', label: 'Laporan', icon: <IconLaporan /> };
 
-    // Owner: Dashboard, Laporan, Tim, Pengaturan
+    // Owner: Dashboard, Laporan, Tim (Pengaturan ada di footer layout)
     if (role === 'owner') {
         return [dashboard, laporan, { href: '/admin/tim', label: 'Tim', icon: <IconTeam /> }];
     }
