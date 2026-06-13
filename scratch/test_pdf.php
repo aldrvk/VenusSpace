@@ -8,6 +8,7 @@ $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
 $user = App\Models\User::where('role', 'owner')->first();
+if (!$user) { fwrite(STDERR, "No owner user found.\n"); exit(1); }
 auth()->login($user);
 
 $request = Illuminate\Http\Request::create('/admin/laporan/export', 'GET', [
