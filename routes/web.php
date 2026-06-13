@@ -247,9 +247,17 @@ Route::middleware('auth')->group(function () {
         Route::get('/jadwal', fn () => Inertia::render('Admin/Jadwal'))->name('jadwal');
         Route::get('/laporan', [\App\Http\Controllers\ReportController::class, 'index'])->name('laporan');
         Route::get('/laporan/export', [\App\Http\Controllers\ReportController::class, 'exportPdf'])->name('laporan.export');
+        Route::get('/laporan/export-excel', [\App\Http\Controllers\ReportController::class, 'exportExcel'])->name('laporan.export-excel');
         Route::get('/pengaturan', fn () => Inertia::render('Admin/Pengaturan'))->name('pengaturan');
         Route::post('/settings/operational', [\App\Http\Controllers\SettingsController::class, 'updateOperational'])->name('settings.operational');
         Route::post('/settings/payment', [\App\Http\Controllers\SettingsController::class, 'updatePayment'])->name('settings.payment');
+
+        // Tim & Karyawan (Owner only)
+        Route::get('/tim', [\App\Http\Controllers\EmployeeController::class, 'index'])->name('tim');
+        Route::post('/tim', [\App\Http\Controllers\EmployeeController::class, 'store'])->name('tim.store');
+        Route::put('/tim/{user}', [\App\Http\Controllers\EmployeeController::class, 'update'])->name('tim.update');
+        Route::patch('/tim/{user}/status', [\App\Http\Controllers\EmployeeController::class, 'updateStatus'])->name('tim.status');
+        Route::delete('/tim/{user}', [\App\Http\Controllers\EmployeeController::class, 'destroy'])->name('tim.destroy');
     });
 
     // Midtrans Payment

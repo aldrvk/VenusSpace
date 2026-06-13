@@ -28,9 +28,15 @@ class AdminMiddleware
         'admin.dashboard',
         'admin.laporan',
         'admin.laporan.export',
+        'admin.laporan.export-excel',
         'admin.pengaturan',
         'admin.settings.operational',
         'admin.settings.payment',
+        'admin.tim',
+        'admin.tim.store',
+        'admin.tim.update',
+        'admin.tim.status',
+        'admin.tim.destroy',
     ];
 
     /**
@@ -71,6 +77,7 @@ class AdminMiddleware
                 'admin.dashboard',
                 'admin.laporan',
                 'admin.laporan.export',
+                'admin.laporan.export-excel',
                 'admin.pengaturan',
                 'admin.settings.operational',
                 'admin.settings.payment',

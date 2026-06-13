@@ -30,7 +30,7 @@ class LoginController extends Controller
         $user = Auth::user();
 
         // Validasi email @gmail.com untuk user biasa
-        if ($user->role !== 'admin' && !str_ends_with($user->email, '@gmail.com')) {
+        if (!in_array($user->role, ['admin', 'owner', 'kasir']) && !str_ends_with($user->email, '@gmail.com')) {
             Auth::logout();
             return back()->withErrors([
                 'email' => 'Email harus menggunakan alamat @gmail.com.',
@@ -39,9 +39,13 @@ class LoginController extends Controller
 
         $request->session()->regenerate();
 
-        $redirect = $user->role === 'admin' ? '/admin/dashboard' : '/';
-        $message = $user->role === 'admin'
-            ? 'Masuk berhasil! Selamat datang admin.'
+        // Track last login
+        $user->update(['last_login_at' => now()]);
+
+        $isAdminRole = in_array($user->role, ['admin', 'owner', 'kasir']);
+        $redirect = $isAdminRole ? '/admin/dashboard' : '/';
+        $message = $isAdminRole
+            ? 'Masuk berhasil! Selamat datang ' . ($user->role === 'owner' ? 'Pemilik' : ($user->role === 'kasir' ? 'Kasir' : 'Admin')) . '.'
             : 'Masuk berhasil! Selamat datang kembali.';
 
         return redirect()->intended($redirect)->with('success', $message);

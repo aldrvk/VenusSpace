@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
         $this->call(SettingSeeder::class);
         $this->call(ProductSeeder::class);
         $this->call(StoreSeeder::class);
+        if (app()->environment('local')) { $this->call(MegaSeeder::class); }
 
         // User::factory(10)->create();
 

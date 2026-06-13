@@ -7,6 +7,7 @@ use App\Models\DoorsmeerBooking;
 use App\Models\BengkelBooking;
 use App\Models\RentalPsBooking;
 use App\Models\StoreOrder;
+use App\Models\User;
 use Inertia\Inertia;
 use Carbon\Carbon;
 
@@ -20,6 +21,8 @@ class AdminController extends Controller
 
         $todayStart = Carbon::now()->startOfDay();
         $todayEnd = Carbon::now()->endOfDay();
+        $yesterdayStart = Carbon::now()->subDay()->startOfDay();
+        $yesterdayEnd = Carbon::now()->subDay()->endOfDay();
 
         // Tentukan data apa saja yang dimuat berdasarkan role & unit
         $showDoorsmeer = $role === 'owner' || $unit === 'doorsmeer';
@@ -115,6 +118,56 @@ class AdminController extends Controller
             $revenueAllTime += $storeRevenueQuery->sum('total');
         }
 
+        // ── Owner-specific: Revenue per unit today ────────────────────────────────
+        $unitPerformance = [];
+        if ($role === 'owner') {
+            $unitConfigs = [
+                ['key' => 'doorsmeer', 'label' => 'Doorsmeer', 'color' => 'primary',
+                 'todayTx' => $doorsmeer, 'model' => DoorsmeerBooking::class, 'priceField' => 'service_price', 'doneStatus' => 'done'],
+                ['key' => 'bengkel', 'label' => 'Bengkel', 'color' => 'orange',
+                 'todayTx' => $bengkel, 'model' => BengkelBooking::class, 'priceField' => 'service_price', 'doneStatus' => 'done'],
+                ['key' => 'rental_ps', 'label' => 'Rental PS', 'color' => 'purple',
+                 'todayTx' => $rental, 'model' => RentalPsBooking::class, 'priceField' => 'service_price', 'doneStatus' => 'done'],
+            ];
+
+            foreach ($unitConfigs as $uc) {
+                $todayRevenue = $uc['todayTx']->where('status', $uc['doneStatus'])->sum($uc['priceField']);
+                $todayTotal = $uc['todayTx']->count();
+                $todayPending = $uc['todayTx']->whereNotIn('status', [$uc['doneStatus'], 'cancelled'])->count();
+                
+                $unitPerformance[] = [
+                    'key' => $uc['key'],
+                    'label' => $uc['label'],
+                    'color' => $uc['color'],
+                    'revenueToday' => $todayRevenue,
+                    'totalToday' => $todayTotal,
+                    'pendingToday' => $todayPending,
+                    'completedToday' => $uc['todayTx']->where('status', $uc['doneStatus'])->count(),
+                ];
+            }
+
+            // Store units (Vape + Coffee)
+            foreach (['VAPE STORE' => ['vape_store', 'Vape Store', 'indigo'], 'COFFEE SHOP' => ['coffee_shop', 'Coffee Shop', 'amber']] as $storeUnit => [$key, $label, $color]) {
+                $storeTx = $storeOrders->where('unit', $storeUnit);
+                $unitPerformance[] = [
+                    'key' => $key,
+                    'label' => $label,
+                    'color' => $color,
+                    'revenueToday' => $storeTx->where('status', 'BERHASIL')->sum('total'),
+                    'totalToday' => $storeTx->count(),
+                    'pendingToday' => $storeTx->whereNotIn('status', ['BERHASIL', 'BATAL'])->count(),
+                    'completedToday' => $storeTx->where('status', 'BERHASIL')->count(),
+                ];
+            }
+
+            // Yesterday comparison
+            $revenueYesterday = 0;
+            $revenueYesterday += DoorsmeerBooking::where('status', 'done')->whereBetween('created_at', [$yesterdayStart, $yesterdayEnd])->sum('service_price');
+            $revenueYesterday += BengkelBooking::where('status', 'done')->whereBetween('created_at', [$yesterdayStart, $yesterdayEnd])->sum('service_price');
+            $revenueYesterday += RentalPsBooking::where('status', 'done')->whereBetween('created_at', [$yesterdayStart, $yesterdayEnd])->sum('service_price');
+            $revenueYesterday += StoreOrder::where('status', 'BERHASIL')->whereBetween('created_at', [$yesterdayStart, $yesterdayEnd])->sum('total');
+        }
+
         // Recent Bookings — scoped by unit
         $recent = collect();
 
@@ -174,8 +227,14 @@ class AdminController extends Controller
             $recent = $recent->concat($recentStore->map(function($item) {
                 $serviceName = 'Pesanan';
                 if ($item->items && $item->items->count() > 0) {
+    
                     $firstItem = $item->items->first();
-                    $serviceName = $firstItem->name . ($item->items->count() > 1 ? ' + lainnya' : ' x ' . $firstItem->quantity);
+                    $serviceName = $firstItem->quantity . 'x ' . $firstItem->name;
+                    
+                    $sisaItem = $item->items->count() - 1;
+                    if ($sisaItem > 0) {
+                        $serviceName .= " (+ $sisaItem item lainnya)";
+                    }
                 }
                 return [
                     'id' => $item->id,
@@ -210,6 +269,9 @@ class AdminController extends Controller
             default => 'Venus Hub',
         };
 
+        // Employee count for owner
+        $employeeCount = $role === 'owner' ? User::whereIn('role', ['admin', 'kasir'])->where('employee_status', 'active')->count() : 0;
+
         return Inertia::render('Admin/Dashboard', [
             'stats' => [
                 'totalToday' => $totalBooking,
@@ -218,7 +280,11 @@ class AdminController extends Controller
                 'revenueToday' => $revenueToday,
                 'totalAllTime' => $totalAllTime,
                 'revenueAllTime' => $revenueAllTime,
+                'revenueYesterday' => $revenueYesterday ?? 0,
+                'completionRate' => $totalBooking > 0 ? round(($completedCount / $totalBooking) * 100) : 0,
             ],
+            'unitPerformance' => $unitPerformance,
+            'employeeCount' => $employeeCount,
             'recentBookings' => $recent,
             'roleInfo' => [
                 'role' => $role,
