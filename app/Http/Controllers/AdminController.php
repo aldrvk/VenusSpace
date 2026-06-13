@@ -169,7 +169,7 @@ class AdminController extends Controller
         }
 
         // Recent Bookings — scoped by unit
-        $recent = collect()
+        $recent = collect();
 
         if ($showDoorsmeer) {
             $recentDoorsmeer = DoorsmeerBooking::with('user')->latest()->limit(10)->get();

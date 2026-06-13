@@ -139,7 +139,7 @@ class ReportController extends Controller
                     'id' => $item->booking_code,
                     'time' => $item->created_at->format('H:i'),
                     'date' => $item->created_at->format('d/m/Y'),
-                    'customer' => $item->booking_type === 'walkin' ? $item->walkin_name : ($item->user ? $item->user->name : 'Unknown'),
+                    'customer' => in_array($item->booking_type, ['walkin', 'walk_in']) ? $item->walkin_name : ($item->user ? $item->user->name : 'Unknown'),
                     'unit' => 'Doorsmeer',
                     'service' => $item->service_name,
                     'amount' => $item->service_price,
@@ -147,21 +147,6 @@ class ReportController extends Controller
                     'created_at' => $item->created_at,
                 ];
             })
-            ? DoorsmeerBooking::with('user')
-                ->whereBetween('created_at', [$startDate, $endDate])
-                ->get()->map(function($item) {
-                    return [
-                        'id' => $item->booking_code,
-                        'time' => $item->created_at->format('H:i'),
-                        'date' => $item->created_at->format('d/m/Y'),
-                        'customer' => $item->booking_type === 'walk_in' ? $item->walkin_name : ($item->user ? $item->user->name : 'Unknown'),
-                        'unit' => 'Doorsmeer',
-                        'service' => $item->service_name,
-                        'amount' => $item->service_price,
-                        'status' => $item->status === 'done' ? 'Lunas' : ($item->status === 'cancelled' ? 'Batal' : 'Pending'),
-                        'created_at' => $item->created_at,
-                    ];
-                })
             : collect();
 
         // 2. Fetch Bengkel
