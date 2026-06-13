@@ -173,7 +173,9 @@ class EmployeeController extends Controller
         if ($authUser->role !== 'owner') {
             abort(403);
         }
-
+        if (!in_array($user->role, ['admin', 'kasir', 'owner'], true)) {
+            abort(404);
+        }
         // Don't allow deleting owner
         if ($user->role === 'owner') {
             return redirect()->back()->with('error', 'Tidak dapat menghapus akun pemilik.');
