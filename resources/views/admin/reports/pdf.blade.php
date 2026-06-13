@@ -65,6 +65,7 @@
         }
         table {
             width: 100%;
+            table-layout: fixed;
             border-collapse: collapse;
             margin-bottom: 10px;
         }
@@ -85,7 +86,7 @@
             font-size: 11px;
             color: #334155;
         }
-        tr:nth-child(even) {
+        .tr-even {
             background-color: #f8fafc;
         }
         .status {
@@ -158,7 +159,7 @@
             </thead>
             <tbody>
                 @foreach($revenueByUnit as $u)
-                <tr>
+                <tr class="{{ $loop->index % 2 === 1 ? 'tr-even' : '' }}">
                     <td class="unit-badge">{{ $u['unit'] }}</td>
                     <td class="text-center">{{ number_format($u['bookings'], 0, ',', '.') }}</td>
                     <td class="text-right">Rp {{ number_format($u['amount'], 0, ',', '.') }}</td>
@@ -171,7 +172,8 @@
 
     <div class="section" style="page-break-before: auto;">
         <div class="section-title">Daftar Transaksi Detail</div>
-        <table>
+        @foreach(collect($allTransactions)->chunk(100) as $chunkIdx => $chunk)
+        <table style="page-break-inside: auto; margin-bottom: 20px; page-break-after: auto;">
             <thead>
                 <tr>
                     <th style="width: 5%;" class="text-center">No</th>
@@ -186,9 +188,9 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($allTransactions as $idx => $t)
-                <tr>
-                    <td class="text-center">{{ $idx + 1 }}</td>
+                @foreach($chunk as $idx => $t)
+                <tr class="{{ $loop->index % 2 === 1 ? 'tr-even' : '' }}">
+                    <td class="text-center">{{ ($chunkIdx * 100) + $idx + 1 }}</td>
                     <td style="font-family: monospace; font-size: 10px;">{{ $t['id'] }}</td>
                     <td>{{ $t['date'] }}</td>
                     <td>{{ $t['time'] }}</td>
@@ -205,6 +207,16 @@
                 @endforeach
             </tbody>
         </table>
+        @if(!$loop->last)
+            <div style="page-break-after: always;"></div>
+        @endif
+        @endforeach
+
+        @if(isset($total_transactions_count) && $total_transactions_count > $pdf_limit)
+            <div style="margin-top: 15px; padding: 12px; background-color: #f1f5f9; border-left: 4px solid #64748b; font-size: 11px; color: #475569; border-radius: 4px;">
+                <strong>Catatan:</strong> Menampilkan {{ $pdf_limit }} dari {{ $total_transactions_count }} transaksi terbaru. Untuk mengunduh seluruh rincian data transaksi, silakan gunakan ekspor <strong>Excel</strong>.
+            </div>
+        @endif
     </div>
 
     <div class="footer">

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Head, router } from "@inertiajs/react";
 import AdminLayout from "../../Layouts/AdminLayout";
 
@@ -26,10 +26,10 @@ function formatCompact(n: number): string {
 
 function DonutChart({ data, total }: { data: { unit: string; amount: number; pct: number; color: string; bookings: number }[]; total: number }) {
     const [hovered, setHovered] = useState<number | null>(null);
-    const radius = 85;
+    const radius = 95;
     const cx = 120;
     const cy = 120;
-    const strokeWidth = 36;
+    const strokeWidth = 24;
 
     const colorMap: Record<string, string> = {
         'bg-primary': 'hsl(var(--primary))',
@@ -65,7 +65,7 @@ function DonutChart({ data, total }: { data: { unit: string; amount: number; pct
     return (
         <div className="flex flex-col items-center gap-4 w-full">
             <div className="relative">
-                <svg viewBox="0 0 240 240" className="w-56 h-56">
+                <svg viewBox="0 0 240 240" className="w-64 h-64">
                     {segments.map((seg) => (
                         <path
                             key={seg.unit}
@@ -325,6 +325,39 @@ export default function Laporan({
     const [compareUnits, setCompareUnits] = useState<string[]>([]);
 
     const periods: PeriodTab[] = ["Hari Ini", "Minggu Ini", "Bulan Ini"];
+
+    useEffect(() => {
+        const queryParams = new URLSearchParams(window.location.search);
+        const hasPeriod = queryParams.has('period');
+        const hasUnit = queryParams.has('filter_unit');
+        const hasStatus = queryParams.has('filter_status');
+        const hasStartDate = queryParams.has('start_date');
+
+        if (!hasPeriod && !hasUnit && !hasStatus && !hasStartDate) {
+            try {
+                const saved = JSON.parse(localStorage.getItem('laporan_filters') || '{}');
+                if (saved && Object.keys(saved).length > 0) {
+                    router.get('/admin/laporan', saved, { replace: true });
+                }
+            } catch (e) {
+                console.error("Failed to parse saved filters", e);
+            }
+        }
+    }, []);
+
+    useEffect(() => {
+        const params: Record<string, any> = {
+            period: activePeriod,
+        };
+        if (activePeriod === "Kustom" && startDate && endDate) {
+            params.start_date = startDate;
+            params.end_date = endDate;
+        }
+        if (filterUnit && filterUnit !== "Semua") params.filter_unit = filterUnit;
+        if (filterStatus && filterStatus !== "Semua") params.filter_status = filterStatus;
+        
+        localStorage.setItem('laporan_filters', JSON.stringify(params));
+    }, [activePeriod, startDate, endDate, filterUnit, filterStatus]);
 
     const totalRevenue = kpi?.totalRevenue || 0;
     const totalBookings = kpi?.totalBookings || 0;

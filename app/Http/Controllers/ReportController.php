@@ -47,6 +47,7 @@ class ReportController extends Controller
 
     public function exportPdf(Request $request)
     {
+        ini_set('memory_limit', '1024M');
         $period = $request->query('period', 'Hari Ini');
         $startDate = $request->query('start_date');
         $endDate = $request->query('end_date');
@@ -60,12 +61,18 @@ class ReportController extends Controller
         $data['end_date'] = $endDate;
         $data['date_generated'] = now()->format('d F Y H:i');
 
+        // Limit detail list in PDF to top 100 transactions to ensure fast generation
+        $data['total_transactions_count'] = $data['allTransactions']->count();
+        $data['pdf_limit'] = 100;
+        $data['allTransactions'] = $data['allTransactions']->take($data['pdf_limit']);
+
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.reports.pdf', $data);
         return $pdf->download('Laporan_Venus_Space_' . str_replace(' ', '_', $period) . '.pdf');
     }
 
     public function exportExcel(Request $request)
     {
+        ini_set('memory_limit', '1024M');
         $period = $request->query('period', 'Hari Ini');
         $startDate = $request->query('start_date');
         $endDate = $request->query('end_date');

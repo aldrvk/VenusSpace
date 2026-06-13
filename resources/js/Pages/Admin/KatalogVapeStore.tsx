@@ -236,25 +236,25 @@ export default function KatalogVapeStore({ products, categories = [], filters: u
                     {
                         label: "Total Produk",
                         value: stats.total_products,
-                        emoji: "🛒",
+                        emoji: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" /></svg>,
                         color: "bg-secondary/10 text-secondary",
                     },
                     {
                         label: "Total Terjual",
                         value: `${stats.total_sold} pcs`,
-                        emoji: "📦",
+                        emoji: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="21 8 21 21 3 21 3 8" /><rect x="1" y="3" width="22" height="5" /><line x1="10" y1="12" x2="14" y2="12" /></svg>,
                         color: "bg-primary/10 text-primary",
                     },
                     {
                         label: "Produk Habis",
                         value: stats.out_of_stock,
-                        emoji: "⚠️",
+                        emoji: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>,
                         color: "bg-red-50 text-red-500",
                     },
                     {
                         label: "Est. Nilai Terjual",
                         value: `Rp ${(stats.est_revenue / 1000000).toFixed(1)}jt`,
-                        emoji: "💎",
+                        emoji: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 3h12l4 6-10 13L2 9z" /><path d="M11 3 8 9l4 13 4-13-3-6" /><path d="M2 9h20" /></svg>,
                         color: "bg-emerald-50 text-emerald-600",
                     },
                 ].map((s, i) => (
@@ -263,7 +263,7 @@ export default function KatalogVapeStore({ products, categories = [], filters: u
                         className="bg-card border border-border rounded-venus p-4 md:p-5"
                     >
                         <div
-                            className={`w-10 h-10 rounded-venus flex items-center justify-center text-lg mb-3 ${s.color}`}
+                            className={`w-10 h-10 rounded-venus flex items-center justify-center mb-3 ${s.color}`}
                         >
                             {s.emoji}
                         </div>
