@@ -151,7 +151,9 @@ class EmployeeController extends Controller
         if ($authUser->role !== 'owner') {
             abort(403);
         }
-
+        if (!in_array($user->role, ['admin', 'kasir'], true)) {
+            abort(404);
+        }
         $request->validate([
             'employee_status' => ['required', Rule::in(['active', 'inactive', 'leave'])],
         ]);
