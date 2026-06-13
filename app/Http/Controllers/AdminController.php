@@ -123,7 +123,7 @@ class AdminController extends Controller
             $recent = $recent->concat($recentDoorsmeer->map(function($item) {
                 return [
                     'id' => $item->id,
-                    'customer' => $item->booking_type === 'walkin' ? $item->walkin_name : ($item->user ? $item->user->name : 'Unknown'),
+                    'customer' => $item->booking_type === 'walk_in' ? $item->walkin_name : ($item->user ? $item->user->name : 'Unknown'),
                     'service' => $item->service_name,
                     'unit' => 'DOORSMEER',
                     'time' => $item->created_at->format('H:i'),
@@ -138,7 +138,7 @@ class AdminController extends Controller
             $recent = $recent->concat($recentBengkel->map(function($item) {
                 return [
                     'id' => $item->id,
-                    'customer' => $item->booking_type === 'walkin' ? $item->walkin_name : ($item->user ? $item->user->name : 'Unknown'),
+                    'customer' => $item->booking_type === 'walk_in' ? $item->walkin_name : ($item->user ? $item->user->name : 'Unknown'),
                     'service' => $item->service_name,
                     'unit' => 'BENGKEL',
                     'time' => $item->created_at->format('H:i'),
@@ -153,7 +153,7 @@ class AdminController extends Controller
             $recent = $recent->concat($recentRental->map(function($item) {
                 return [
                     'id' => $item->id,
-                    'customer' => $item->booking_type === 'walkin' ? $item->walkin_name : ($item->user ? $item->user->name : 'Unknown'),
+                    'customer' => $item->booking_type === 'walk_in' ? $item->walkin_name : ($item->user ? $item->user->name : 'Unknown'),
                     'service' => $item->service_name,
                     'unit' => 'RENTAL PS',
                     'time' => $item->created_at->format('H:i'),

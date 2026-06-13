@@ -45,6 +45,35 @@ export default function DoorsmeerWalkIn() {
     const [licensePlate, setLicensePlate] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    const handlePlateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        let val = e.target.value.toUpperCase();
+        val = val.replace(/[^A-Z0-9 ]/g, '');
+        const raw = val.replace(/\s+/g, '');
+        let formatted = '';
+        
+        const lettersMatch = raw.match(/^([A-Z]{1,2})/);
+        if (lettersMatch) {
+            formatted += lettersMatch[1];
+            const rest1 = raw.slice(lettersMatch[1].length);
+            const digitsMatch = rest1.match(/^([0-9]{1,4})/);
+            if (digitsMatch) {
+                formatted += ' ' + digitsMatch[1];
+                const rest2 = rest1.slice(digitsMatch[1].length);
+                const endLettersMatch = rest2.match(/^([A-Z]{1,3})/);
+                if (endLettersMatch) {
+                    formatted += ' ' + endLettersMatch[1];
+                } else if (rest2.length > 0) {
+                    formatted += ' ' + rest2.slice(0, 3).replace(/[^A-Z]/g, '');
+                }
+            } else if (rest1.length > 0) {
+                formatted += ' ' + rest1.slice(0, 4).replace(/[^0-9]/g, '');
+            }
+        } else {
+            formatted = raw;
+        }
+        setLicensePlate(formatted);
+    };
+
     const service = services.find(s => s.id === selectedServiceId)!;
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -146,7 +175,7 @@ export default function DoorsmeerWalkIn() {
                                     type="text"
                                     placeholder="Contoh: B 1234 ABC"
                                     value={licensePlate}
-                                    onChange={e => setLicensePlate(e.target.value.toUpperCase())}
+                                    onChange={handlePlateChange}
                                     className="w-full bg-background border border-border rounded-venus px-4 py-3 text-body-m text-foreground focus:outline-none focus:border-primary transition-colors font-bold tracking-wider"
                                 />
                             </div>

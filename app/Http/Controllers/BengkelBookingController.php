@@ -327,12 +327,16 @@ class BengkelBookingController extends Controller
             if ($occupied->has($name)) {
                 $b = $occupied[$name];
                 return [
-                    'id'       => $name,
-                    'label'    => strtoupper($name),
-                    'status'   => 'terisi',
-                    'plate'    => $b->license_plate,
-                    'vehicle'  => $b->vehicle_class,
-                    'progress' => $b->progressLabel(),
+                    'id'            => $name,
+                    'label'         => strtoupper($name),
+                    'status'        => 'terisi',
+                    'plate'         => $b->license_plate,
+                    'vehicle'       => $b->vehicle_class,
+                    'progress'      => $b->progressLabel(),
+                    'booking_id'    => $b->id,
+                    'booking_code'  => $b->booking_code,
+                    'customer_name' => $b->booking_type === 'walk_in' ? $b->walkin_name : ($b->user?->name ?? 'GUEST'),
+                    'assigned_at'   => $b->bay_assigned_at ? $b->bay_assigned_at->toIso8601String() : null,
                 ];
             }
             return [

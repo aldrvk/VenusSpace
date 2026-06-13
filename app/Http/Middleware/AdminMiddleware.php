@@ -16,8 +16,8 @@ class AdminMiddleware
         'doorsmeer' => ['admin.doorsmeer', 'admin.doorsmeer.'],
         'bengkel'   => ['admin.bengkel', 'admin.bengkel.'],
         'rental_ps' => ['admin.rentalps', 'admin.rental-ps.'],
-        'vape_store' => ['admin.vape', 'admin.store.product', 'admin.store.display_settings', 'admin.store.categories'],
-        'coffee_shop' => ['admin.coffee', 'admin.store.product', 'admin.store.display_settings', 'admin.store.categories'],
+        'vape_store' => ['admin.vape', 'admin.store.product', 'admin.store.display_settings', 'admin.store.categories', 'admin.store.walk-in'],
+        'coffee_shop' => ['admin.coffee', 'admin.store.product', 'admin.store.display_settings', 'admin.store.categories', 'admin.store.walk-in'],
     ];
 
     /**

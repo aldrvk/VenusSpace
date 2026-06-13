@@ -365,16 +365,26 @@ export default function KatalogVapeStore({ products, categories = [], filters: u
                                         {p.sold} pcs
                                     </td>
                                     <td className="px-6 py-4">
-                                        <Badge
-                                            text={p.stock > 0 ? `${p.stock}` : 'Habis'}
-                                            variant={
-                                                p.stock > 10
-                                                    ? "default"
-                                                    : p.stock > 0
-                                                      ? "warning"
-                                                      : "danger"
-                                            }
-                                        />
+                                        {p.stock > 0 && p.stock <= 5 ? (
+                                            <div className="flex flex-col gap-1 items-start">
+                                                <Badge
+                                                    text={`${p.stock}`}
+                                                    variant="warning"
+                                                />
+                                                <span className="text-[10px] font-bold text-red-500 animate-pulse drop-shadow-[0_0_8px_rgba(239,68,68,0.6)]">
+                                                    ⚠ Stok Kritis
+                                                </span>
+                                            </div>
+                                        ) : (
+                                            <Badge
+                                                text={p.stock > 0 ? `${p.stock}` : 'Habis'}
+                                                variant={
+                                                    p.stock > 10
+                                                        ? "default"
+                                                        : "danger"
+                                                }
+                                            />
+                                        )}
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-2">

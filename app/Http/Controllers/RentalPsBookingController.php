@@ -252,7 +252,7 @@ class RentalPsBookingController extends Controller
 
         $this->verify(new Request(), $booking);
 
-        return redirect()->route('admin.rental-ps')->with('success', "Walk-in booking {$booking->booking_code} berhasil dibuat.");
+        return redirect()->route('admin.rentalps')->with('success', "Walk-in booking {$booking->booking_code} berhasil dibuat.");
     }
 
     public function statusPoll(string $code)
@@ -318,10 +318,15 @@ class RentalPsBookingController extends Controller
             if ($occupied->has($name)) {
                 $b = $occupied[$name];
                 return [
-                    'id'       => $name,
-                    'label'    => strtoupper($name),
-                    'status'   => 'terisi',
-                    'progress' => $b->progressLabel(),
+                    'id'            => $name,
+                    'label'         => strtoupper($name),
+                    'status'        => 'terisi',
+                    'progress'      => $b->progressLabel(),
+                    'booking_id'    => $b->id,
+                    'booking_code'  => $b->booking_code,
+                    'customer_name' => $b->booking_type === 'walk_in' ? $b->walkin_name : ($b->user?->name ?? 'GUEST'),
+                    'assigned_at'   => $b->bay_assigned_at ? $b->bay_assigned_at->toIso8601String() : null,
+                    'duration_str'  => $b->service_duration,
                 ];
             }
             return [
@@ -330,5 +335,31 @@ class RentalPsBookingController extends Controller
                 'status'=> 'tersedia',
             ];
         }, $stallNames);
+    }
+
+    public function extend(Request $request, RentalPsBooking $booking)
+    {
+        $request->validate([
+            'hours' => 'required|integer|min:1|max:5',
+        ]);
+
+        $addedHours = $request->hours;
+        
+        // Parse current duration, e.g. "2 Jam" -> 2
+        $currentHours = (int) filter_var($booking->service_duration, FILTER_SANITIZE_NUMBER_INT);
+        if (!$currentHours) $currentHours = 1;
+        
+        $newHours = $currentHours + $addedHours;
+        
+        // Calculate new price
+        $hourlyRate = $booking->service_price / $currentHours;
+        $newPrice = $hourlyRate * $newHours;
+        
+        $booking->update([
+            'service_duration' => $newHours . ' Jam',
+            'service_price'    => $newPrice,
+        ]);
+        
+        return back()->with('success', "Sesi sewa bermain {$booking->booking_code} diperpanjang +{$addedHours} Jam.");
     }
 }

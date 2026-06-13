@@ -312,6 +312,8 @@ class DoorsmeerBookingController extends Controller
         $booking = DoorsmeerBooking::create([
             'booking_code'     => 'WK-' . strtoupper(Str::random(5)),
             'user_id'          => auth()->id(), // Admin is the creator
+            'booking_type'     => 'walk_in',
+            'walkin_name'      => $request->customer_name,
             'service_id'       => $request->service_id,
             'service_name'     => $request->service_name,
             'service_subtitle' => $request->service_subtitle,
@@ -398,12 +400,16 @@ class DoorsmeerBookingController extends Controller
             if ($occupied->has($name)) {
                 $b = $occupied[$name];
                 return [
-                    'id'       => $name,
-                    'label'    => strtoupper($name),
-                    'status'   => 'terisi',
-                    'plate'    => $b->license_plate,
-                    'vehicle'  => $b->vehicle_class,
-                    'progress' => $b->progressLabel(),
+                    'id'            => $name,
+                    'label'         => strtoupper($name),
+                    'status'        => 'terisi',
+                    'plate'         => $b->license_plate,
+                    'vehicle'       => $b->vehicle_class,
+                    'progress'      => $b->progressLabel(),
+                    'booking_id'    => $b->id,
+                    'booking_code'  => $b->booking_code,
+                    'customer_name' => $b->booking_type === 'walk_in' ? $b->walkin_name : ($b->user?->name ?? 'GUEST'),
+                    'assigned_at'   => $b->bay_assigned_at ? $b->bay_assigned_at->toIso8601String() : null,
                 ];
             }
             return [

@@ -9,6 +9,8 @@ class DoorsmeerBooking extends Model
 {
     protected $fillable = [
         'booking_code',
+        'booking_type',
+        'walkin_name',
         'user_id',
         'service_id',
         'service_name',
