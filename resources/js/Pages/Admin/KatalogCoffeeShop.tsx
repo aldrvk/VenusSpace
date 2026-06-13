@@ -385,16 +385,26 @@ export default function KatalogCoffeeShop({ products, categories = [], filters: 
                                         className="md:px-6 md:py-4 before:content-attr(data-label) before:font-bold before:text-foreground/40 before:mr-2 md:before:content-none"
                                         data-label="STOK"
                                     >
-                                        <Badge
-                                            text={item.stock > 0 ? `${item.stock}` : 'Habis'}
-                                            variant={
-                                                item.stock > 10
-                                                    ? "default"
-                                                    : item.stock > 0
-                                                      ? "warning"
-                                                      : "danger"
-                                            }
-                                        />
+                                        {item.stock > 0 && item.stock <= 5 ? (
+                                            <div className="flex flex-col gap-1 items-start">
+                                                <Badge
+                                                    text={`${item.stock}`}
+                                                    variant="warning"
+                                                />
+                                                <span className="text-[10px] font-bold text-red-500 animate-pulse drop-shadow-[0_0_8px_rgba(239,68,68,0.6)]">
+                                                    ⚠ Stok Kritis
+                                                </span>
+                                            </div>
+                                        ) : (
+                                            <Badge
+                                                text={item.stock > 0 ? `${item.stock}` : 'Habis'}
+                                                variant={
+                                                    item.stock > 10
+                                                        ? "default"
+                                                        : "danger"
+                                                }
+                                            />
+                                        )}
                                     </td>
                                     <td
                                         className="md:px-6 md:py-4 before:content-attr(data-label) before:font-bold before:text-foreground/40 before:mr-2 md:before:content-none"

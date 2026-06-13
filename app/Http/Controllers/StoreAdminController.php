@@ -18,7 +18,7 @@ class StoreAdminController extends Controller
         
         $totalProducts = Product::where('unit', 'COFFEE SHOP')->count();
         $totalSold = Product::where('unit', 'COFFEE SHOP')->sum('sold');
-        $outOfStock = Product::where('unit', 'COFFEE SHOP')->where('stock', 'Habis')->count();
+        $outOfStock = Product::where('unit', 'COFFEE SHOP')->where('stock', 0)->count();
         $estRevenue = Product::where('unit', 'COFFEE SHOP')->selectRaw('SUM(price * sold) as total')->value('total') ?? 0;
 
         if ($request->has('search') && $request->search != '') {
@@ -51,7 +51,7 @@ class StoreAdminController extends Controller
         
         $totalProducts = Product::where('unit', 'VAPE STORE')->count();
         $totalSold = Product::where('unit', 'VAPE STORE')->sum('sold');
-        $outOfStock = Product::where('unit', 'VAPE STORE')->where('stock', 'Habis')->count();
+        $outOfStock = Product::where('unit', 'VAPE STORE')->where('stock', 0)->count();
         $estRevenue = Product::where('unit', 'VAPE STORE')->selectRaw('SUM(price * sold) as total')->value('total') ?? 0;
 
         if ($request->has('search') && $request->search != '') {
@@ -91,7 +91,7 @@ class StoreAdminController extends Controller
             'options'     => 'nullable|array',
         ]);
 
-        $data = $request->except('image');
+        $data = $request->except(['image', 'add_stock']);
 
         if ($request->hasFile('image')) {
             $folder = $request->unit === 'VAPE STORE' ? 'Vape Store' : 'Coffee Shop';
@@ -287,5 +287,104 @@ class StoreAdminController extends Controller
         Setting::set($key, (bool) $request->show_stock);
 
         return back()->with('success', 'Pengaturan tampilan stok berhasil diperbarui.');
+    }
+
+    public function walkIn(Request $request)
+    {
+        $user = auth()->user();
+        $unit = $user->business_unit;
+        
+        $productUnit = $unit === 'vape_store' ? 'VAPE STORE' : ($unit === 'coffee_shop' ? 'COFFEE SHOP' : null);
+        
+        if (!$productUnit) {
+            abort(403, 'Akses ditolak. Hanya Kasir Toko yang dapat mengakses menu ini.');
+        }
+        
+        $products = Product::where('unit', $productUnit)
+            ->where('stock', '>', 0)
+            ->get();
+            
+        $categories = $unit === 'vape_store' 
+            ? Setting::get('vape_categories', ['Device', 'Liquid', 'Accessories'])
+            : Setting::get('coffee_categories', ['Kopi', 'Non-Kopi', 'Makanan']);
+            
+        $unitLabel = $unit === 'vape_store' ? 'Vape Store' : 'Coffee Shop';
+
+        return Inertia::render('Admin/StoreWalkIn', [
+            'products' => $products,
+            'categories' => $categories,
+            'unit' => $productUnit,
+            'unitLabel' => $unitLabel,
+        ]);
+    }
+
+    public function storeWalkIn(Request $request)
+    {
+        $user = auth()->user();
+        $unit = $user->business_unit;
+        $productUnit = $unit === 'vape_store' ? 'VAPE STORE' : ($unit === 'coffee_shop' ? 'COFFEE SHOP' : null);
+        
+        if (!$productUnit) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        $request->validate([
+            'customer_name' => 'required|string|max:50',
+            'payment_method' => 'required|in:cash,qris',
+            'items' => 'required|array|min:1',
+            'items.*.id' => 'required|exists:products,id',
+            'items.*.quantity' => 'required|integer|min:1',
+        ]);
+
+        $items = $request->items;
+        $total = 0;
+        
+        $validatedItems = [];
+        foreach ($items as $itemData) {
+            $product = Product::findOrFail($itemData['id']);
+            
+            if ($product->unit !== $productUnit) {
+                abort(400, "Produk {$product->name} bukan bagian dari unit usaha Anda.");
+            }
+            
+            if ($product->stock < $itemData['quantity']) {
+                return back()->with('error', "Stok untuk produk {$product->name} tidak mencukupi (Tersedia: {$product->stock}).");
+            }
+            
+            $total += $product->price * $itemData['quantity'];
+            $validatedItems[] = [
+                'product' => $product,
+                'quantity' => $itemData['quantity'],
+                'price' => $product->price
+            ];
+        }
+
+        $order = StoreOrder::create([
+            'order_code' => ($productUnit === 'VAPE STORE' ? 'VP-' : 'CF-') . strtoupper(\Illuminate\Support\Str::random(5)),
+            'user_id' => $user->id,
+            'customer_name' => $request->customer_name,
+            'unit' => $productUnit,
+            'total' => $total,
+            'payment_method' => $request->payment_method,
+            'status' => 'BERHASIL',
+            'progress_status' => 'completed',
+            'done_at' => now(),
+        ]);
+
+        foreach ($validatedItems as $vItem) {
+            $product = $vItem['product'];
+            $qty = $vItem['quantity'];
+            
+            $order->items()->create([
+                'name'     => $product->name,
+                'quantity' => $qty,
+                'price'    => $product->price,
+            ]);
+            
+            $product->decrement('stock', $qty);
+            $product->increment('sold', $qty);
+        }
+
+        return redirect()->route('admin.pesanan-store')->with('success', "Transaksi walk-in {$order->order_code} berhasil diproses.");
     }
 }

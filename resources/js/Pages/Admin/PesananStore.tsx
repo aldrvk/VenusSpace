@@ -236,6 +236,17 @@ export default function PesananStore({ orders, filters: searchFilters }: Props) 
             <PageHeader 
                 title="Daftar Pesanan Store" 
                 subtitle="Kelola pesanan dari Vape Store dan Coffee Shop Anda."
+                action={
+                    <Link
+                        href="/admin/store/walk-in"
+                        className="bg-primary text-white text-label-sm font-bold px-5 py-2.5 rounded-full hover:bg-primary/90 shadow-md flex items-center gap-2 transition-all active:scale-95"
+                    >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>
+                        Transaksi Kasir (Walk-in)
+                    </Link>
+                }
             />
 
             <div className="bg-card border border-border rounded-venus overflow-hidden">

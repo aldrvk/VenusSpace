@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Head, router, Link } from "@inertiajs/react";
 import AdminLayout from "../../Layouts/AdminLayout";
+import StallTimer from "../../Components/StallTimer";
 import {
     PageHeader,
     Badge,
@@ -378,6 +379,40 @@ export default function BookingDoorsmeer({ bookings, stalls, queueCount, pending
 
     const filteredBookings = bookingData;
 
+    // Auto-polling refresh every 15 seconds
+    useEffect(() => {
+        const interval = setInterval(() => {
+            router.reload({ preserveScroll: true, preserveState: true });
+        }, 15000);
+        return () => clearInterval(interval);
+    }, []);
+
+    // Calculate queue waiting time
+    const totalQueueMinutes = bookingData
+        .filter(b => b.status === "in_queue")
+        .reduce((total, b) => {
+            const durationStr = b.service_duration.toLowerCase();
+            let mins = 0;
+            if (durationStr.includes("jam")) {
+                const num = parseFloat(durationStr);
+                mins = isNaN(num) ? 60 : num * 60;
+            } else if (durationStr.includes("menit")) {
+                const num = parseFloat(durationStr);
+                mins = isNaN(num) ? 30 : num;
+            } else {
+                mins = 30; // default fallback
+            }
+            return total + mins;
+        }, 0);
+
+    const formatDuration = (totalMins: number) => {
+        if (totalMins === 0) return "0 Menit";
+        const hours = Math.floor(totalMins / 60);
+        const mins = totalMins % 60;
+        return hours > 0 ? `${hours} Jam ${mins > 0 ? `${mins} Menit` : ""}` : `${mins} Menit`;
+    };
+    const queueTimeText = formatDuration(totalQueueMinutes);
+
     return (
         <AdminLayout>
             <Head title="Booking Doorsmeer – Venus Hub Admin" />
@@ -392,6 +427,10 @@ export default function BookingDoorsmeer({ bookings, stalls, queueCount, pending
                 }
                 action={
                     <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1.5 text-[10px] md:text-label-sm text-foreground/50 font-semibold mr-1 bg-surface border border-border px-3 py-1.5 rounded-full select-none">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                            <span>Auto-Sync</span>
+                        </div>
                         <Link
                             href="/admin/doorsmeer/walk-in"
                             className="bg-primary text-white text-label-sm font-bold px-5 py-2.5 rounded-full hover:bg-primary/90 shadow-md flex items-center gap-2 transition-all active:scale-95"
@@ -412,28 +451,43 @@ export default function BookingDoorsmeer({ bookings, stalls, queueCount, pending
 
             {/* Stall Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 mb-6 md:mb-8">
-                {stalls.map((stall) =>
+                {stalls.map((stall: any) =>
                     stall.status === "terisi" ? (
                         <div
                             key={stall.id}
-                            className="bg-secondary rounded-venus p-4 md:p-5 relative overflow-hidden text-white"
+                            className="bg-secondary rounded-venus p-4 md:p-5 relative overflow-hidden text-white flex flex-col justify-between min-h-[160px]"
                         >
-                            <div className="absolute bottom-0 right-0 text-white">
+                            <div className="absolute bottom-2 right-2 text-white/20 pointer-events-none">
                                 <CarSilhouette />
                             </div>
-                            <div className="flex items-center justify-between mb-3">
-                                <span className="text-xs text-white/60">{stall.label}</span>
-                                <span className="bg-white/20 text-white text-[10px] font-bold px-2.5 py-1 rounded-full tracking-widest uppercase">
-                                    Terisi
-                                </span>
+                            <div>
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="text-xs text-white/60">{stall.label}</span>
+                                    <span className="bg-white/20 text-white text-[10px] font-bold px-2.5 py-1 rounded-full tracking-widest uppercase">
+                                        {stall.progress}
+                                    </span>
+                                </div>
+                                <p className="text-xl md:text-h3 text-white font-extrabold uppercase leading-none">
+                                    {stall.plate}
+                                </p>
+                                <p className="text-xs text-white/70 mt-1">{stall.vehicle} · <span className="font-semibold text-white">{stall.customer_name}</span></p>
                             </div>
-                            <p className="text-xl md:text-h3 text-white font-extrabold mb-0.5 uppercase">
-                                {stall.plate}
-                            </p>
-                            <p className="text-xs text-white/70 mb-2">{stall.vehicle}</p>
-                            <span className="inline-block bg-white/15 text-white/90 text-[10px] px-2.5 py-1 rounded-full font-semibold">
-                                {stall.progress}
-                            </span>
+                            
+                            <div className="mt-3 flex items-center justify-between gap-2 z-10">
+                                <StallTimer mode="stopwatch" startTime={stall.assigned_at} />
+                                <button
+                                    onClick={() => setDoneTarget({
+                                        id: stall.booking_id,
+                                        booking_code: stall.booking_code,
+                                        customer_name: stall.customer_name,
+                                        license_plate: stall.plate,
+                                        stall: stall.label,
+                                    } as any)}
+                                    className="flex items-center justify-center gap-1.5 bg-white/20 hover:bg-white/30 text-white text-[11px] font-bold px-3 py-1.5 rounded-venus transition-all"
+                                >
+                                    ✓ Selesai
+                                </button>
+                            </div>
                         </div>
                     ) : (
                         <div
@@ -465,6 +519,11 @@ export default function BookingDoorsmeer({ bookings, stalls, queueCount, pending
                         <p className="text-xs text-foreground/40">Antrian</p>
                         <p className="text-h3 text-super-black font-bold">{queueCount}</p>
                         <p className="text-[10px] text-foreground/40">kendaraan menunggu</p>
+                        {queueCount > 0 && (
+                            <p className="text-[10px] text-primary font-bold mt-1 animate-pulse">
+                                Estimasi Tunggu: ~{queueTimeText}
+                            </p>
+                        )}
                     </div>
                 </div>
             </div>

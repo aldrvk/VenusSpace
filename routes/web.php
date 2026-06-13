@@ -226,11 +226,14 @@ Route::middleware('auth')->group(function () {
         Route::post('/rental-ps/verify/{booking}', [RentalPsBookingController::class, 'verify'])->name('rental-ps.verify');
         Route::post('/rental-ps/progress/{booking}', [RentalPsBookingController::class, 'updateProgress'])->name('rental-ps.progress');
         Route::post('/rental-ps/cancel/{booking}', [RentalPsBookingController::class, 'cancel'])->name('rental-ps.cancel');
+        Route::post('/rental-ps/extend/{booking}', [RentalPsBookingController::class, 'extend'])->name('rental-ps.extend');
         Route::get('/rental-ps/walk-in', [RentalPsBookingController::class, 'walkIn'])->name('rental-ps.walk-in');
         Route::post('/rental-ps/walk-in', [RentalPsBookingController::class, 'storeWalkIn'])->name('rental-ps.store-walk-in');
         Route::get('/katalog-coffee', [StoreAdminController::class, 'katalogCoffee'])->name('coffee');
         Route::get('/katalog-vape', [StoreAdminController::class, 'katalogVape'])->name('vape');
         Route::get('/pesanan-store', [StoreAdminController::class, 'pesananStore'])->name('pesanan-store');
+        Route::get('/store/walk-in', [StoreAdminController::class, 'walkIn'])->name('store.walk-in');
+        Route::post('/store/walk-in', [StoreAdminController::class, 'storeWalkIn'])->name('store.walk-in.store');
         
         // Store actions
         Route::post('/store/product', [StoreAdminController::class, 'storeProduct'])->name('store.product.store');

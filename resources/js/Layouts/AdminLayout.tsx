@@ -302,12 +302,24 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
     const showSearch = !['/admin/dashboard', '/admin/laporan', '/admin/pengaturan'].includes(currentPath);
 
-    // Contextual placeholders
+    // Contextual placeholders per modul
     let searchPlaceholder = "Ketik untuk mencari (tekan Enter)...";
     if (currentPath === '/admin/pesanan-store') {
         searchPlaceholder = "Cari ID Pesanan / Nama Pelanggan...";
-    } else if (currentPath.startsWith('/admin/booking')) {
+    } else if (currentPath === '/admin/booking-doorsmeer') {
         searchPlaceholder = "Cari ID Booking / Nama / Nopol...";
+    } else if (currentPath === '/admin/booking-bengkel') {
+        searchPlaceholder = "Cari ID Booking / Nama / Nopol...";
+    } else if (currentPath === '/admin/booking-rental-ps') {
+        searchPlaceholder = "Cari Kode Sesi / Nama Pelanggan...";
+    } else if (currentPath === '/admin/doorsmeer/walk-in') {
+        searchPlaceholder = "Cari Nama / Nopol Kendaraan...";
+    } else if (currentPath === '/admin/bengkel/walk-in') {
+        searchPlaceholder = "Cari Nama / Nopol Kendaraan...";
+    } else if (currentPath === '/admin/rental-ps/walk-in') {
+        searchPlaceholder = "Cari Nama Pelanggan...";
+    } else if (currentPath === '/admin/store/walk-in') {
+        searchPlaceholder = "Cari Produk / Nama Pelanggan...";
     } else if (currentPath.startsWith('/admin/katalog')) {
         searchPlaceholder = "Cari Nama Produk / Kategori...";
     }

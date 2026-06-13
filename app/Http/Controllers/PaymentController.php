@@ -62,7 +62,7 @@ class PaymentController extends Controller
         $orderId = $notif->order_id;
         $fraud = $notif->fraud_status;
 
-        $order = StoreOrder::where('order_code', $orderId)->first();
+        $order = StoreOrder::with('items')->where('order_code', $orderId)->first();
 
         if (!$order) {
             return response()->json(['message' => 'Order not found'], 404);
@@ -80,12 +80,21 @@ class PaymentController extends Controller
             $order->update(['status' => 'BERHASIL', 'progress_status' => 'pending']);
         } else if ($transaction == 'pending') {
             $order->update(['status' => 'MENUNGGU PEMBAYARAN', 'progress_status' => 'menunggu_pembayaran']);
-        } else if ($transaction == 'deny') {
-            $order->update(['status' => 'BATAL', 'progress_status' => 'batal']);
-        } else if ($transaction == 'expire') {
-            $order->update(['status' => 'BATAL', 'progress_status' => 'batal']);
-        } else if ($transaction == 'cancel') {
-            $order->update(['status' => 'BATAL', 'progress_status' => 'batal']);
+        } else if (in_array($transaction, ['deny', 'expire', 'cancel'])) {
+            $order->update([
+                'status' => 'BATAL',
+                'progress_status' => 'cancelled'
+            ]);
+
+            // Refund stock
+            foreach ($order->items as $item) {
+                $product = \App\Models\Product::where('name', $item->name)
+                    ->where('unit', $order->unit)
+                    ->first();
+                if ($product) {
+                    $product->increment('stock', $item->quantity);
+                }
+            }
         }
 
         return response()->json(['message' => 'Notification processed']);

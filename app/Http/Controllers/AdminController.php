@@ -176,7 +176,7 @@ class AdminController extends Controller
             $recent = $recent->concat($recentDoorsmeer->map(function($item) {
                 return [
                     'id' => $item->id,
-                    'customer' => $item->booking_type === 'walkin' ? $item->walkin_name : ($item->user ? $item->user->name : 'Unknown'),
+                    'customer' => $item->booking_type === 'walk_in' ? $item->walkin_name : ($item->user ? $item->user->name : 'Unknown'),
                     'service' => $item->service_name,
                     'unit' => 'DOORSMEER',
                     'time' => $item->created_at->format('H:i'),
@@ -191,7 +191,7 @@ class AdminController extends Controller
             $recent = $recent->concat($recentBengkel->map(function($item) {
                 return [
                     'id' => $item->id,
-                    'customer' => $item->booking_type === 'walkin' ? $item->walkin_name : ($item->user ? $item->user->name : 'Unknown'),
+                    'customer' => $item->booking_type === 'walk_in' ? $item->walkin_name : ($item->user ? $item->user->name : 'Unknown'),
                     'service' => $item->service_name,
                     'unit' => 'BENGKEL',
                     'time' => $item->created_at->format('H:i'),
@@ -206,7 +206,7 @@ class AdminController extends Controller
             $recent = $recent->concat($recentRental->map(function($item) {
                 return [
                     'id' => $item->id,
-                    'customer' => $item->booking_type === 'walkin' ? $item->walkin_name : ($item->user ? $item->user->name : 'Unknown'),
+                    'customer' => $item->booking_type === 'walk_in' ? $item->walkin_name : ($item->user ? $item->user->name : 'Unknown'),
                     'service' => $item->service_name,
                     'unit' => 'RENTAL PS',
                     'time' => $item->created_at->format('H:i'),
@@ -227,9 +227,14 @@ class AdminController extends Controller
             $recent = $recent->concat($recentStore->map(function($item) {
                 $serviceName = 'Pesanan';
                 if ($item->items && $item->items->count() > 0) {
-                    $serviceName = $item->items->map(function($orderItem) {
-                        return $orderItem->quantity . 'x ' . $orderItem->name;
-                    })->implode(', ');
+    
+                    $firstItem = $item->items->first();
+                    $serviceName = $firstItem->quantity . 'x ' . $firstItem->name;
+                    
+                    $sisaItem = $item->items->count() - 1;
+                    if ($sisaItem > 0) {
+                        $serviceName .= " (+ $sisaItem item lainnya)";
+                    }
                 }
                 return [
                     'id' => $item->id,

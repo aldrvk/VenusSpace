@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Head, router, Link } from "@inertiajs/react";
 import AdminLayout from "../../Layouts/AdminLayout";
+import StallTimer from "../../Components/StallTimer";
 import {
     PageHeader,
     Badge,
@@ -291,6 +292,95 @@ function CancelBookingModal({
     );
 }
 
+// ── Modal: Extend Session ─────────────────────────────────────────────────────
+function ExtendSessionModal({
+    booking,
+    queueCount,
+    onClose,
+}: {
+    booking: Booking;
+    queueCount: number;
+    onClose: () => void;
+}) {
+    const [hours, setHours] = useState<number>(1);
+    const [loading, setLoading] = useState(false);
+
+    const handle = (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        router.post(
+            `/admin/rental-ps/extend/${booking.id}`,
+            { hours },
+            {
+                onSuccess: () => { onClose(); },
+                onFinish: () => { setLoading(false); },
+                preserveScroll: true,
+            }
+        );
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+            <div className="relative bg-card border border-border rounded-venus p-6 w-full max-w-md shadow-2xl">
+                <h3 className="text-h4 text-super-black mb-1">Tambah Waktu Sesi</h3>
+                <p className="text-body-reg text-foreground/60 mb-5">
+                    <span className="font-semibold text-foreground">{booking.booking_code}</span> –{" "}
+                    {booking.customer_name} · {booking.stall}
+                </p>
+
+                <form onSubmit={handle}>
+                    {queueCount > 0 && (
+                        <div className="mb-5 bg-amber-50 border border-amber-200 text-amber-800 rounded-venus p-3.5 text-xs flex gap-2">
+                            <span className="text-base">⚠</span>
+                            <p className="font-medium leading-relaxed">
+                                <strong>Peringatan:</strong> Ada {queueCount} pelanggan sedang menunggu dalam antrean. Memperpanjang sesi ini akan menunda giliran mereka.
+                            </p>
+                        </div>
+                    )}
+
+                    <div className="space-y-2 mb-6">
+                        <label className="text-label-sm text-foreground/60 uppercase">Pilih Durasi Tambahan</label>
+                        <div className="grid grid-cols-3 gap-2">
+                            {[1, 2, 3].map((h) => (
+                                <button
+                                    key={h}
+                                    type="button"
+                                    onClick={() => setHours(h)}
+                                    className={`py-3 rounded-venus text-center text-sm font-bold border transition-all ${
+                                        hours === h 
+                                            ? "bg-primary text-white border-primary shadow-sm" 
+                                            : "bg-surface border-border text-foreground hover:bg-background"
+                                    }`}
+                                >
+                                    +{h} Jam
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="flex gap-3">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="flex-1 border border-border rounded-venus py-2.5 text-label-sm font-semibold text-foreground/70 hover:bg-surface transition-all"
+                        >
+                            Batal
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="flex-1 bg-secondary text-secondary-foreground rounded-venus py-2.5 text-label-sm font-semibold hover:bg-secondary/90 disabled:opacity-70 transition-all"
+                        >
+                            {loading ? "Memproses…" : "✓ Konfirmasi"}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+}
+
 // ── Action Button (context-aware, forward-only) ───────────────────────────────
 function ActionButton({
     booking,
@@ -365,12 +455,44 @@ export default function BookingRentalPs({ bookings, stalls, queueCount, pendingC
     const [confirmTarget, setConfirmTarget] = useState<Booking | null>(null);
     const [doneTarget, setDoneTarget] = useState<Booking | null>(null);
     const [cancelTarget, setCancelTarget] = useState<Booking | null>(null);
+    const [extendTarget, setExtendTarget] = useState<Booking | null>(null);
+    const [currentTime, setCurrentTime] = useState<number>(Date.now());
     
     const filters: FilterTab[] = ["Semua", "Menunggu", "Antrian", "Bermain", "Selesai", "Dibatalkan"];
 
     const bookingData: Booking[] = Array.isArray(bookings) ? bookings : (bookings?.data || []);
 
     const filteredBookings = bookingData;
+
+    // Auto-polling refresh every 15 seconds
+    useEffect(() => {
+        const interval = setInterval(() => {
+            router.reload({ preserveScroll: true, preserveState: true });
+        }, 15000);
+        return () => clearInterval(interval);
+    }, []);
+
+    // Tick current time every 5 seconds for visual low time warnings
+    useEffect(() => {
+        const timeInterval = setInterval(() => {
+            setCurrentTime(Date.now());
+        }, 5000);
+        return () => clearInterval(timeInterval);
+    }, []);
+
+    const handleQuickExtend = (bookingId: number, code: string, hours: number) => {
+        if (queueCount > 0) {
+            const ok = window.confirm(`Ada ${queueCount} antrian aktif. Apakah Anda yakin ingin memperpanjang sewa ${code} selama +${hours} jam?`);
+            if (!ok) return;
+        }
+        router.post(
+            `/admin/rental-ps/extend/${bookingId}`,
+            { hours },
+            {
+                preserveScroll: true,
+            }
+        );
+    };
 
     return (
         <AdminLayout>
@@ -386,6 +508,10 @@ export default function BookingRentalPs({ bookings, stalls, queueCount, pendingC
                 }
                 action={
                     <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1.5 text-[10px] md:text-label-sm text-foreground/50 font-semibold mr-1 bg-surface border border-border px-3 py-1.5 rounded-full select-none">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                            <span>Auto-Sync</span>
+                        </div>
                         <Link
                             href="/admin/rental-ps/walk-in"
                             className="bg-primary text-white text-label-sm font-bold px-5 py-2.5 rounded-full hover:bg-primary/90 shadow-md flex items-center gap-2 transition-all active:scale-95"
@@ -406,27 +532,98 @@ export default function BookingRentalPs({ bookings, stalls, queueCount, pendingC
 
             {/* Stall Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 mb-6 md:mb-8">
-                {stalls.map((stall) =>
-                    stall.status === "terisi" ? (
+                {stalls.map((stall: any) => {
+                    let isLowTime = false;
+                    if (stall.status === "terisi" && stall.assigned_at) {
+                        const start = new Date(stall.assigned_at).getTime();
+                        let durationMs = 0;
+                        if (stall.duration_str) {
+                            const num = parseInt(stall.duration_str);
+                            if (!isNaN(num)) {
+                                if (stall.duration_str.toLowerCase().includes("jam")) {
+                                    durationMs = num * 60 * 60 * 1000;
+                                } else if (stall.duration_str.toLowerCase().includes("menit")) {
+                                    durationMs = num * 60 * 1000;
+                                } else {
+                                    durationMs = num * 60 * 60 * 1000;
+                                }
+                            }
+                        }
+                        const endTime = start + durationMs;
+                        const remainingMs = endTime - currentTime;
+                        isLowTime = remainingMs > 0 && remainingMs < 10 * 60 * 1000; // < 10 Menit
+                    }
+
+                    return stall.status === "terisi" ? (
                         <div
                             key={stall.id}
-                            className="bg-secondary rounded-venus p-4 md:p-5 relative overflow-hidden text-white"
+                            className={`bg-secondary rounded-venus p-4 md:p-5 relative overflow-hidden text-white flex flex-col justify-between min-h-[200px] border-2 transition-all duration-500 ${
+                                isLowTime 
+                                    ? "border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.6)] animate-pulse" 
+                                    : "border-transparent"
+                            }`}
                         >
-                            <div className="absolute bottom-0 right-0 text-white">
+                            <div className="absolute bottom-2 right-2 text-white/20 pointer-events-none">
                                 <GamepadIcon />
                             </div>
-                            <div className="flex items-center justify-between mb-3">
-                                <span className="text-xs text-white/60">{stall.label}</span>
-                                <span className="bg-white/20 text-white text-[10px] font-bold px-2.5 py-1 rounded-full tracking-widest uppercase">
-                                    Terisi
-                                </span>
+                            <div>
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="text-xs text-white/60">{stall.label}</span>
+                                    <span className={`bg-white/20 text-white text-[10px] font-bold px-2.5 py-1 rounded-full tracking-widest uppercase ${isLowTime ? "bg-amber-500 text-black font-extrabold" : ""}`}>
+                                        Playing · {stall.duration_str}
+                                    </span>
+                                </div>
+                                <p className="text-lg md:text-xl text-white font-extrabold uppercase leading-tight truncate">
+                                    {stall.customer_name}
+                                </p>
+                                <p className="text-xs text-white/70 mt-0.5">Sesi: <span className="font-semibold text-white">{stall.booking_code}</span></p>
                             </div>
-                            <p className="text-xl md:text-h3 text-white font-extrabold mb-0.5 uppercase">
-                                {stall.progress ?? 'Sedang Bermain'}
-                            </p>
-                            <span className="inline-block bg-white/15 text-white/90 text-[10px] px-2.5 py-1 rounded-full font-semibold">
-                                {stall.progress}
-                            </span>
+                            
+                            <div className="mt-3 flex flex-col gap-3 z-10 w-full">
+                                <StallTimer mode="countdown" startTime={stall.assigned_at} durationStr={stall.duration_str} />
+                                <div className="flex flex-col gap-2">
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => setExtendTarget({
+                                                id: stall.booking_id,
+                                                booking_code: stall.booking_code,
+                                                customer_name: stall.customer_name,
+                                                stall: stall.label,
+                                            } as any)}
+                                            className="flex-1 flex items-center justify-center gap-1 bg-white/20 hover:bg-white/30 text-white text-[10px] font-bold py-1.5 rounded-venus transition-all"
+                                        >
+                                            + Tambah Waktu
+                                        </button>
+                                        <button
+                                            onClick={() => setDoneTarget({
+                                                id: stall.booking_id,
+                                                booking_code: stall.booking_code,
+                                                customer_name: stall.customer_name,
+                                                stall: stall.label,
+                                            } as any)}
+                                            className="flex items-center justify-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold px-3 py-1.5 rounded-venus transition-all"
+                                        >
+                                            ✓ Selesai
+                                        </button>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => handleQuickExtend(stall.booking_id, stall.booking_code, 1)}
+                                            className="flex-1 bg-white/10 hover:bg-white/20 text-white text-[9px] font-bold py-1.5 rounded-venus border border-white/5 transition-all text-center"
+                                        >
+                                            ⚡ +1 Jam
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleQuickExtend(stall.booking_id, stall.booking_code, 2)}
+                                            className="flex-1 bg-white/10 hover:bg-white/20 text-white text-[9px] font-bold py-1.5 rounded-venus border border-white/5 transition-all text-center"
+                                        >
+                                            ⚡ +2 Jam
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     ) : (
                         <div
@@ -444,7 +641,7 @@ export default function BookingRentalPs({ bookings, stalls, queueCount, pendingC
                             </div>
                         </div>
                     )
-                )}
+                })}
 
                 {/* Queue count card */}
                 <div className="bg-card border border-border rounded-venus p-4 md:p-5 flex flex-col items-center justify-center gap-2 min-h-[130px]">
@@ -603,6 +800,9 @@ export default function BookingRentalPs({ bookings, stalls, queueCount, pendingC
             )}
             {cancelTarget && (
                 <CancelBookingModal booking={cancelTarget} onClose={() => setCancelTarget(null)} />
+            )}
+            {extendTarget && (
+                <ExtendSessionModal booking={extendTarget} queueCount={queueCount} onClose={() => setExtendTarget(null)} />
             )}
         </AdminLayout>
     );
