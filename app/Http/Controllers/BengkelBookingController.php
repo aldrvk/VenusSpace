@@ -22,8 +22,8 @@ class BengkelBookingController extends Controller
         return Inertia::render('Bengkel/index', [
             'stalls'        => $stalls,
             'queueCount'    => $queueCount,
-            'availableBays' => $availableBays,
-            'totalBays'     => $totalBays,
+            'availablePits' => $availableBays,
+            'totalPits'     => $totalBays,
             'servicingCount'=> $servicingCount,
         ]);
     }

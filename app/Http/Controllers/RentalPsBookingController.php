@@ -22,8 +22,8 @@ class RentalPsBookingController extends Controller
         return Inertia::render('RentalPs/index', [
             'stalls'        => $stalls,
             'queueCount'    => $queueCount,
-            'availableBays' => $availableBays,
-            'totalBays'     => $totalBays,
+            'availableTVs'  => $availableBays,
+            'totalTVs'      => $totalBays,
             'playingCount'  => $playingCount,
         ]);
     }
