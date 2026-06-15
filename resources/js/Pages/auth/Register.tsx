@@ -154,7 +154,10 @@ export default function Register({ isOpen = true, onClose, onSwitch }: AuthModal
             return;
         }
 
-        post('/register', {
+        const searchParams = new URLSearchParams(window.location.search);
+        const redirectUrl = searchParams.get('redirect') || window.location.pathname;
+
+        post(redirectUrl ? `/register?redirect=${encodeURIComponent(redirectUrl)}` : '/register', {
             preserveState: true,
             preserveScroll: true,
             onSuccess: (page: any) => {
@@ -218,11 +221,15 @@ export default function Register({ isOpen = true, onClose, onSwitch }: AuthModal
             return;
         }
 
+        const searchParams = new URLSearchParams(window.location.search);
+        const redirectUrl = searchParams.get('redirect') || window.location.pathname;
+
         setVerifying(true);
         try {
             const res = await axios.post('/register/verify-otp', {
                 email: otpEmail,
                 otp: code,
+                redirect: redirectUrl,
             });
 
             if (res.data.success) {
@@ -430,11 +437,15 @@ export default function Register({ isOpen = true, onClose, onSwitch }: AuthModal
                                             >
                                                 Masuk di sini
                                             </button>
-                                        ) : (
-                                            <Link href="/login" className="text-primary hover:opacity-80 transition-opacity font-bold">
+                                        ) : (() => {
+                                        const searchParams = new URLSearchParams(window.location.search);
+                                        const redirectUrl = searchParams.get('redirect') || window.location.pathname;
+                                        return (
+                                            <Link href={redirectUrl ? `/login?redirect=${encodeURIComponent(redirectUrl)}` : "/login"} className="text-primary hover:opacity-80 transition-opacity font-bold">
                                                 Masuk di sini
                                             </Link>
-                                        )}
+                                        );
+                                    })()}
                                     </p>
                                 </>
                             ) : (

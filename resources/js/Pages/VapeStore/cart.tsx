@@ -167,7 +167,7 @@ export default function Cart() {
 
                                 {isOpen ? (
                                     <Link 
-                                        href={auth?.user ? "/vape-store/checkout" : "/login"} 
+                                        href={auth?.user ? "/vape-store/checkout" : `/login?redirect=${encodeURIComponent('/vape-store/cart')}`} 
                                         className="w-full bg-primary text-primary-foreground py-4 rounded-venus text-label-sm tracking-widest text-center hover:bg-primary/90 transition-all font-bold shadow-lg mt-8 inline-block uppercase"
                                     >
                                         {auth?.user ? "LANJUT KE PEMBAYARAN" : "LOGIN UNTUK MEMESAN"}

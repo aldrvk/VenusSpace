@@ -105,9 +105,11 @@ class RegisterController extends Controller
         Auth::login($user, true);
         $request->session()->regenerate();
 
+        $redirect = $request->input('redirect', '/');
+
         return response()->json([
             'success'  => true,
-            'redirect' => '/',
+            'redirect' => $redirect,
             'message'  => 'Pendaftaran berhasil! Selamat datang di Venus Hub.',
         ]);
     }

@@ -165,7 +165,7 @@ export default function Cart() {
 
                                 {isOpen ? (
                                     <Link 
-                                        href={auth?.user ? "/coffee-shop/checkout" : "/login"} 
+                                        href={auth?.user ? "/coffee-shop/checkout" : `/login?redirect=${encodeURIComponent('/coffee-shop/cart')}`} 
                                         className="w-full bg-primary text-primary-foreground py-4 rounded-venus text-label-sm tracking-widest text-center hover:bg-primary/90 transition-all font-bold shadow-lg mt-8 uppercase inline-block"
                                     >
                                         {auth?.user ? "Lanjut ke Pembayaran" : "Login untuk Memesan"}

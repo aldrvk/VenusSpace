@@ -40,7 +40,10 @@ export default function Login({ isOpen = true, onClose, onSwitch }: AuthModalPro
             return;
         }
 
-        post('/login', {
+        const searchParams = new URLSearchParams(window.location.search);
+        const redirectUrl = searchParams.get('redirect') || window.location.pathname;
+
+        post(redirectUrl ? `/login?redirect=${encodeURIComponent(redirectUrl)}` : '/login', {
             preserveState: true,
             preserveScroll: true,
             onSuccess: () => {
@@ -188,14 +191,18 @@ export default function Login({ isOpen = true, onClose, onSwitch }: AuthModalPro
                                     >
                                         Daftar di sini!
                                     </button>
-                                ) : (
-                                    <Link
-                                        href="/register"
-                                        className="text-primary hover:opacity-80 transition-opacity font-bold"
-                                    >
-                                        Daftar di sini!
-                                    </Link>
-                                )}
+                                ) : (() => {
+                                        const searchParams = new URLSearchParams(window.location.search);
+                                        const redirectUrl = searchParams.get('redirect') || window.location.pathname;
+                                        return (
+                                            <Link
+                                                href={redirectUrl ? `/register?redirect=${encodeURIComponent(redirectUrl)}` : "/register"}
+                                                className="text-primary hover:opacity-80 transition-opacity font-bold"
+                                            >
+                                                Daftar di sini!
+                                            </Link>
+                                        );
+                                    })()}
                             </p>
 
                         </div>

@@ -45,7 +45,7 @@ export default {
       // Heading 1 (Master)
       'h1': ['72px', {
         lineHeight: '72px',
-        letterSpacing: '-3.6px',
+        letterSpacing: 'normal',
         fontWeight: '800',
       }],
       // Heading 2 (Sub Master)

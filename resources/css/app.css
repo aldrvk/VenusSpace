@@ -152,6 +152,7 @@
   .text-h1 {
     font-size: 2rem !important;
     line-height: 1.15 !important;
+    letter-spacing: normal !important;
   }
   .text-h2 {
     font-size: 1.5rem !important;
@@ -173,6 +174,7 @@
   .text-h1 {
     font-size: 1.75rem !important;
     line-height: 1.15 !important;
+    letter-spacing: normal !important;
   }
   .text-h2 {
     font-size: 1.25rem !important;

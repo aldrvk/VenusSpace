@@ -44,9 +44,15 @@ class LoginController extends Controller
 
         $isAdminRole = in_array($user->role, ['admin', 'owner', 'kasir']);
         $redirect = $isAdminRole ? '/admin/dashboard' : '/';
+        
         $message = $isAdminRole
             ? 'Masuk berhasil! Selamat datang ' . ($user->role === 'owner' ? 'Pemilik' : ($user->role === 'kasir' ? 'Kasir' : 'Admin')) . '.'
             : 'Masuk berhasil! Selamat datang kembali.';
+
+        if ($request->has('redirect') && !$isAdminRole) {
+            $redirect = $request->query('redirect');
+            return redirect($redirect)->with('success', $message);
+        }
 
         return redirect()->intended($redirect)->with('success', $message);
     }

@@ -327,12 +327,12 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps = {}) {
                             ) : (
                                 <div className="flex items-center gap-3">
                                     <Link
-                                        href="/login"
+                                        href={`/login?redirect=${encodeURIComponent(url)}`}
                                         className="text-body font-bold text-foreground/70 hover:text-primary transition-colors px-4"
                                     >
                                         Masuk
                                     </Link>
-                                    <Link href="/register">
+                                    <Link href={`/register?redirect=${encodeURIComponent(url)}`}>
                                         <ButtonInitiate
                                             variant="primary"
                                             className="!px-6 !py-2 !text-body"
@@ -423,20 +423,35 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps = {}) {
                                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
                                     </Link>
                                 </div>
-                            ) : (
+                            ) : onOpenAuthModal ? (
                                 <div className="flex gap-3">
                                     <button
-                                        onClick={() => { onOpenAuthModal?.("login"); setMobileOpen(false); }}
+                                        onClick={() => { onOpenAuthModal("login"); setMobileOpen(false); }}
                                         className="flex-1 py-3.5 text-center text-body font-bold border border-border rounded-venus hover:bg-surface transition-all active:scale-95"
                                     >
                                         Masuk
                                     </button>
                                     <button
-                                        onClick={() => { onOpenAuthModal?.("register"); setMobileOpen(false); }}
+                                        onClick={() => { onOpenAuthModal("register"); setMobileOpen(false); }}
                                         className="flex-1 py-3.5 text-center text-body font-bold bg-primary text-primary-foreground rounded-venus hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95"
                                     >
                                         Daftar
                                     </button>
+                                </div>
+                            ) : (
+                                <div className="flex gap-3">
+                                    <Link
+                                        href={`/login?redirect=${encodeURIComponent(url)}`}
+                                        className="flex-1 py-3.5 block text-center text-body font-bold border border-border rounded-venus hover:bg-surface transition-all active:scale-95"
+                                    >
+                                        Masuk
+                                    </Link>
+                                    <Link
+                                        href={`/register?redirect=${encodeURIComponent(url)}`}
+                                        className="flex-1 py-3.5 block text-center text-body font-bold bg-primary text-primary-foreground rounded-venus hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95"
+                                    >
+                                        Daftar
+                                    </Link>
                                 </div>
                             )}
                         </div>

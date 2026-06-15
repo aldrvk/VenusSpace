@@ -16,7 +16,7 @@ class BengkelBookingController extends Controller
         $queueCount = BengkelBooking::whereIn('status', ['pending', 'verified', 'in_queue'])->count();
         $occupiedBays = BengkelBooking::whereIn('status', ['servicing'])->whereNotNull('stall')->count();
         $totalBays = 3;
-        $availableBays = $totalBays - $occupiedBays;
+        $availableBays = max(0, $totalBays - $occupiedBays);
         $servicingCount = BengkelBooking::where('status', 'servicing')->count();
 
         return Inertia::render('Bengkel/index', [

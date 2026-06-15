@@ -141,7 +141,7 @@ export default function RentalPsIndex() {
 
     const handleConfirm = () => {
         if (!auth?.user) {
-            router.visit('/login');
+            router.visit(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
             return;
         }
 

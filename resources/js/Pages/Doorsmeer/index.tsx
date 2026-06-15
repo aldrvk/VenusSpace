@@ -147,6 +147,11 @@ export default function DoorsmeerIndex() {
     }, [queueCount, availableBays, washingCount]);
 
     const handleConfirm = () => {
+        if (!auth?.user) {
+            router.visit(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+            return;
+        }
+
         const platRegex = /^[A-Za-z]{1,2}\s?\d{1,4}\s?[A-Za-z]{1,3}$/;
         if (!licensePlate.trim()) {
             setPlateError('Nomor plat wajib diisi.');
@@ -154,11 +159,6 @@ export default function DoorsmeerIndex() {
         }
         if (!platRegex.test(licensePlate.trim())) {
             setPlateError('Format plat tidak valid (contoh: BK 1234 ABC).');
-            return;
-        }
-
-        if (!auth?.user) {
-            router.visit('/login');
             return;
         }
 

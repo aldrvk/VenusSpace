@@ -26,7 +26,7 @@ class DoorsmeerBookingController extends Controller
             ->whereNotNull('stall')
             ->count();
         $totalBays = 3;
-        $availableBays = $totalBays - $occupiedBays;
+        $availableBays = max(0, $totalBays - $occupiedBays);
 
         // Sedang dicuci count
         $washingCount = DoorsmeerBooking::where('status', 'washing')->count();

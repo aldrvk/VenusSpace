@@ -16,7 +16,7 @@ class RentalPsBookingController extends Controller
         $queueCount = RentalPsBooking::whereIn('status', ['pending', 'verified', 'in_queue'])->count();
         $occupiedBays = RentalPsBooking::whereIn('status', ['playing'])->whereNotNull('stall')->count();
         $totalBays = 5;
-        $availableBays = $totalBays - $occupiedBays;
+        $availableBays = max(0, $totalBays - $occupiedBays);
         $playingCount = RentalPsBooking::where('status', 'playing')->count();
 
         return Inertia::render('RentalPs/index', [
